@@ -75,8 +75,12 @@ public class OpenRouterService : BaseLanguageService
             }
 
             _model = ResolveModel(settings[SettingKeys.Translation.OpenRouter.Model]);
-            _requestTemplate = settings[SettingKeys.Translation.OpenRouter.RequestTemplate];
-            _prompt = settings[SettingKeys.Translation.AiPrompt];
+            _requestTemplate = !string.IsNullOrEmpty(settings[SettingKeys.Translation.OpenRouter.RequestTemplate])
+                ? settings[SettingKeys.Translation.OpenRouter.RequestTemplate]
+                : _requestTemplateService.GetDefaultTemplate(SettingKeys.Translation.OpenRouter.RequestTemplate);
+            _prompt = !string.IsNullOrEmpty(settings[SettingKeys.Translation.AiPrompt])
+                ? settings[SettingKeys.Translation.AiPrompt]
+                : "Translate from {sourceLanguage} to {targetLanguage}. Only return the translated text without any additional explanation.";
             _contextPromptEnabled = settings[SettingKeys.Translation.AiContextPromptEnabled];
             _contextPrompt = settings[SettingKeys.Translation.AiContextPrompt];
 
@@ -140,9 +144,18 @@ public class OpenRouterService : BaseLanguageService
         // Build request body from the configurable template.
         // {contextBefore} = prior dialogue lines (empty when disabled)
         // {userMessage} = just the line to translate
+        var templateSource = !string.IsNullOrWhiteSpace(_requestTemplate)
+            ? _requestTemplate!
+            : (_requestTemplateService.GetDefaultTemplate(SettingKeys.Translation.OpenRouter.RequestTemplate)
+               ?? _requestTemplateService.GetDefaultTemplate(SettingKeys.Translation.OpenAi.RequestTemplate)
+               ?? "");
+        if (string.IsNullOrWhiteSpace(templateSource))
+        {
+            throw new InvalidOperationException("OpenRouter request template is not configured.");
+        }
+
         var requestTemplate = _requestTemplateService.BuildRequestBody(
-            _requestTemplate ?? _requestTemplateService.GetDefaultTemplate(
-                SettingKeys.Translation.OpenRouter.RequestTemplate) ?? "",
+            templateSource,
             new Dictionary<string, string>
             {
                 ["model"] = _model!,
