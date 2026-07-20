@@ -60,7 +60,7 @@ public class ZaiService : BaseLanguageService
     /// <summary>
     /// Maps legacy general-API base URLs to Coding Plan so Bedroom never burns pay-as-you-go by accident.
     /// </summary>
-    internal static string NormalizeCodingEndpoint(string? configured)
+    public static string NormalizeCodingEndpoint(string? configured)
     {
         if (string.IsNullOrWhiteSpace(configured))
         {

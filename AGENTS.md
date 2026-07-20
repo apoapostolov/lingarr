@@ -90,3 +90,11 @@ Do not auto-deploy after merge without a smoke check.
 2. `GET /api/plugin/openrouter/models` → first option value is `openrouter/free`
 3. Translate line smoke for providers with working keys
 4. Restore `service_type` to a free scraper (e.g. microsoft) after paid tests if desired
+
+## Documentation
+
+- `docs/README.md` — index
+- `docs/architecture.md` — system architecture
+- `docs/testing.md` — unit + smoke tests
+- `docs/ai-providers-model-fallback-chain.md` — AI/fallback product design
+- `tests/smoke/smoke_api.py` — live API smoke
