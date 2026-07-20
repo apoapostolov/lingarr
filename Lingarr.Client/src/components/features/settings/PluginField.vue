@@ -10,6 +10,7 @@
                 :options="remoteOptions"
                 :selected="fieldValue"
                 :load-on-open="true"
+                :sort-options="false"
                 placeholder="Select option..."
                 :no-options="remoteError ?? 'Loading options...'"
                 @update:selected="(value: string) => (fieldValue = value)"

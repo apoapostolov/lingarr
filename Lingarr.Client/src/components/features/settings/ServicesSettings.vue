@@ -28,9 +28,11 @@
                         <div v-if="supportsModel(chain[0]?.provider)" class="flex items-center gap-2">
                             <div class="min-w-0 flex-1">
                                 <SelectComponent
+                                    :ref="(el) => setModelSelectRef(0, el)"
                                     :selected="chain[0]?.model ?? ''"
                                     :options="modelOptions[0] || []"
                                     :load-on-open="true"
+                                    :sort-options="false"
                                     size="sm"
                                     placeholder="Select model..."
                                     :no-options="modelError[0] || 'Loading models...'"
@@ -81,9 +83,11 @@
                             <div v-if="supportsModel(entry.provider)" class="flex items-center gap-2">
                                 <div class="min-w-0 flex-1">
                                     <SelectComponent
+                                        :ref="(el) => setModelSelectRef(index + 1, el)"
                                         :selected="entry.model ?? ''"
                                         :options="modelOptions[index + 1] || []"
                                         :load-on-open="true"
+                                        :sort-options="false"
                                         size="sm"
                                         placeholder="Select model..."
                                         :no-options="modelError[index + 1] || 'Loading models...'"
@@ -183,7 +187,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSettingStore } from '@/store/setting'
-import { IPluginManifest, IPluginSummary, SETTINGS, SERVICE_TYPE } from '@/ts'
+import { IPluginManifest, IPluginSummary, SETTINGS, SERVICE_TYPE, SelectComponentExpose } from '@/ts'
 import servicesApi from '@/services'
 import CardComponent from '@/components/common/CardComponent.vue'
 import SelectComponent from '@/components/common/SelectComponent.vue'
@@ -222,6 +226,15 @@ const configuringManifest = ref<IPluginManifest | null>(null)
 const manifestError = ref<string | null>(null)
 const modelOptions = reactive<Record<number, { value: string; label: string }[]>>({})
 const modelError = reactive<Record<number, string | null>>({})
+const modelSelectRefs = ref<Record<number, SelectComponentExpose | null>>({})
+
+function setModelSelectRef(index: number, el: unknown) {
+    if (el) {
+        modelSelectRefs.value[index] = el as SelectComponentExpose
+    } else {
+        delete modelSelectRefs.value[index]
+    }
+}
 
 function supportsModel(provider?: string) {
     return !!provider && MODEL_PROVIDERS.has(provider.toLowerCase())
@@ -325,6 +338,7 @@ function moveRow(index: number, delta: number) {
 async function loadModels(index: number, refresh: boolean) {
     const provider = chain.value[index]?.provider
     if (!provider || !supportsModel(provider)) return
+    modelSelectRefs.value[index]?.setLoadingState(true)
     try {
         modelError[index] = null
         const endpoint = `/api/plugin/${provider}/models${refresh ? '?refresh=true' : ''}`
@@ -339,6 +353,9 @@ async function loadModels(index: number, refresh: boolean) {
     } catch (e) {
         console.error(e)
         modelError[index] = 'Error loading models'
+    } finally {
+        // Always stop the SelectComponent spinner (load-on-open sets it true).
+        modelSelectRefs.value[index]?.setLoadingState(false)
     }
 }
 
