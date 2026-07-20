@@ -2,8 +2,8 @@
     <CardComponent title="Services">
         <template #description>
             Configure the translation service for subtitle localization. Add fallback services to be
-            tried in order when the primary service fails. AI providers show a model selector on the
-            row; credentials open via the gear icon.
+            tried in order when the primary service fails. AI providers include a model selector on
+            each row.
         </template>
         <template #content>
             <SaveNotification ref="saveNotification" />
@@ -14,28 +14,29 @@
                     <li
                         v-for="(entry, index) in chain"
                         :key="`row-${index}-${entry.provider}`"
-                        class="flex items-center gap-3 rounded-md border p-3"
-                        :class="
-                            index === configuringIndex
-                                ? 'border-accent bg-accent/10'
-                                : 'border-accent/30'
-                        ">
+                        class="flex items-center gap-3 rounded-md border border-accent/30 p-3"
+                        :class="{ 'border-accent bg-accent/10': index === configuringIndex }"
+                        @click="configuringIndex = index">
+                        <!-- 1-based index badge (primary = 1) -->
                         <span
-                            class="bg-accent/20 text-accent-content shrink-0 rounded px-2 py-0.5 text-xs font-semibold tracking-wider uppercase"
-                            aria-hidden="true">
-                            {{ index === 0 ? 'Primary' : `Fallback ${index}` }}
+                            class="bg-accent/20 text-accent-content flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sm font-semibold tabular-nums"
+                            :title="index === 0 ? 'Primary' : `Fallback ${index}`"
+                            :aria-label="index === 0 ? 'Primary' : `Fallback ${index}`">
+                            {{ index + 1 }}
                         </span>
-                        <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-                            <div class="min-w-[10rem] flex-1">
+
+                        <div class="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+                            <div class="min-w-0 flex-1" @click.stop>
                                 <SelectComponent
                                     :selected="entry.provider"
                                     :options="providerOptions"
-                                    size="sm"
+                                    placeholder="Select provider..."
                                     @update:selected="(value: string) => setProvider(index, value)" />
                             </div>
                             <div
                                 v-if="supportsModel(entry.provider)"
-                                class="flex min-w-[12rem] flex-[1.4] items-center gap-1">
+                                class="flex min-w-0 flex-1 items-center gap-2"
+                                @click.stop>
                                 <div class="min-w-0 flex-1">
                                     <SelectComponent
                                         :ref="(el) => setModelSelectRef(index, el)"
@@ -43,59 +44,50 @@
                                         :options="modelOptions[index] || []"
                                         :load-on-open="true"
                                         :sort-options="false"
-                                        size="sm"
                                         placeholder="Select model..."
                                         :no-options="modelError[index] || 'Loading models...'"
                                         @update:selected="(value: string) => setModel(index, value)"
                                         @fetch-options="() => loadModels(index, false)" />
                                 </div>
-                                <button
-                                    type="button"
-                                    class="text-primary-content hover:text-primary-content/50 focus-visible:ring-accent shrink-0 cursor-pointer rounded p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                                <ButtonComponent
+                                    variant="ghost"
+                                    size="xs"
                                     title="Refresh models"
-                                    aria-label="Refresh models"
                                     @click="loadModels(index, true)">
-                                    <span class="text-xs font-medium">↻</span>
-                                </button>
+                                    Refresh
+                                </ButtonComponent>
                             </div>
                         </div>
-                        <button
-                            type="button"
-                            class="text-primary-content hover:text-primary-content/50 focus-visible:ring-accent cursor-pointer rounded p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30"
-                            :disabled="index === configuringIndex"
-                            :aria-pressed="index === configuringIndex"
-                            title="Configure credentials"
-                            aria-label="Configure credentials"
-                            @click="configuringIndex = index">
-                            <SettingIcon class="h-4 w-4" />
-                        </button>
-                        <button
-                            type="button"
-                            class="text-primary-content hover:text-primary-content/50 focus-visible:ring-accent cursor-pointer rounded p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30"
-                            :disabled="index === 0"
-                            title="Move up"
-                            aria-label="Move up"
-                            @click="moveRow(index, -1)">
-                            <CaretUpIcon class="h-4 w-4" />
-                        </button>
-                        <button
-                            type="button"
-                            class="text-primary-content hover:text-primary-content/50 focus-visible:ring-accent cursor-pointer rounded p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30"
-                            :disabled="index === chain.length - 1"
-                            title="Move down"
-                            aria-label="Move down"
-                            @click="moveRow(index, 1)">
-                            <CaretDownIcon class="h-4 w-4" />
-                        </button>
-                        <button
-                            type="button"
-                            class="text-primary-content hover:text-primary-content/50 focus-visible:ring-accent cursor-pointer rounded p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30"
-                            :disabled="chain.length <= 1"
-                            title="Remove service"
-                            aria-label="Remove service"
-                            @click="removeRow(index)">
-                            <TrashIcon class="h-4 w-4" />
-                        </button>
+
+                        <div class="flex shrink-0 items-center gap-0.5" @click.stop>
+                            <button
+                                type="button"
+                                class="text-primary-content hover:text-primary-content/50 focus-visible:ring-accent cursor-pointer rounded p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30"
+                                :disabled="index === 0"
+                                title="Move up"
+                                aria-label="Move up"
+                                @click="moveRow(index, -1)">
+                                <CaretUpIcon class="h-4 w-4" />
+                            </button>
+                            <button
+                                type="button"
+                                class="text-primary-content hover:text-primary-content/50 focus-visible:ring-accent cursor-pointer rounded p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30"
+                                :disabled="index === chain.length - 1"
+                                title="Move down"
+                                aria-label="Move down"
+                                @click="moveRow(index, 1)">
+                                <CaretDownIcon class="h-4 w-4" />
+                            </button>
+                            <button
+                                v-if="index > 0"
+                                type="button"
+                                class="text-primary-content hover:text-primary-content/50 focus-visible:ring-accent cursor-pointer rounded p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                                title="Remove fallback"
+                                aria-label="Remove fallback"
+                                @click="removeRow(index)">
+                                <TrashIcon class="h-4 w-4" />
+                            </button>
+                        </div>
                     </li>
                     <li>
                         <ButtonComponent variant="ghost" size="xs" @click="addRow">
@@ -110,6 +102,7 @@
                 <div class="text-sm">
                     <span class="text-secondary-content/60">Configuring credentials for</span>
                     <span class="ml-1 font-semibold">{{ configuringLabel }}</span>
+                    <span class="text-secondary-content/60 ml-1">(row {{ configuringIndex + 1 }})</span>
                 </div>
                 <DynamicPluginForm
                     v-if="credentialsManifest"
@@ -168,7 +161,6 @@ import CaretUpIcon from '@/components/icons/CaretUpIcon.vue'
 import CaretDownIcon from '@/components/icons/CaretDownIcon.vue'
 import TrashIcon from '@/components/icons/TrashIcon.vue'
 import PlusIcon from '@/components/icons/PlusIcon.vue'
-import SettingIcon from '@/components/icons/SettingIcon.vue'
 
 export type ChainEntry = { provider: string; model?: string | null }
 
@@ -208,7 +200,6 @@ function supportsModel(provider?: string) {
     return !!provider && MODEL_PROVIDERS.has(provider.toLowerCase())
 }
 
-/** Model is chosen on the service row — hide RemoteDropdown / *_model from credentials panel. */
 function isModelField(key: string, type: string): boolean {
     if (type === PLUGIN_SETTING_TYPE.REMOTE_DROPDOWN) return true
     const k = key.toLowerCase()
@@ -284,6 +275,7 @@ function setProvider(index: number, value: string) {
         i === index ? { provider: value, model: supportsModel(value) ? e.model : null } : e
     )
     save(next)
+    configuringIndex.value = index
     loadModels(index, false)
 }
 
@@ -301,9 +293,8 @@ function addRow() {
 }
 
 function removeRow(index: number) {
-    if (chain.value.length <= 1) return
+    if (index === 0 || chain.value.length <= 1) return
     const next = chain.value.filter((_, i) => i !== index)
-    if (next.length === 0) return
     save(next)
     configuringIndex.value = Math.min(configuringIndex.value, next.length - 1)
 }
