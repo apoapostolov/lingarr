@@ -16,6 +16,7 @@ public sealed class TranslationChainEntry
     [JsonPropertyName("model")]
     public string? Model { get; set; }
 
+    [JsonIgnore]
     public string ProviderNormalized => Provider.Trim().ToLowerInvariant();
 }
 

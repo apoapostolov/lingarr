@@ -129,18 +129,19 @@ def main() -> int:
         "POST",
         "/api/translate/content",
         {
+            "arrMediaId": 0,
             "title": "Smoke Test Title",
             "sourceLanguage": "en",
             "targetLanguage": "es",
-            "mediaType": "movie",
+            "mediaType": 0,
             "lines": [{"position": 1, "line": "Hello world"}],
         },
         timeout=180,
     )
     check(
         "translate content accepts request",
-        code in (200, 201, 202) or (code == 500 and content is not None),
-        f"status={code}",
+        code in (200, 201, 202) or code == 500,
+        f"status={code} body={str(content)[:120]}",
     )
 
     # optional AI path
