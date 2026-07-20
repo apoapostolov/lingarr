@@ -165,6 +165,9 @@ export interface IEncryptedSettings {
     anthropic_api_key: string
     gemini_api_key: string
     deepseek_api_key: string
+    openrouter_api_key: string
+    zai_api_key: string
+    opencode_go_api_key: string
     deepl_api_key: string
     libretranslate_api_key: string
     local_ai_api_key: string

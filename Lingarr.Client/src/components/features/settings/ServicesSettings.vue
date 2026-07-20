@@ -1,42 +1,39 @@
 <template>
     <CardComponent title="Services">
         <template #description>
-            Configure the translation service for subtitle localization. Add fallback services to be
-            tried in order when the primary service fails. AI providers include a model selector on
-            each row.
+            Configure the translation service for subtitle localization. Each row is self-contained:
+            provider, model (when needed), and API key. Fallbacks run in order if earlier rows fail.
         </template>
         <template #content>
             <SaveNotification ref="saveNotification" />
 
             <div class="space-y-2">
                 <span class="font-semibold">Translation services</span>
-                <ol class="space-y-2">
+                <ol class="space-y-3">
                     <li
                         v-for="(entry, index) in chain"
                         :key="`row-${index}-${entry.provider}`"
-                        class="flex items-center gap-3 rounded-md border border-accent/30 p-3"
-                        :class="{ 'border-accent bg-accent/10': index === configuringIndex }"
-                        @click="configuringIndex = index">
+                        class="flex gap-3 rounded-md border border-accent/30 p-3">
                         <!-- 1-based index badge (primary = 1) -->
                         <span
-                            class="bg-accent/20 text-accent-content flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sm font-semibold tabular-nums"
+                            class="bg-accent/20 text-accent-content mt-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sm font-semibold tabular-nums"
                             :title="index === 0 ? 'Primary' : `Fallback ${index}`"
                             :aria-label="index === 0 ? 'Primary' : `Fallback ${index}`">
                             {{ index + 1 }}
                         </span>
 
-                        <div class="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
-                            <div class="min-w-0 flex-1" @click.stop>
-                                <SelectComponent
-                                    :selected="entry.provider"
-                                    :options="providerOptions"
-                                    placeholder="Select provider..."
-                                    @update:selected="(value: string) => setProvider(index, value)" />
-                            </div>
+                        <div class="flex min-w-0 flex-1 flex-col gap-2">
+                            <!-- Row 1: provider -->
+                            <SelectComponent
+                                :selected="entry.provider"
+                                :options="providerOptions"
+                                placeholder="Select provider..."
+                                @update:selected="(value: string) => setProvider(index, value)" />
+
+                            <!-- Row 2: model (AI / multi-model providers) -->
                             <div
                                 v-if="supportsModel(entry.provider)"
-                                class="flex min-w-0 flex-1 items-center gap-2"
-                                @click.stop>
+                                class="flex items-center gap-2">
                                 <div class="min-w-0 flex-1">
                                     <SelectComponent
                                         :ref="(el) => setModelSelectRef(index, el)"
@@ -57,9 +54,18 @@
                                     Refresh
                                 </ButtonComponent>
                             </div>
+
+                            <!-- Row 3: API key (per provider, only when needed) -->
+                            <InputComponent
+                                v-if="apiKeySettingKey(entry.provider)"
+                                :id="`api-key-${index}-${entry.provider}`"
+                                :model-value="apiKeyValue(entry.provider)"
+                                :type="INPUT_TYPE.PASSWORD"
+                                placeholder="API key"
+                                @update:model-value="(v: string) => setApiKey(entry.provider, v)" />
                         </div>
 
-                        <div class="flex shrink-0 items-center gap-0.5" @click.stop>
+                        <div class="flex shrink-0 flex-col items-center gap-0.5 pt-1">
                             <button
                                 type="button"
                                 class="text-primary-content hover:text-primary-content/50 focus-visible:ring-accent cursor-pointer rounded p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30"
@@ -98,53 +104,20 @@
                 </ol>
             </div>
 
-            <div v-if="credentialsManifest || manifestError" class="mt-4 space-y-2">
-                <div class="text-sm">
-                    <span class="text-secondary-content/60">Configuring credentials for</span>
-                    <span class="ml-1 font-semibold">{{ configuringLabel }}</span>
-                    <span class="text-secondary-content/60 ml-1">(row {{ configuringIndex + 1 }})</span>
-                </div>
-                <DynamicPluginForm
-                    v-if="credentialsManifest"
-                    :manifest="credentialsManifest"
-                    @save="saveNotification?.show()" />
-                <p v-else-if="manifestError" class="text-sm text-red-500">{{ manifestError }}</p>
-            </div>
-
-            <div v-if="configuringManifest?.hasRequestTemplate" class="mt-6">
-                <div class="flex flex-col gap-4">
-                    <div class="flex flex-col space-x-2">
-                        <span class="font-semibold">Customize request template and prompts</span>
-                        Adjust the AI request body, system prompt and context for translations.
-                    </div>
-                    <ButtonComponent
-                        variant="primary"
-                        size="md"
-                        @click="
-                            router.push({
-                                name: 'request-template-settings',
-                                params: { service: chain[configuringIndex]?.provider }
-                            })
-                        ">
-                        Open Request Settings
-                        <ArrowRight class="mt-1 ml-1 h-4 w-4" />
-                    </ButtonComponent>
-                </div>
-            </div>
-
             <SourceAndTarget @save="saveNotification?.show()" />
         </template>
     </CardComponent>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { useSettingStore } from '@/store/setting'
 import {
-    IPluginManifest,
-    IPluginSummary,
+    ENCRYPTED_SETTINGS,
+    IEncryptedSettings,
+    INPUT_TYPE,
     PLUGIN_SETTING_TYPE,
+    IPluginSummary,
     SETTINGS,
     SERVICE_TYPE,
     SelectComponentExpose
@@ -153,10 +126,9 @@ import servicesApi from '@/services'
 import CardComponent from '@/components/common/CardComponent.vue'
 import SelectComponent from '@/components/common/SelectComponent.vue'
 import ButtonComponent from '@/components/common/ButtonComponent.vue'
+import InputComponent from '@/components/common/InputComponent.vue'
 import SaveNotification from '@/components/common/SaveNotification.vue'
-import DynamicPluginForm from '@/components/features/settings/DynamicPluginForm.vue'
 import SourceAndTarget from '@/components/features/settings/SourceAndTarget.vue'
-import ArrowRight from '@/components/icons/ArrowRight.vue'
 import CaretUpIcon from '@/components/icons/CaretUpIcon.vue'
 import CaretDownIcon from '@/components/icons/CaretDownIcon.vue'
 import TrashIcon from '@/components/icons/TrashIcon.vue'
@@ -175,15 +147,25 @@ const MODEL_PROVIDERS = new Set([
     'opencode-go'
 ])
 
+/** Providers that use an encrypted API key setting. */
+const API_KEY_BY_PROVIDER: Record<string, keyof IEncryptedSettings> = {
+    openai: ENCRYPTED_SETTINGS.OPENAI_API_KEY as keyof IEncryptedSettings,
+    anthropic: ENCRYPTED_SETTINGS.ANTHROPIC_API_KEY as keyof IEncryptedSettings,
+    gemini: ENCRYPTED_SETTINGS.GEMINI_API_KEY as keyof IEncryptedSettings,
+    deepseek: ENCRYPTED_SETTINGS.DEEPSEEK_API_KEY as keyof IEncryptedSettings,
+    openrouter: ENCRYPTED_SETTINGS.OPENROUTER_API_KEY as keyof IEncryptedSettings,
+    zai: ENCRYPTED_SETTINGS.ZAI_API_KEY as keyof IEncryptedSettings,
+    'opencode-go': ENCRYPTED_SETTINGS.OPENCODE_GO_API_KEY as keyof IEncryptedSettings,
+    deepl: ENCRYPTED_SETTINGS.DEEPL_API_KEY as keyof IEncryptedSettings,
+    libretranslate: ENCRYPTED_SETTINGS.LIBRETRANSLATE_API_KEY as keyof IEncryptedSettings,
+    localai: ENCRYPTED_SETTINGS.LOCAL_AI_API_KEY as keyof IEncryptedSettings
+}
+
 const saveNotification = ref<InstanceType<typeof SaveNotification> | null>(null)
 const settingsStore = useSettingStore()
-const router = useRouter()
 
 const providerOptions = ref<{ value: string; label: string }[]>([])
 const chain = ref<ChainEntry[]>([{ provider: SERVICE_TYPE.LIBRETRANSLATE }])
-const configuringIndex = ref(0)
-const configuringManifest = ref<IPluginManifest | null>(null)
-const manifestError = ref<string | null>(null)
 const modelOptions = reactive<Record<number, { value: string; label: string }[]>>({})
 const modelError = reactive<Record<number, string | null>>({})
 const modelSelectRefs = ref<Record<number, SelectComponentExpose | null>>({})
@@ -200,22 +182,24 @@ function supportsModel(provider?: string) {
     return !!provider && MODEL_PROVIDERS.has(provider.toLowerCase())
 }
 
-function isModelField(key: string, type: string): boolean {
-    if (type === PLUGIN_SETTING_TYPE.REMOTE_DROPDOWN) return true
-    const k = key.toLowerCase()
-    return k.endsWith('_model') || k.includes('_model') || k === 'model'
+function apiKeySettingKey(provider?: string): keyof IEncryptedSettings | null {
+    if (!provider) return null
+    return API_KEY_BY_PROVIDER[provider.toLowerCase()] ?? null
 }
 
-const credentialsManifest = computed<IPluginManifest | null>(() => {
-    const manifest = configuringManifest.value
-    if (!manifest) return null
-    const provider = chain.value[configuringIndex.value]?.provider
-    if (!supportsModel(provider)) return manifest
-    return {
-        ...manifest,
-        settings: manifest.settings.filter((field) => !isModelField(field.key, field.type))
-    }
-})
+function apiKeyValue(provider: string): string {
+    const key = apiKeySettingKey(provider)
+    if (!key) return ''
+    const stored = settingsStore.getEncryptedSetting(key)
+    return typeof stored === 'string' ? stored : ''
+}
+
+function setApiKey(provider: string, value: string) {
+    const key = apiKeySettingKey(provider)
+    if (!key) return
+    settingsStore.updateEncryptedSetting(key, value, true)
+    saveNotification.value?.show()
+}
 
 function parseChain(raw: unknown): ChainEntry[] {
     try {
@@ -275,7 +259,6 @@ function setProvider(index: number, value: string) {
         i === index ? { provider: value, model: supportsModel(value) ? e.model : null } : e
     )
     save(next)
-    configuringIndex.value = index
     loadModels(index, false)
 }
 
@@ -296,7 +279,6 @@ function removeRow(index: number) {
     if (index === 0 || chain.value.length <= 1) return
     const next = chain.value.filter((_, i) => i !== index)
     save(next)
-    configuringIndex.value = Math.min(configuringIndex.value, next.length - 1)
 }
 
 function moveRow(index: number, delta: number) {
@@ -306,8 +288,6 @@ function moveRow(index: number, delta: number) {
     const tmp = next[index]
     next[index] = next[target]
     next[target] = tmp
-    if (configuringIndex.value === index) configuringIndex.value = target
-    else if (configuringIndex.value === target) configuringIndex.value = index
     save(next)
 }
 
@@ -334,37 +314,11 @@ async function loadModels(index: number, refresh: boolean) {
     }
 }
 
-async function loadManifest(provider: string) {
-    try {
-        const manifest = await servicesApi.plugin.getManifest(provider)
-        await settingsStore.setPluginSettings(manifest.settings)
-        configuringManifest.value = manifest
-        manifestError.value = null
-    } catch (error) {
-        console.error('Failed to load manifest', error)
-        configuringManifest.value = null
-        manifestError.value = `No manifest available for ${provider}.`
-    }
-}
-
-const configuringLabel = computed(() => {
-    const value = chain.value[configuringIndex.value]?.provider
-    return providerOptions.value.find((o) => o.value === value)?.label ?? value
-})
-
 watch(
     () => settingsStore.getSetting(SETTINGS.SERVICE_TYPE),
     (raw) => {
         chain.value = parseChain(raw)
     }
-)
-
-watch(
-    () => chain.value[configuringIndex.value]?.provider,
-    (provider) => {
-        if (provider) loadManifest(provider)
-    },
-    { immediate: true }
 )
 
 onMounted(async () => {
@@ -376,6 +330,28 @@ onMounted(async () => {
             .sort((a, b) => a.label.localeCompare(b.label))
     } catch (error) {
         console.error('Failed to load translation provider list', error)
+    }
+    // Ensure encrypted keys for providers on the chain are loaded into the store.
+    const keys = [
+        ...new Set(
+            chain.value
+                .map((e) => apiKeySettingKey(e.provider))
+                .filter((k): k is keyof IEncryptedSettings => !!k)
+        )
+    ]
+    if (keys.length) {
+        try {
+            await settingsStore.setPluginSettings(
+                keys.map((key) => ({
+                    key,
+                    label: key,
+                    type: PLUGIN_SETTING_TYPE.SECRET,
+                    required: false
+                })) as any
+            )
+        } catch {
+            /* store may already hold keys from global load */
+        }
     }
     chain.value.forEach((e, i) => {
         if (supportsModel(e.provider)) loadModels(i, false)
