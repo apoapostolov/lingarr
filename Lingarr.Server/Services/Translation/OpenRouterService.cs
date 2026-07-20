@@ -263,11 +263,19 @@ public class OpenRouterService : BaseLanguageService
                     var id = model.GetProperty("id").GetString() ?? "";
                     var name = model.TryGetProperty("name", out var n) ? n.GetString() ?? id : id;
 
-                    var label = name;
+                    // Bedroom default metamodel: free router first (cheap/low-quality OK for bulk subtitles).
+                    var label = id switch
+                    {
+                        "openrouter/free" => "openrouter/free • Free metamodel (default for bulk)",
+                        "openrouter/auto" => "openrouter/auto • Auto router",
+                        _ => name
+                    };
 
                     // Show cost per 1M mixed tokens instead of context length
                     // OpenRouter API returns pricing as strings like "0.0000005"
-                    if (model.TryGetProperty("pricing", out var pricing) && pricing.ValueKind == JsonValueKind.Object)
+                    if (id is not ("openrouter/free" or "openrouter/auto")
+                        && model.TryGetProperty("pricing", out var pricing)
+                        && pricing.ValueKind == JsonValueKind.Object)
                     {
                         var promptPrice = ParsePricing(pricing, "prompt");
                         var completionPrice = ParsePricing(pricing, "completion");
@@ -289,8 +297,23 @@ public class OpenRouterService : BaseLanguageService
 
                     return new LabelValue { Label = label, Value = id };
                 })
-                .OrderBy(x => x.Value == "openrouter/auto" ? 0 : 
-                              x.Value == "openrouter/free" ? 1 : 2)
+                .ToList();
+
+            // Always surface free metamodel first even if the catalogue omits/renames it.
+            options.RemoveAll(o => o.Value == "openrouter/free");
+            options.Insert(0, new LabelValue
+            {
+                Label = "openrouter/free • Free metamodel (default for bulk)",
+                Value = "openrouter/free"
+            });
+
+            options = options
+                .OrderBy(x => x.Value switch
+                {
+                    "openrouter/free" => 0,
+                    "openrouter/auto" => 1,
+                    _ => 2
+                })
                 .ThenBy(x => x.Label)
                 .ToList();
 

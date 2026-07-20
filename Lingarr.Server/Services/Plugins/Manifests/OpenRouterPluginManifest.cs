@@ -28,7 +28,7 @@ public sealed class OpenRouterPluginManifest : IPluginManifest
             Type = PluginSettingType.RemoteDropdown,
             Required = true,
             OptionsEndpoint = "/api/plugin/openrouter/models",
-            Description = "Select a model from the OpenRouter catalogue."
+            Description = "Prefer openrouter/free (listed first) for bulk/low-quality-OK free routing."
         },
         new()
         {
