@@ -57,7 +57,7 @@ Plain string `microsoft` (Bedroom compose env) still parses as a one-entry chain
 |----|--------|
 | `deepseek` | Existing + model override + catalog cache |
 | `openrouter` | OpenAI-compat; **dropdown order: free → auto → rest**; seed model `openrouter/free` |
-| `zai` | OpenAI-compat GLM; general API base (coding plan URL optional) |
+| `zai` | **GLM Coding Plan** only — `https://api.z.ai/api/coding/paas/v4`; models `glm-5.2` / `glm-5-turbo` / `glm-4.7` (not general `paas/v4`) |
 | `opencode-go` | OpenAI-compat; implement even if Bedroom subscription is inactive |
 
 ## OpenRouter model UX (locked)

@@ -9,10 +9,31 @@ using Lingarr.Server.Services.Translation.Base;
 
 namespace Lingarr.Server.Services.Translation;
 
-/// <summary>Z.ai (GLM) OpenAI-compatible chat completions.</summary>
+/// <summary>
+/// Z.ai <b>GLM Coding Plan</b> (subscription quota), OpenAI-compatible chat completions.
+/// Uses the Coding endpoint, not the general pay-as-you-go API.
+/// Docs: https://docs.z.ai/devpack/tool/others
+/// </summary>
 public class ZaiService : BaseLanguageService
 {
-    private string _endpoint = "https://api.z.ai/api/paas/v4";
+    /// <summary>Global Coding Plan OpenAI Chat Completions base (no trailing slash).</summary>
+    public const string CodingPlanGlobalEndpoint = "https://api.z.ai/api/coding/paas/v4";
+
+    /// <summary>China-region Coding Plan OpenAI base.</summary>
+    public const string CodingPlanCnEndpoint = "https://open.bigmodel.cn/api/coding/paas/v4";
+
+    /// <summary>General API (pay-as-you-go) — not used for Bedroom Coding Plan.</summary>
+    public const string GeneralApiGlobalEndpoint = "https://api.z.ai/api/paas/v4";
+
+    /// <summary>Models officially listed for GLM Coding Plan quota.</summary>
+    private static readonly string[] CodingPlanModels =
+    [
+        "glm-5.2",
+        "glm-5-turbo",
+        "glm-4.7"
+    ];
+
+    private string _endpoint = CodingPlanGlobalEndpoint;
     private readonly HttpClient _httpClient;
     private readonly IRequestTemplateService _requestTemplateService;
     private string? _model;
@@ -36,6 +57,36 @@ public class ZaiService : BaseLanguageService
         _requestTemplateService = requestTemplateService;
     }
 
+    /// <summary>
+    /// Maps legacy general-API base URLs to Coding Plan so Bedroom never burns pay-as-you-go by accident.
+    /// </summary>
+    internal static string NormalizeCodingEndpoint(string? configured)
+    {
+        if (string.IsNullOrWhiteSpace(configured))
+        {
+            return CodingPlanGlobalEndpoint;
+        }
+
+        var ep = configured.Trim().TrimEnd('/');
+
+        // Common misconfig: general global/CN paas endpoints.
+        if (ep.Equals(GeneralApiGlobalEndpoint, StringComparison.OrdinalIgnoreCase)
+            || ep.Equals("https://api.z.ai/api/paas/v4/", StringComparison.OrdinalIgnoreCase))
+        {
+            return CodingPlanGlobalEndpoint;
+        }
+
+        if (ep.Contains("open.bigmodel.cn", StringComparison.OrdinalIgnoreCase)
+            && ep.Contains("/api/paas/v4", StringComparison.OrdinalIgnoreCase)
+            && !ep.Contains("/api/coding/", StringComparison.OrdinalIgnoreCase))
+        {
+            return CodingPlanCnEndpoint;
+        }
+
+        // Already coding, or custom proxy — keep.
+        return ep;
+    }
+
     private async Task InitializeAsync(string sourceLanguage, string targetLanguage)
     {
         if (_initialized) return;
@@ -53,17 +104,25 @@ public class ZaiService : BaseLanguageService
                 SettingKeys.Translation.LanguageCodeFormat
             ]);
             _model = ResolveModel(settings[SettingKeys.Translation.Zai.Model]);
-            var ep = settings[SettingKeys.Translation.Zai.Endpoint];
-            if (!string.IsNullOrWhiteSpace(ep)) _endpoint = ep.Trim().TrimEnd('/');
+            if (string.IsNullOrWhiteSpace(_model))
+            {
+                _model = CodingPlanModels[0];
+            }
+
+            _endpoint = NormalizeCodingEndpoint(settings.GetValueOrDefault(SettingKeys.Translation.Zai.Endpoint));
             _apiKey = await _settings.GetEncryptedSetting(SettingKeys.Translation.Zai.ApiKey);
             _requestTemplate = !string.IsNullOrEmpty(settings[SettingKeys.Translation.Zai.RequestTemplate])
                 ? settings[SettingKeys.Translation.Zai.RequestTemplate]
-                : _requestTemplateService.GetDefaultTemplate(SettingKeys.Translation.OpenAi.RequestTemplate);
+                : _requestTemplateService.GetDefaultTemplate(SettingKeys.Translation.OpenAi.RequestTemplate)
+                  ?? _requestTemplateService.GetDefaultTemplate(SettingKeys.Translation.Zai.RequestTemplate);
             _contextPromptEnabled = settings[SettingKeys.Translation.AiContextPromptEnabled];
             if (string.IsNullOrEmpty(_model) || string.IsNullOrEmpty(_apiKey))
-                throw new InvalidOperationException("Z.ai API key or model is not configured.");
+                throw new InvalidOperationException("Z.ai Coding Plan API key or model is not configured.");
             SetLanguageReplacements(sourceLanguage, targetLanguage, settings[SettingKeys.Translation.LanguageCodeFormat]);
-            _prompt = ReplacePlaceholders(settings[SettingKeys.Translation.AiPrompt], _replacements);
+            var rawPrompt = settings[SettingKeys.Translation.AiPrompt];
+            _prompt = !string.IsNullOrWhiteSpace(rawPrompt)
+                ? ReplacePlaceholders(rawPrompt, _replacements)
+                : $"Translate from {_replacements["sourceLanguage"]} to {_replacements["targetLanguage"]}. Only return the translated text without any additional explanation.";
             _contextPrompt = settings[SettingKeys.Translation.AiContextPrompt];
             _initialized = true;
         }
@@ -77,8 +136,14 @@ public class ZaiService : BaseLanguageService
     {
         await InitializeAsync(sourceLanguage, targetLanguage);
         text = ApplyContextIfEnabled(text, contextLinesBefore, contextLinesAfter);
+
+        if (string.IsNullOrWhiteSpace(_requestTemplate))
+        {
+            throw new InvalidOperationException("Z.ai request template is not configured.");
+        }
+
         var body = _requestTemplateService.BuildRequestBody(
-            _requestTemplate ?? "",
+            _requestTemplate,
             new Dictionary<string, string>
             {
                 ["model"] = _model!,
@@ -87,30 +152,59 @@ public class ZaiService : BaseLanguageService
             });
         using var req = new HttpRequestMessage(HttpMethod.Post, $"{_endpoint}/chat/completions");
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+        req.Headers.TryAddWithoutValidation("Accept-Language", "en-US,en");
         req.Content = new StringContent(body, Encoding.UTF8, "application/json");
         var response = await _httpClient.SendAsync(req, cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
         if (!response.IsSuccessStatusCode)
-            throw new TranslationException($"Z.ai API error ({response.StatusCode}): {responseBody}");
+            throw new TranslationException($"Z.ai Coding Plan error ({response.StatusCode}): {responseBody}");
+
         using var doc = JsonDocument.Parse(responseBody);
-        return doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString()?.Trim()
-               ?? throw new TranslationException("Empty Z.ai response.");
+        var message = doc.RootElement.GetProperty("choices")[0].GetProperty("message");
+        var content = message.TryGetProperty("content", out var c) ? c.GetString() : null;
+        // Some GLM responses put draft text only in reasoning_content when thinking is on.
+        if (string.IsNullOrWhiteSpace(content)
+            && message.TryGetProperty("reasoning_content", out var reasoning))
+        {
+            content = reasoning.GetString();
+        }
+
+        return content?.Trim()
+               ?? throw new TranslationException("Empty Z.ai Coding Plan response.");
     }
 
     public override async Task<ModelsResponse> GetModels()
     {
         _apiKey = await _settings.GetEncryptedSetting(SettingKeys.Translation.Zai.ApiKey);
+
+        // Coding Plan catalogue is small and documented; curated list is authoritative for the plan.
+        var curated = CodingPlanModels
+            .Select(id => new LabelValue
+            {
+                Label = id switch
+                {
+                    "glm-5.2" => "glm-5.2 • Coding Plan flagship",
+                    "glm-5-turbo" => "glm-5-turbo • Coding Plan",
+                    "glm-4.7" => "glm-4.7 • Coding Plan (lighter quota)",
+                    _ => id
+                },
+                Value = id
+            })
+            .ToList();
+
         if (string.IsNullOrEmpty(_apiKey))
-            return new ModelsResponse { Message = "Z.ai API key is not configured." };
-        // Curated GLM defaults + try /models
-        var curated = new[] { "glm-5.2", "glm-5.1", "glm-5", "glm-4.7", "glm-4.6", "glm-4.5" }
-            .Select(id => new LabelValue { Label = id, Value = id }).ToList();
+        {
+            return new ModelsResponse
+            {
+                Options = curated,
+                Message = "Coding Plan API key not set — showing Coding Plan model ids only."
+            };
+        }
+
         try
         {
             var settings = await _settings.GetSettings([SettingKeys.Translation.Zai.Endpoint]);
-            var ep = settings.GetValueOrDefault(SettingKeys.Translation.Zai.Endpoint);
-            if (string.IsNullOrWhiteSpace(ep)) ep = _endpoint;
-            ep = ep!.Trim().TrimEnd('/');
+            var ep = NormalizeCodingEndpoint(settings.GetValueOrDefault(SettingKeys.Translation.Zai.Endpoint));
             using var req = new HttpRequestMessage(HttpMethod.Get, $"{ep}/models");
             req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
             var response = await _httpClient.SendAsync(req);
@@ -121,18 +215,34 @@ public class ZaiService : BaseLanguageService
                 if (doc.RootElement.TryGetProperty("data", out var data))
                 {
                     var remote = data.EnumerateArray()
-                        .Select(m => m.GetProperty("id").GetString() ?? "")
+                        .Select(m => m.TryGetProperty("id", out var idEl) ? idEl.GetString() ?? "" : "")
                         .Where(id => !string.IsNullOrWhiteSpace(id))
-                        .Select(id => new LabelValue { Label = id, Value = id })
+                        .Select(id => new LabelValue { Label = id!, Value = id! })
                         .ToList();
-                    if (remote.Count > 0) return new ModelsResponse { Options = remote };
+
+                    // Prefer Coding Plan order: curated first, then any extras from /models.
+                    if (remote.Count > 0)
+                    {
+                        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        var merged = new List<LabelValue>();
+                        foreach (var item in curated)
+                        {
+                            if (seen.Add(item.Value)) merged.Add(item);
+                        }
+                        foreach (var item in remote)
+                        {
+                            if (seen.Add(item.Value)) merged.Add(item);
+                        }
+                        return new ModelsResponse { Options = merged };
+                    }
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex, "Z.ai /models failed; using curated list");
+            _logger.LogDebug(ex, "Z.ai Coding Plan /models failed; using curated Coding Plan list");
         }
+
         return new ModelsResponse { Options = curated };
     }
 }

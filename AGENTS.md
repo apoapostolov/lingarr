@@ -43,7 +43,7 @@ When you change product behaviour covered by a proposal, **update that doc in th
 | Id | Notes |
 |----|--------|
 | `openrouter` | OpenAI-compat; free metamodel first |
-| `zai` | Z.ai GLM; may need balance |
+| `zai` | **GLM Coding Plan only** — base `https://api.z.ai/api/coding/paas/v4` (not general `.../api/paas/v4`). Models: `glm-5.2`, `glm-5-turbo`, `glm-4.7`. Wrong endpoint → 1113 insufficient balance. |
 | `opencode-go` | Implemented; may be unsubscribed in Bedroom |
 | `deepseek` | Upstream-style + model override |
 

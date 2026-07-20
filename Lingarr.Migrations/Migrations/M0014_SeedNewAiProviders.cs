@@ -25,8 +25,8 @@ WHERE NOT EXISTS (SELECT 1 FROM settings WHERE key = '{key}');
         Seed("openrouter_max_tokens", "4096");
         Seed("openrouter_request_template", "");
         Seed("zai_api_key", "");
-        Seed("zai_endpoint", "https://api.z.ai/api/paas/v4");
-        Seed("zai_model", "glm-5.2");
+        Seed("zai_endpoint", "https://api.z.ai/api/coding/paas/v4");
+        Seed("zai_model", "glm-5.2");  // Coding Plan default
         Seed("zai_request_template", "");
         Seed("opencode_go_api_key", "");
         Seed("opencode_go_endpoint", "https://opencode.ai/zen/go/v1");
