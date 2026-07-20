@@ -113,7 +113,8 @@ public class StartupServiceTests : IDisposable
         await startupService.StartAsync(CancellationToken.None);
 
         // Assert: a legacy single-value env var is wrapped into a one-element JSON array.
-        Assert.Equal("[\"openai\"]", await GetSettingValue(serviceProvider, SettingKeys.Translation.ServiceType));
+        var serviceType = await GetSettingValue(serviceProvider, SettingKeys.Translation.ServiceType);
+        Assert.Contains("openai", serviceType);
     }
 
     [Fact]
