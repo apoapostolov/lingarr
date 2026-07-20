@@ -33,63 +33,60 @@ const props = withDefaults(
     }
 )
 
+// Theme-native: secondary/tertiary surfaces with accent borders — no loud greens/reds/yellows.
 const borderClass = computed(() => {
     switch (props.type) {
         case 'success':
-            return 'border-green-700/50'
+            return 'border-accent/50'
         case 'error':
-            return 'border-red-700/50'
+            return 'border-accent/40'
         case 'warning':
-            return 'border-yellow-700/50'
+            return 'border-accent/45'
         case 'info':
-            return 'border-blue-700/50'
         default:
-            return 'border-gray-700/50'
+            return 'border-accent/35'
     }
 })
 
 const bgClass = computed(() => {
     switch (props.type) {
         case 'success':
-            return 'bg-green-900/20'
+            return 'bg-secondary'
         case 'error':
-            return 'bg-red-900/20'
+            return 'bg-tertiary'
         case 'warning':
-            return 'bg-yellow-900/20'
+            return 'bg-secondary'
         case 'info':
-            return 'bg-blue-900/20'
         default:
-            return 'bg-gray-900/20'
+            return 'bg-secondary/80'
     }
 })
 
 const textClass = computed(() => {
     switch (props.type) {
         case 'success':
-            return 'text-green-400'
+            return 'text-accent-content'
         case 'error':
-            return 'text-red-400'
+            return 'text-primary-content/90'
         case 'warning':
-            return 'text-yellow-400'
+            return 'text-primary-content/85'
         case 'info':
-            return 'text-blue-400'
         default:
-            return 'text-gray-400'
+            return 'text-primary-content/80'
     }
 })
 
 const iconClass = computed(() => {
     switch (props.type) {
         case 'success':
-            return 'text-green-400'
+            return 'text-accent'
         case 'error':
-            return 'text-red-400'
+            return 'text-primary-content/70'
         case 'warning':
-            return 'text-yellow-400'
+            return 'text-accent-content'
         case 'info':
-            return 'text-blue-400'
         default:
-            return 'text-gray-400'
+            return 'text-accent/80'
     }
 })
 </script>
