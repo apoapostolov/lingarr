@@ -110,6 +110,30 @@ public class TranslationFactory : ITranslationServiceFactory
                 _serviceProvider.GetRequiredService<IRequestTemplateService>()
             ),
 
+            "openrouter" => new OpenRouterService(
+                _serviceProvider.GetRequiredService<ISettingService>(),
+                _serviceProvider.GetRequiredService<HttpClient>(),
+                _serviceProvider.GetRequiredService<ILogger<OpenRouterService>>(),
+                languageCodeService,
+                _serviceProvider.GetRequiredService<IRequestTemplateService>()
+            ),
+
+            "zai" => new ZaiService(
+                _serviceProvider.GetRequiredService<ISettingService>(),
+                _serviceProvider.GetRequiredService<HttpClient>(),
+                _serviceProvider.GetRequiredService<ILogger<ZaiService>>(),
+                languageCodeService,
+                _serviceProvider.GetRequiredService<IRequestTemplateService>()
+            ),
+
+            "opencode-go" => new OpenCodeGoService(
+                _serviceProvider.GetRequiredService<ISettingService>(),
+                _serviceProvider.GetRequiredService<HttpClient>(),
+                _serviceProvider.GetRequiredService<ILogger<OpenCodeGoService>>(),
+                languageCodeService,
+                _serviceProvider.GetRequiredService<IRequestTemplateService>()
+            ),
+
             // load any registered plugins
             _ => _serviceProvider.GetKeyedService<ITranslationService>(serviceType.ToLowerInvariant())
                  ?? throw new ArgumentException("Unsupported translation service type", nameof(serviceType))
@@ -117,16 +141,21 @@ public class TranslationFactory : ITranslationServiceFactory
     }
 
     /// <inheritdoc />
-    public IReadOnlyList<TranslationServiceEntry> CreateTranslationServices(IReadOnlyList<string> serviceTypes)
+
+    public IReadOnlyList<TranslationServiceEntry> CreateTranslationServices(IReadOnlyList<TranslationChainEntry> entries)
     {
-        var services = new List<TranslationServiceEntry>(serviceTypes.Count);
-        foreach (var serviceType in serviceTypes)
+        var services = new List<TranslationServiceEntry>(entries.Count);
+        foreach (var entry in entries)
         {
-            var name = serviceType.ToLowerInvariant();
+            var name = entry.ProviderNormalized;
             try
             {
                 var service = CreateTranslationService(name);
-                services.Add(new TranslationServiceEntry(name, service, service as IBatchTranslationService));
+                if (!string.IsNullOrWhiteSpace(entry.Model) && service is IModelOverridable overridable)
+                {
+                    overridable.OverrideModel(entry.Model);
+                }
+                services.Add(new TranslationServiceEntry(name, service, service as IBatchTranslationService, entry.Model));
             }
             catch (ArgumentException)
             {
@@ -134,5 +163,13 @@ public class TranslationFactory : ITranslationServiceFactory
             }
         }
         return services;
+    }
+
+    public IReadOnlyList<TranslationServiceEntry> CreateTranslationServices(IReadOnlyList<string> serviceTypes)
+    {
+        var entries = serviceTypes
+            .Select(name => new TranslationChainEntry { Provider = name })
+            .ToList();
+        return CreateTranslationServices(entries);
     }
 }

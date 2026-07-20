@@ -192,6 +192,10 @@ public static class ServiceCollectionExtensions
         builder.Services.AddSingleton<IPluginManifest, BingTranslatePluginManifest>();
         builder.Services.AddSingleton<IPluginManifest, MicrosoftTranslatePluginManifest>();
         builder.Services.AddSingleton<IPluginManifest, YandexTranslatePluginManifest>();
+        builder.Services.AddSingleton<IPluginManifest, OpenRouterPluginManifest>();
+        builder.Services.AddSingleton<IPluginManifest, ZaiPluginManifest>();
+        builder.Services.AddSingleton<IPluginManifest, OpenCodeGoPluginManifest>();
+        builder.Services.AddSingleton<IModelCatalogService, ModelCatalogService>();
 
         // Plugin discovery and the read settings
         builder.Services.AddSingleton<IPluginRegistry, PluginRegistry>();

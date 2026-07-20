@@ -593,13 +593,13 @@ public class TranslationRequestService : ITranslationRequestService
                 SettingKeys.Translation.PreserveLineBreaks
             ]);
             var preserveLineBreaks = settings[SettingKeys.Translation.PreserveLineBreaks] == "true";
-            var serviceNames = TranslationServices.Parse(settings[SettingKeys.Translation.ServiceType]);
-            var serviceType = serviceNames[0];
-            var services = _translationServiceFactory.CreateTranslationServices(serviceNames);
+            var chain = TranslationChain.Parse(settings[SettingKeys.Translation.ServiceType], _logger);
+            var services = _translationServiceFactory.CreateTranslationServices(chain);
+            var serviceType = services.Count > 0 ? services[0].Name : "unknown";
             if (services.Count == 0)
             {
                 throw new TranslationException(
-                    $"No usable translation services configured: [{string.Join(", ", serviceNames)}]");
+                    $"No usable translation services configured: [{string.Join(", ", chain.Select(e => e.ProviderNormalized))}]");
             }
             var translationService = services[0].Service;
 
