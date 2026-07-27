@@ -36,6 +36,12 @@ public interface ISettingService
     Task<bool> SetSetting(string key, string value);
 
     /// <summary>
+    /// Inserts or updates a setting by key. Used for runtime state (e.g. automation cursors)
+    /// that may not be present in seed migrations.
+    /// </summary>
+    Task UpsertSetting(string key, string value);
+
+    /// <summary>
     /// Asynchronously updates multiple settings with the specified keys and values.
     /// </summary>
     /// <param name="settings">A dictionary where the keys are setting keys and the values are the new values to assign.</param>

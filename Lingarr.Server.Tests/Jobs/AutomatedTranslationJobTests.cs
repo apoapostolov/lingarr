@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Lingarr.Core.Configuration;
 using Lingarr.Core.Data;
 using Lingarr.Core.Entities;
 using Lingarr.Core.Enum;
@@ -13,7 +14,6 @@ using Lingarr.Server.Jobs;
 using Lingarr.Server.Models;
 using Lingarr.Server.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
@@ -32,7 +32,8 @@ public class AutomatedTranslationJobTests
 
             var movies = await SeedMoviesAsync(context, tempDirectory.FullName);
             var processor = new RecordingMediaSubtitleProcessor();
-            var job = CreateJob(context, processor);
+            var settings = new InMemorySettingService();
+            var job = CreateJob(context, processor, settings);
             ConfigureJobForMovies(job);
 
             var result = await InvokeProcessMoviesAsync(job);
@@ -40,6 +41,38 @@ public class AutomatedTranslationJobTests
             Assert.True(result);
             Assert.Single(processor.ProcessedTitles);
             Assert.Equal(movies[^1].Title, processor.ProcessedTitles.Single());
+            // Durable cursor persisted (after a full pass of 3 items starting at 0, index wraps to 0).
+            var indexRaw = await settings.GetSetting(SettingKeys.Automation.MovieProcessingIndex);
+            Assert.True(int.TryParse(indexRaw, out _), $"expected numeric index, got '{indexRaw}'");
+        }
+        finally
+        {
+            tempDirectory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task ProcessMovies_ResumesFromPersistedIndex()
+    {
+        var tempDirectory = Directory.CreateTempSubdirectory();
+        try
+        {
+            var dbContext = BuildContext();
+            await using var context = dbContext;
+
+            await SeedMoviesAsync(context, tempDirectory.FullName);
+            var processor = new RecordingMediaSubtitleProcessor();
+            var settings = new InMemorySettingService();
+            // Skip first two (too fresh) — start at last eligible movie only if index=2
+            await settings.UpsertSetting(SettingKeys.Automation.MovieProcessingIndex, "2");
+            var job = CreateJob(context, processor, settings);
+            ConfigureJobForMovies(job);
+
+            var result = await InvokeProcessMoviesAsync(job);
+
+            Assert.True(result);
+            Assert.Single(processor.ProcessedTitles);
+            Assert.Equal("Eligible Movie", processor.ProcessedTitles.Single());
         }
         finally
         {
@@ -90,15 +123,15 @@ public class AutomatedTranslationJobTests
 
     private static AutomatedTranslationJob CreateJob(
         LingarrDbContext context,
-        IMediaSubtitleProcessor processor)
+        IMediaSubtitleProcessor processor,
+        ISettingService settings)
     {
         return new AutomatedTranslationJob(
             context,
             NullLogger<AutomatedTranslationJob>.Instance,
             processor,
             new NoOpScheduleService(),
-            new NoOpSettingService(),
-            new MemoryCache(new MemoryCacheOptions()));
+            settings);
     }
 
     private static void ConfigureJobForMovies(AutomatedTranslationJob job)
@@ -153,31 +186,52 @@ public class AutomatedTranslationJobTests
         public Task UpdateJobState(string jobId, string state) => Task.CompletedTask;
     }
 
-    private sealed class NoOpSettingService : ISettingService
+    private sealed class InMemorySettingService : ISettingService
     {
+        private readonly Dictionary<string, string> _values = new();
+
         public event SettingChangedHandler? SettingChanged
         {
             add { }
             remove { }
         }
 
-        public Task<string?> GetSetting(string key) => Task.FromResult<string?>(null);
+        public Task<string?> GetSetting(string key) =>
+            Task.FromResult(_values.TryGetValue(key, out var v) ? v : null);
 
         public Task<Dictionary<string, string>> GetSettings(IEnumerable<string> keys)
         {
-            var dictionary = keys.ToDictionary(static key => key, static _ => string.Empty);
+            var dictionary = keys.ToDictionary(
+                static key => key,
+                key => _values.TryGetValue(key, out var v) ? v : string.Empty);
             return Task.FromResult(dictionary);
         }
 
-        public Task<bool> SetSetting(string key, string value) => Task.FromResult(true);
+        public Task<bool> SetSetting(string key, string value)
+        {
+            _values[key] = value;
+            return Task.FromResult(true);
+        }
 
-        public Task<bool> SetSettings(Dictionary<string, string> settings) => Task.FromResult(true);
+        public Task UpsertSetting(string key, string value)
+        {
+            _values[key] = value;
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> SetSettings(Dictionary<string, string> settings)
+        {
+            foreach (var pair in settings)
+            {
+                _values[pair.Key] = pair.Value;
+            }
+
+            return Task.FromResult(true);
+        }
 
         public Task<List<T>> GetSettingAsJson<T>(string key) where T : class => Task.FromResult(new List<T>());
-        public Task<bool> SetEncryptedSetting(string key, string value)=> Task.FromResult(true);
-
-        public Task<string?> GetEncryptedSetting(string key) => Task.FromResult<string?>(null);
-
-        public Task<Dictionary<string, string>> GetEncryptedSettings(IEnumerable<string> keys) => Task.FromResult(new Dictionary<string, string>());
+        public Task<bool> SetEncryptedSetting(string key, string value) => SetSetting(key, value);
+        public Task<string?> GetEncryptedSetting(string key) => GetSetting(key);
+        public Task<Dictionary<string, string>> GetEncryptedSettings(IEnumerable<string> keys) => GetSettings(keys);
     }
 }

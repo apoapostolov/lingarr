@@ -110,6 +110,12 @@ public class MediaService : IMediaService
     /// <inheritdoc />
     public async Task<int> GetMovieIdOrSyncFromRadarrMovieId(int movieId)
     {
+        if (movieId <= 0)
+        {
+            _logger.LogWarning("Ignoring invalid Radarr movie id {MovieId}", movieId);
+            return 0;
+        }
+
         var movie = await _dbContext.Movies.Where(s => s.RadarrId == movieId).FirstOrDefaultAsync();
         if (movie != null)
         {
@@ -153,6 +159,12 @@ public class MediaService : IMediaService
     /// <inheritdoc />
     public async Task<int> GetEpisodeIdOrSyncFromSonarrEpisodeId(int episodeNumber)
     {
+        if (episodeNumber <= 0)
+        {
+            _logger.LogWarning("Ignoring invalid Sonarr episode id {EpisodeId}", episodeNumber);
+            return 0;
+        }
+
         var episode = await _dbContext.Episodes.Where(s => s.SonarrId == episodeNumber).FirstOrDefaultAsync();
         if (episode != null)
         {

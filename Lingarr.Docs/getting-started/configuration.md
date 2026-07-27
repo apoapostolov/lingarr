@@ -22,6 +22,7 @@ Lingarr is primarily configured through its web interface. However, every settin
 | `DB_PASSWORD=Secret1234` | The password for the database (required when using `mysql` or `postgresql`). |
 | `SQLITE_DB_PATH` | Path to the SQLite database file used when `DB_CONNECTION` is `sqlite`. Defaults to `local.db` within `/app/config/`. |
 | `DB_HANGFIRE_SQLITE_PATH=/app/config/Hangfire.db` | Path to the SQLite database file used by the Hangfire job store. Defaults to `/app/config/Hangfire.db`. |
+| `HANGFIRE_WAL_CHECKPOINT_MINUTES=15` | When Hangfire uses SQLite, interval for `PRAGMA wal_checkpoint(TRUNCATE)` to prevent unbounded WAL growth. Default `15`. Ignored for MySQL/PostgreSQL Hangfire storage. |
 
 ## Docker secrets
 

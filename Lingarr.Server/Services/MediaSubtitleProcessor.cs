@@ -98,7 +98,8 @@ public class MediaSubtitleProcessor : IMediaSubtitleProcessor
         var selected = _subtitleService.SelectSourceSubtitle(subtitles, sourceLanguages, ignoreCaptions);
         if (selected == null || !targetLanguages.Any())
         {
-            _logger.LogWarning(
+            // Common when target (e.g. bg) already exists and source en is gone — not an error condition.
+            _logger.LogDebug(
                 "No valid source language or target languages found for media |Green|{FileName}|/Green|. " +
                 "Existing languages: |Red|{ExistingLanguages}|/Red|, " +
                 "Source languages: |Red|{SourceLanguages}|/Red|, " +

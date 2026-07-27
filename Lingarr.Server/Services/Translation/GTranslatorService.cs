@@ -109,7 +109,9 @@ public class GTranslatorService<T> : BaseLanguageService where T : ITranslator
 
                 return result.Translation;
             }
-            catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.TooManyRequests or HttpStatusCode.ServiceUnavailable)
+            catch (HttpRequestException ex) when (
+                ex.StatusCode is HttpStatusCode.TooManyRequests or HttpStatusCode.ServiceUnavailable
+                || IsTransientNetworkFailure(ex))
             {
                 if (attempt > _maxRetries)
                 {
@@ -121,12 +123,22 @@ public class GTranslatorService<T> : BaseLanguageService where T : ITranslator
                     "{ServiceName} received {StatusCode}. Retrying in {Delay}... (Attempt {Attempt}/{MaxRetries})",
                     "GTranslator", ex.StatusCode, delay, attempt, _maxRetries);
 
-                await Task.Delay(delay, linked.Token).ConfigureAwait(false);
+                await Task.Delay(WithJitter(delay), linked.Token).ConfigureAwait(false);
                 delay = TimeSpan.FromTicks(delay.Ticks * _retryDelayMultiplier);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 throw;
+            }
+            catch (Exception ex) when (IsTransientNetworkFailure(ex) && attempt <= _maxRetries)
+            {
+                // Timeouts / connection resets from free Microsoft (and peers) should not fail the job on first hit.
+                _logger.LogWarning(ex,
+                    "{ServiceName} transient error. Retrying in {Delay}... (Attempt {Attempt}/{MaxRetries})",
+                    "GTranslator", delay, attempt, _maxRetries);
+
+                await Task.Delay(WithJitter(delay), linked.Token).ConfigureAwait(false);
+                delay = TimeSpan.FromTicks(delay.Ticks * _retryDelayMultiplier);
             }
             catch (Exception ex)
             {
@@ -136,5 +148,35 @@ public class GTranslatorService<T> : BaseLanguageService where T : ITranslator
         }
 
         throw new TranslationException("Translation failed after maximum retry attempts.");
+    }
+
+    private static bool IsTransientNetworkFailure(Exception ex)
+    {
+        for (var current = ex; current != null; current = current.InnerException)
+        {
+            switch (current)
+            {
+                case TimeoutException:
+                case IOException:
+                case HttpRequestException http when http.StatusCode is null
+                    or HttpStatusCode.RequestTimeout
+                    or HttpStatusCode.BadGateway
+                    or HttpStatusCode.ServiceUnavailable
+                    or HttpStatusCode.GatewayTimeout:
+                    return true;
+                case TaskCanceledException tce when !tce.CancellationToken.IsCancellationRequested:
+                    // HttpClient timeout surfaces as TaskCanceledException without a caller cancel.
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static TimeSpan WithJitter(TimeSpan delay)
+    {
+        // +/- 20% jitter to avoid thundering herds against free translator endpoints.
+        var factor = 0.8 + (Random.Shared.NextDouble() * 0.4);
+        return TimeSpan.FromMilliseconds(Math.Max(100, delay.TotalMilliseconds * factor));
     }
 }

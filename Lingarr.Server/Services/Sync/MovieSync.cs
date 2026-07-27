@@ -66,7 +66,7 @@ public class MovieSync : IMovieSync
             movieEntity.Path = Path.GetDirectoryName(moviePath) ?? string.Empty;
         }
 
-        _logger.LogInformation("Syncing movie: {MovieId} with Path: {Path}", movie.Id, movieEntity.Path);
+        _logger.LogDebug("Syncing movie: {MovieId} with Path: {Path}", movie.Id, movieEntity.Path);
 
         if (movie.Images?.Any() == true)
         {

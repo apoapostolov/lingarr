@@ -14,6 +14,25 @@ public class SubtitleService : ISubtitleService
     private static readonly string[] SupportedExtensions = [".srt", ".ssa", ".ass"];
     private static readonly string[] SupportedCaptions = ["sdh", "cc", "forced", "hi"];
 
+    /// <summary>
+    /// Extra folders that commonly hold sidecars next to media (scanned, not junk extras).
+    /// </summary>
+    private static readonly HashSet<string> AllowedSubtitleSubdirectories = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "subs", "subtitles", "subtitle", "srt", "sub"
+    };
+
+    /// <summary>
+    /// Media-extra folders that must never be scanned (OOM risk + false matches).
+    /// </summary>
+    private static readonly HashSet<string> ExcludedDirectoryNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "trailers", "trailer", "featurettes", "featurette", "samples", "sample",
+        "extras", "extra", "behind the scenes", "deleted scenes", "interviews",
+        "scenes", "shorts", "other", ".actors", "@eadir", "#recycle", "proof",
+        "screens", "screen", "ncfo"
+    };
+
     private readonly ILogger<SubtitleService> _logger;
     private readonly LanguageCodeService _languageCodeService;
 
@@ -36,54 +55,127 @@ public class SubtitleService : ISubtitleService
             return Task.FromResult(new List<Subtitles>());
         }
 
-        var subtitles = new List<Subtitles>();
-        foreach (var extension in SupportedExtensions)
+        try
         {
-            var files = Directory.GetFiles(path, $"*{extension}", SearchOption.AllDirectories);
+            var subtitles = EnumerateSubtitlePaths(path)
+                .Select(ParseSubtitleFile)
+                .ToList();
+            return Task.FromResult(subtitles);
+        }
+        catch (IOException ex)
+        {
+            _logger.LogWarning(ex,
+                "Failed to enumerate subtitles under |Red|{Path}|/Red| (I/O or memory pressure). Returning empty list.",
+                path);
+            return Task.FromResult(new List<Subtitles>());
+        }
+    }
 
-            var subtitleFiles = files.Select(file =>
-            {
-                var fileName = Path.GetFileNameWithoutExtension(file);
-                var parts = fileName.Split('.').Reverse().ToList();
-                var language = "";
-                var caption = "";
-
-                // First look for caption
-                var captionPart = parts.FirstOrDefault(p => SupportedCaptions.Contains(p.ToLower()));
-                if (captionPart != null)
-                {
-                    caption = captionPart.ToLower();
-                    parts.Remove(captionPart);
-                }
-
-                // Then look for language in remaining parts
-                var languagePart = parts.FirstOrDefault(p => TryGetLanguageByPart(p, out var code));
-                if (languagePart != null && TryGetLanguageByPart(languagePart, out var languageCode))
-                {
-                    language = languageCode;
-                    parts.Remove(languagePart);
-                }
-                // Hindi is an exception, if we didn't find a language, and we did found Hindi, We set that as language
-                else if (caption == "hi" && language == "")
-                {
-                    language = caption;
-                    caption = "";
-                }
-
-                return new Subtitles
-                {
-                    Path = file,
-                    FileName = fileName,
-                    Language = language ?? "unknown",
-                    Caption = caption,
-                    Format = extension
-                };
-            });
-
-            subtitles.AddRange(subtitleFiles);
+    /// <summary>
+    /// Enumerates subtitle files beside media: media folder top-level, plus allowlisted subdirs only.
+    /// Never walks full trees (Trailers/Featurettes/etc.).
+    /// </summary>
+    private static IEnumerable<string> EnumerateSubtitlePaths(string path)
+    {
+        foreach (var file in EnumerateSubtitleFilesInDirectory(path))
+        {
+            yield return file;
         }
 
-        return Task.FromResult(subtitles);
+        IEnumerable<string> subdirectories;
+        try
+        {
+            subdirectories = Directory.EnumerateDirectories(path);
+        }
+        catch (IOException)
+        {
+            yield break;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            yield break;
+        }
+
+        foreach (var directory in subdirectories)
+        {
+            var name = Path.GetFileName(directory);
+            if (string.IsNullOrEmpty(name) || ExcludedDirectoryNames.Contains(name))
+            {
+                continue;
+            }
+
+            if (!AllowedSubtitleSubdirectories.Contains(name))
+            {
+                continue;
+            }
+
+            foreach (var file in EnumerateSubtitleFilesInDirectory(directory))
+            {
+                yield return file;
+            }
+        }
+    }
+
+    private static IEnumerable<string> EnumerateSubtitleFilesInDirectory(string directory)
+    {
+        foreach (var extension in SupportedExtensions)
+        {
+            IEnumerable<string> files;
+            try
+            {
+                files = Directory.EnumerateFiles(directory, $"*{extension}", SearchOption.TopDirectoryOnly);
+            }
+            catch (IOException)
+            {
+                continue;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                continue;
+            }
+
+            foreach (var file in files)
+            {
+                yield return file;
+            }
+        }
+    }
+
+    private Subtitles ParseSubtitleFile(string file)
+    {
+        var extension = Path.GetExtension(file).ToLowerInvariant();
+        var fileName = Path.GetFileNameWithoutExtension(file);
+        var parts = fileName.Split('.').Reverse().ToList();
+        var language = "";
+        var caption = "";
+
+        var captionPart = parts.FirstOrDefault(p => SupportedCaptions.Contains(p.ToLower()));
+        if (captionPart != null)
+        {
+            caption = captionPart.ToLower();
+            parts.Remove(captionPart);
+        }
+
+        var languagePart = parts.FirstOrDefault(p => TryGetLanguageByPart(p, out _));
+        if (languagePart != null && TryGetLanguageByPart(languagePart, out var languageCode))
+        {
+            language = languageCode;
+            parts.Remove(languagePart);
+        }
+        else if (caption == "hi" && language == "")
+        {
+            language = caption;
+            caption = "";
+        }
+
+        return new Subtitles
+        {
+            Path = file,
+            FileName = fileName,
+            Language = language ?? "unknown",
+            Caption = caption,
+            Format = extension
+        };
     }
 
     /// <inheritdoc />
@@ -415,12 +507,39 @@ public class SubtitleService : ISubtitleService
     }
 
     /// <inheritdoc />
-    public async Task<List<Subtitles>> GetSubtitles(string path, string fileName)
+    public Task<List<Subtitles>> GetSubtitles(string path, string fileName)
     {
-        var allSubtitles = await GetAllSubtitles(path);
-        return allSubtitles
-            .Where(s => s.FileName.StartsWith(fileName + ".") || s.FileName == fileName)
-            .ToList();
+        if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(fileName))
+        {
+            return Task.FromResult(new List<Subtitles>());
+        }
+
+        if (!Directory.Exists(path))
+        {
+            _logger.LogInformation(
+                "Failed to collect subtitles in path |Red|{Path}|/Red|. Try reindexing or verify that the media is correctly set up in the source system.",
+                path);
+            return Task.FromResult(new List<Subtitles>());
+        }
+
+        try
+        {
+            // Match only sidecars for this media file — no full-tree materialization.
+            var matches = EnumerateSubtitlePaths(path)
+                .Select(ParseSubtitleFile)
+                .Where(s =>
+                    s.FileName.Equals(fileName, StringComparison.OrdinalIgnoreCase) ||
+                    s.FileName.StartsWith(fileName + ".", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            return Task.FromResult(matches);
+        }
+        catch (IOException ex)
+        {
+            _logger.LogWarning(ex,
+                "Failed to collect subtitles for |Red|{FileName}|/Red| under |Red|{Path}|/Red|.",
+                fileName, path);
+            return Task.FromResult(new List<Subtitles>());
+        }
     }
 
     /// <inheritdoc />

@@ -155,6 +155,7 @@ public static class ServiceCollectionExtensions
         builder.Services.AddSingleton<SettingChangedListener>();
 
         builder.Services.AddHostedService<ScheduleInitializationService>();
+        builder.Services.AddHostedService<HangfireSqliteMaintenanceService>();
         builder.Services.AddSingleton<IScheduleService, ScheduleService>();
 
         builder.Services.AddScoped<IImageService, ImageService>();
@@ -329,9 +330,20 @@ public static class ServiceCollectionExtensions
     private static void ConfigureSqLiteStorage(IGlobalConfiguration configuration)
     {
         var sqliteDbPath = Environment.GetEnvironmentVariable("DB_HANGFIRE_SQLITE_PATH") ?? "/app/config/Hangfire.db";
+        var loggerFactory = LoggerFactory.Create(AddLogProviders);
+        var logger = loggerFactory.CreateLogger("Lingarr.Hangfire.SQLite");
+
+        // Recover from "file is not a database" / corrupt WAL states before Hangfire opens the file.
+        HangfireSqliteMaintenanceService.TryRecoverCorruptDatabase(sqliteDbPath, logger);
+
+        var directory = Path.GetDirectoryName(sqliteDbPath);
+        if (!string.IsNullOrEmpty(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
         using (var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={sqliteDbPath}"))
         {
-            // add Write-Ahead Logging
             connection.Open();
             using var command = connection.CreateCommand();
 
@@ -343,6 +355,10 @@ public static class ServiceCollectionExtensions
 
             command.CommandText = "PRAGMA synchronous=NORMAL";
             command.ExecuteNonQuery();
+
+            // Shrink any inherited WAL at boot so we do not start with a multi-GB -wal file.
+            command.CommandText = "PRAGMA wal_checkpoint(TRUNCATE)";
+            command.ExecuteNonQuery();
         }
 
         configuration
@@ -352,13 +368,13 @@ public static class ServiceCollectionExtensions
             {
                 // Clean up expired jobs more often
                 JobExpirationCheckInterval = TimeSpan.FromHours(1),
-                
+
                 // Reduce writes by increasing the aggregation counters
                 CountersAggregateInterval = TimeSpan.FromMinutes(5),
-                
-                // Reduced database polling
+
+                // Reduced database polling (less lock churn under Hangfire.Storage.SQLite)
                 QueuePollInterval = TimeSpan.FromSeconds(15),
-                
+
                 // Job recovery timeout if worker crashes
                 InvisibilityTimeout = TimeSpan.FromMinutes(30)
             });

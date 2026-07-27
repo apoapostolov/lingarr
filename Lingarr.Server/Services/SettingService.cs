@@ -143,6 +143,29 @@ public class SettingService : ISettingService
     }
 
     /// <inheritdoc />
+    public async Task UpsertSetting(string key, string value)
+    {
+        var setting = await _dbContext.Settings.FirstOrDefaultAsync(s => s.Key == key);
+        if (setting == null)
+        {
+            setting = new Core.Entities.Setting
+            {
+                Key = key,
+                Value = value
+            };
+            _dbContext.Settings.Add(setting);
+        }
+        else
+        {
+            setting.Value = value;
+        }
+
+        await _dbContext.SaveChangesAsync();
+        _cache.Set(key, value, _cacheOptions);
+        OnSettingChange(key);
+    }
+
+    /// <inheritdoc />
     public async Task<bool> SetSettings(Dictionary<string, string> settings)
     {
         var keys = settings.Keys.ToList();

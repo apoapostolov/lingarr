@@ -129,6 +129,10 @@ public static class SettingKeys
         public const string ShowSchedule = "show_schedule";
         public const string MovieAgeThreshold = "movie_age_threshold";
         public const string ShowAgeThreshold = "show_age_threshold";
+        /// <summary>Durable cursor for automated movie cycle (survives restarts).</summary>
+        public const string MovieProcessingIndex = "automation_movie_processing_index";
+        /// <summary>Durable cursor for automated show/episode cycle (survives restarts).</summary>
+        public const string ShowProcessingIndex = "automation_show_processing_index";
     }
 
     public static class SubtitleValidation
