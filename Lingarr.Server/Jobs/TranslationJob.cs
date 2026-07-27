@@ -99,8 +99,7 @@ public class TranslationJob
                 SettingKeys.Translation.UseSubtitleTagging,
                 SettingKeys.Translation.SubtitleTag
             ]);
-            var serviceNames = TranslationServices.Parse(settings[SettingKeys.Translation.ServiceType]);
-            var serviceType = serviceNames[0];
+            var chain = TranslationChain.Parse(settings[SettingKeys.Translation.ServiceType], _logger);
             var stripSubtitleFormatting = settings[SettingKeys.Translation.StripSubtitleFormatting] == "true";
             var preserveLineBreaks = settings[SettingKeys.Translation.PreserveLineBreaks] == "true";
             var addTranslatorInfo = settings[SettingKeys.Translation.AddTranslatorInfo] == "true";
@@ -169,12 +168,14 @@ public class TranslationJob
             }
 
             // translate subtitles
-            var services = _translationServiceFactory.CreateTranslationServices(serviceNames);
+            var services = _translationServiceFactory.CreateTranslationServices(chain);
+            var serviceType = services.Count > 0 ? services[0].Name : "unknown";
+            var translationService = services.Count > 0 ? services[0].Service : throw new TranslationException("No translation services available.");
             if (services.Count == 0)
             {
-                throw new TranslationException($"No usable translation services configured: [{string.Join(", ", serviceNames)}]");
+                throw new TranslationException($"No usable translation services configured: [{string.Join(", ", chain.Select(e => e.ProviderNormalized))}]");
             }
-            var translationService = services[0].Service;
+            translationService = services[0].Service;
             var translator = new SubtitleTranslationService(services, _logger, _progressService);
             var subtitles = await _subtitleService.ReadSubtitles(request.SubtitleToTranslate);
 

@@ -1,9 +1,9 @@
 ﻿<template>
     <div
         v-if="isSaved"
-        class="absolute right-2 top-2 flex items-center rounded-full bg-green-500 px-2 py-1 text-xs font-bold text-white">
+        class="absolute right-2 top-2 flex items-center rounded-full border border-accent/50 bg-secondary px-2 py-1 text-xs font-medium text-accent-content shadow-sm">
         <svg
-            class="mr-1 h-4 w-4"
+            class="mr-1 h-4 w-4 text-accent"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"

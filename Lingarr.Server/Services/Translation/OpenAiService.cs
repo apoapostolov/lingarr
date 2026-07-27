@@ -75,7 +75,7 @@ public class OpenAiService : BaseLanguageService, ITranslationService, IBatchTra
                 SettingKeys.Translation.LanguageCodeFormat
             ]);
 
-            _model = settings[SettingKeys.Translation.OpenAi.Model];
+            _model = ResolveModel(settings[SettingKeys.Translation.OpenAi.Model]);
             _apiKey = await _settings.GetEncryptedSetting(SettingKeys.Translation.OpenAi.ApiKey);
             _requestTemplate = !string.IsNullOrEmpty(settings[SettingKeys.Translation.OpenAi.RequestTemplate])
                 ? settings[SettingKeys.Translation.OpenAi.RequestTemplate]

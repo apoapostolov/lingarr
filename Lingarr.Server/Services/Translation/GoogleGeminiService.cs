@@ -74,7 +74,7 @@ public class GoogleGeminiService : BaseLanguageService, ITranslationService, IBa
                 SettingKeys.Translation.LanguageCodeFormat
             ]);
             _apiKey = await _settings.GetEncryptedSetting(SettingKeys.Translation.Gemini.ApiKey);
-            _model = settings[SettingKeys.Translation.Gemini.Model];
+            _model = ResolveModel(settings[SettingKeys.Translation.Gemini.Model]);
             _requestTemplate = !string.IsNullOrEmpty(settings[SettingKeys.Translation.Gemini.RequestTemplate])
                 ? settings[SettingKeys.Translation.Gemini.RequestTemplate]
                 : _requestTemplateService.GetDefaultTemplate(SettingKeys.Translation.Gemini.RequestTemplate);

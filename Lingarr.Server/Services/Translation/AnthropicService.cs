@@ -73,7 +73,7 @@ public class AnthropicService : BaseLanguageService, ITranslationService, IBatch
                 SettingKeys.Translation.RetryDelayMultiplier,
                 SettingKeys.Translation.LanguageCodeFormat
             ]);
-            _model = settings[SettingKeys.Translation.Anthropic.Model];
+            _model = ResolveModel(settings[SettingKeys.Translation.Anthropic.Model]);
             _apiKey = await _settings.GetEncryptedSetting(SettingKeys.Translation.Anthropic.ApiKey);
             _version = settings[SettingKeys.Translation.Anthropic.Version];
             _requestTemplate = !string.IsNullOrEmpty(settings[SettingKeys.Translation.Anthropic.RequestTemplate])

@@ -20,6 +20,12 @@ public class RequestTemplateService : IRequestTemplateService
             () => JsonSerializer.Serialize(new OllamaGenerateTemplate()),
         [SettingKeys.Translation.DeepSeek.RequestTemplate] =
             () => JsonSerializer.Serialize(new DeepSeekTemplate()),
+        [SettingKeys.Translation.OpenRouter.RequestTemplate] =
+            () => JsonSerializer.Serialize(new OpenRouterChatTemplate()),
+        [SettingKeys.Translation.Zai.RequestTemplate] =
+            () => JsonSerializer.Serialize(new OpenAiChatTemplate()),
+        [SettingKeys.Translation.OpenCodeGo.RequestTemplate] =
+            () => JsonSerializer.Serialize(new OpenAiChatTemplate()),
         [SettingKeys.Translation.Gemini.RequestTemplate] =
             () => JsonSerializer.Serialize(new GeminiTemplate())
     };

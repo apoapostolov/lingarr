@@ -17,17 +17,20 @@ public class PluginController : ControllerBase
     private readonly IPluginRegistry _registry;
     private readonly ISettingService _settings;
     private readonly ITranslationServiceFactory _translationServiceFactory;
+    private readonly IModelCatalogService _modelCatalog;
     private readonly ILogger<PluginController> _logger;
 
     public PluginController(
         IPluginRegistry registry,
         ISettingService settings,
         ITranslationServiceFactory translationServiceFactory,
+        IModelCatalogService modelCatalog,
         ILogger<PluginController> logger)
     {
         _registry = registry;
         _settings = settings;
         _translationServiceFactory = translationServiceFactory;
+        _modelCatalog = modelCatalog;
         _logger = logger;
     }
 
@@ -67,7 +70,7 @@ public class PluginController : ControllerBase
     /// LibreTranslate) return an empty response.
     /// </summary>
     [HttpGet("{provider}/models")]
-    public async Task<ActionResult<ModelsResponse>> GetModels(string provider)
+    public async Task<ActionResult<ModelsResponse>> GetModels(string provider, [FromQuery] bool refresh = false)
     {
         var plugin = _registry.Find(provider);
         if (plugin is null)
@@ -77,8 +80,7 @@ public class PluginController : ControllerBase
 
         try
         {
-            var translationService = _translationServiceFactory.CreateTranslationService(plugin.Manifest.Provider);
-            var models = await translationService.GetModels();
+            var models = await _modelCatalog.GetModelsAsync(plugin.Manifest.Provider, refresh);
             return Ok(models);
         }
         catch (ArgumentException)

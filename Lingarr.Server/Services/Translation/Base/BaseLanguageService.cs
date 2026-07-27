@@ -6,13 +6,25 @@ using Lingarr.Server.Models;
 
 namespace Lingarr.Server.Services.Translation.Base;
 
-public abstract class BaseLanguageService : BaseTranslationService
+public abstract class BaseLanguageService : BaseTranslationService, Interfaces.Services.Translation.IModelOverridable
 {
     private readonly string? _languageFilePath;
     private Task<List<SourceLanguage>>? _cachedLanguages;
     protected string? _contextPrompt;
     protected string? _contextPromptEnabled;
     protected Dictionary<string, string> _replacements;
+    protected string? ModelOverride { get; private set; }
+
+    public void OverrideModel(string? model)
+    {
+        if (!string.IsNullOrWhiteSpace(model))
+        {
+            ModelOverride = model.Trim();
+        }
+    }
+
+    protected string ResolveModel(string? fromSettings) =>
+        !string.IsNullOrWhiteSpace(ModelOverride) ? ModelOverride! : (fromSettings ?? string.Empty);
 
     protected BaseLanguageService(
         ISettingService settings,

@@ -85,9 +85,9 @@ public class TranslateController : ControllerBase
         [FromBody] TranslateAbleSubtitleLine translateAbleSubtitleLine,
         CancellationToken cancellationToken)
     {
-        var serviceType = TranslationServices.Parse(await _settings.GetSetting(SettingKeys.Translation.ServiceType))[0];
+        var chain = TranslationChain.Parse(await _settings.GetSetting(SettingKeys.Translation.ServiceType));
         var subtitleTranslator = new SubtitleTranslationService(
-            _translationServiceFactory.CreateTranslationServices([serviceType]),
+            _translationServiceFactory.CreateTranslationServices(chain),
             _logger);
 
         if (translateAbleSubtitleLine.SubtitleLine == "")

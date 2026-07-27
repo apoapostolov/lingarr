@@ -50,12 +50,12 @@
                     class="absolute bottom-0 right-0 flex w-full justify-center p-4">
                     <BadgeComponent
                         v-if="instanceStore.getVersion.isDevelopment"
-                        classes="text-white border-amber-200 bg-amber-500/50">
+                        classes="text-accent-content border-accent bg-accent/25">
                         {{ 'Development' }}
                     </BadgeComponent>
                     <BadgeComponent
                         v-else-if="instanceStore.getVersion.newVersion"
-                        classes="text-white border-green-200 bg-green-500/50">
+                        classes="text-accent-content border-accent bg-secondary">
                         {{
                             'Update {version} is available'.format({
                                 version: instanceStore.getVersion.latestVersion

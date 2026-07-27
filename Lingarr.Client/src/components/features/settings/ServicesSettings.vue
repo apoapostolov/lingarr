@@ -1,75 +1,101 @@
 <template>
     <CardComponent title="Services">
         <template #description>
-            Configure the translation service for subtitle localization. Add fallback services to be
-            tried in order when the primary service fails.
+            Configure the translation service for subtitle localization. Each row is self-contained:
+            provider, model (when needed), and API key. Fallbacks run in order if earlier rows fail.
         </template>
         <template #content>
             <SaveNotification ref="saveNotification" />
 
             <div class="space-y-2">
                 <span class="font-semibold">Translation services</span>
-                <ol class="space-y-2">
+                <ol class="space-y-3">
                     <li
-                        v-for="(serviceName, index) in services"
-                        :key="`${serviceName}-${index}`"
-                        class="flex items-center gap-3 rounded-md border p-3"
-                        :class="
-                            index === configuringIndex
-                                ? 'border-accent bg-accent/10'
-                                : 'border-accent/30'
-                        ">
+                        v-for="(entry, index) in chain"
+                        :key="`row-${index}-${entry.provider}`"
+                        class="flex gap-3 rounded-md border border-accent/30 p-3">
+                        <!-- 1-based index badge (primary = 1) -->
                         <span
-                            class="bg-accent/20 text-accent-content shrink-0 rounded px-2 py-0.5 text-xs font-semibold tracking-wider uppercase"
-                            aria-hidden="true">
-                            {{ index === 0 ? 'Primary' : `Fallback ${index}` }}
+                            class="bg-accent/20 text-accent-content mt-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sm font-semibold tabular-nums"
+                            :title="index === 0 ? 'Primary' : `Fallback ${index}`"
+                            :aria-label="index === 0 ? 'Primary' : `Fallback ${index}`">
+                            {{ index + 1 }}
                         </span>
-                        <div class="min-w-0 flex-1">
+
+                        <div class="flex min-w-0 flex-1 flex-col gap-2">
+                            <!-- Row 1: provider -->
                             <SelectComponent
-                                :selected="serviceName"
-                                :options="optionsForRow(index)"
-                                size="sm"
-                                @update:selected="(value: string) => createRow(index, value)" />
+                                :selected="entry.provider"
+                                :options="providerOptions"
+                                placeholder="Select provider..."
+                                @update:selected="(value: string) => setProvider(index, value)" />
+
+                            <!-- Row 2: model (AI / multi-model providers) -->
+                            <div
+                                v-if="supportsModel(entry.provider)"
+                                class="flex items-center gap-2">
+                                <div class="min-w-0 flex-1">
+                                    <SelectComponent
+                                        :ref="(el) => setModelSelectRef(index, el)"
+                                        :selected="entry.model ?? ''"
+                                        :options="modelOptions[index] || []"
+                                        :load-on-open="true"
+                                        :sort-options="false"
+                                        placeholder="Select model..."
+                                        :no-options="modelError[index] || 'Loading models...'"
+                                        @update:selected="(value: string) => setModel(index, value)"
+                                        @fetch-options="() => loadModels(index, false)" />
+                                </div>
+                                <ButtonComponent
+                                    variant="ghost"
+                                    size="xs"
+                                    title="Refresh models"
+                                    @click="loadModels(index, true)">
+                                    Refresh
+                                </ButtonComponent>
+                            </div>
+
+                            <!-- Row 3: API key (per provider, only when needed) -->
+                            <InputComponent
+                                v-if="apiKeySettingKey(entry.provider)"
+                                :id="`api-key-${index}-${entry.provider}`"
+                                :model-value="apiKeyValue(entry.provider)"
+                                :type="INPUT_TYPE.PASSWORD"
+                                placeholder="API key"
+                                @update:model-value="(v: string) => setApiKey(entry.provider, v)" />
                         </div>
-                        <button
-                            type="button"
-                            class="text-primary-content hover:text-primary-content/50 focus-visible:ring-accent cursor-pointer rounded p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30"
-                            :disabled="index === configuringIndex"
-                            :aria-pressed="index === configuringIndex"
-                            title="Configure credentials"
-                            aria-label="Configure credentials"
-                            @click="configuringIndex = index">
-                            <SettingIcon class="h-4 w-4" />
-                        </button>
-                        <button
-                            type="button"
-                            class="text-primary-content hover:text-primary-content/50 focus-visible:ring-accent cursor-pointer rounded p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30"
-                            :disabled="index === 0"
-                            title="Move up"
-                            aria-label="Move up"
-                            @click="moveRow(index, -1)">
-                            <CaretUpIcon class="h-4 w-4" />
-                        </button>
-                        <button
-                            type="button"
-                            class="text-primary-content hover:text-primary-content/50 focus-visible:ring-accent cursor-pointer rounded p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30"
-                            :disabled="index === services.length - 1"
-                            title="Move down"
-                            aria-label="Move down"
-                            @click="moveRow(index, 1)">
-                            <CaretDownIcon class="h-4 w-4" />
-                        </button>
-                        <button
-                            type="button"
-                            class="text-primary-content hover:text-primary-content/50 focus-visible:ring-accent cursor-pointer rounded p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30"
-                            :disabled="services.length <= 1"
-                            title="Remove service"
-                            aria-label="Remove service"
-                            @click="removeRow(index)">
-                            <TrashIcon class="h-4 w-4" />
-                        </button>
+
+                        <div class="flex shrink-0 flex-col items-center gap-0.5 pt-1">
+                            <button
+                                type="button"
+                                class="text-primary-content hover:text-primary-content/50 focus-visible:ring-accent cursor-pointer rounded p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30"
+                                :disabled="index === 0"
+                                title="Move up"
+                                aria-label="Move up"
+                                @click="moveRow(index, -1)">
+                                <CaretUpIcon class="h-4 w-4" />
+                            </button>
+                            <button
+                                type="button"
+                                class="text-primary-content hover:text-primary-content/50 focus-visible:ring-accent cursor-pointer rounded p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30"
+                                :disabled="index === chain.length - 1"
+                                title="Move down"
+                                aria-label="Move down"
+                                @click="moveRow(index, 1)">
+                                <CaretDownIcon class="h-4 w-4" />
+                            </button>
+                            <button
+                                v-if="index > 0"
+                                type="button"
+                                class="text-primary-content hover:text-primary-content/50 focus-visible:ring-accent cursor-pointer rounded p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                                title="Remove fallback"
+                                aria-label="Remove fallback"
+                                @click="removeRow(index)">
+                                <TrashIcon class="h-4 w-4" />
+                            </button>
+                        </div>
                     </li>
-                    <li v-if="services.length < serviceOptions.length && serviceOptions.length > 0">
+                    <li>
                         <ButtonComponent variant="ghost" size="xs" @click="addRow">
                             <PlusIcon class="mr-1 h-3 w-3" />
                             Add fallback service
@@ -78,172 +104,257 @@
                 </ol>
             </div>
 
-            <div v-if="configuringManifest || manifestError" class="mt-4 space-y-2">
-                <div class="text-sm">
-                    <span class="text-secondary-content/60">Configuring credentials for</span>
-                    <span class="ml-1 font-semibold">{{ configuringLabel }}</span>
-                </div>
-                <DynamicPluginForm
-                    v-if="configuringManifest"
-                    :manifest="configuringManifest"
-                    @save="saveNotification?.show()" />
-                <p v-else-if="manifestError" class="text-sm text-red-500">{{ manifestError }}</p>
-            </div>
-
-            <div v-if="configuringManifest?.hasRequestTemplate" class="mt-6">
-                <div class="flex flex-col gap-4">
-                    <div class="flex flex-col space-x-2">
-                        <span class="font-semibold">Customize request template and prompts</span>
-                        Adjust the AI request body, system prompt and context for translations.
-                    </div>
-                    <ButtonComponent
-                        variant="primary"
-                        size="md"
-                        @click="
-                            router.push({
-                                name: 'request-template-settings',
-                                params: { service: services[configuringIndex] }
-                            })
-                        ">
-                        Open Request Settings
-                        <ArrowRight class="mt-1 ml-1 h-4 w-4" />
-                    </ButtonComponent>
-                </div>
-            </div>
-
             <SourceAndTarget @save="saveNotification?.show()" />
         </template>
     </CardComponent>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { useSettingStore } from '@/store/setting'
-import { IPluginManifest, IPluginSummary, SETTINGS, SERVICE_TYPE } from '@/ts'
+import {
+    ENCRYPTED_SETTINGS,
+    IEncryptedSettings,
+    INPUT_TYPE,
+    PLUGIN_SETTING_TYPE,
+    IPluginSummary,
+    SETTINGS,
+    SERVICE_TYPE,
+    SelectComponentExpose
+} from '@/ts'
 import servicesApi from '@/services'
 import CardComponent from '@/components/common/CardComponent.vue'
 import SelectComponent from '@/components/common/SelectComponent.vue'
 import ButtonComponent from '@/components/common/ButtonComponent.vue'
+import InputComponent from '@/components/common/InputComponent.vue'
 import SaveNotification from '@/components/common/SaveNotification.vue'
-import DynamicPluginForm from '@/components/features/settings/DynamicPluginForm.vue'
 import SourceAndTarget from '@/components/features/settings/SourceAndTarget.vue'
-import ArrowRight from '@/components/icons/ArrowRight.vue'
 import CaretUpIcon from '@/components/icons/CaretUpIcon.vue'
 import CaretDownIcon from '@/components/icons/CaretDownIcon.vue'
 import TrashIcon from '@/components/icons/TrashIcon.vue'
 import PlusIcon from '@/components/icons/PlusIcon.vue'
-import SettingIcon from '@/components/icons/SettingIcon.vue'
+
+export type ChainEntry = { provider: string; model?: string | null }
+
+const MODEL_PROVIDERS = new Set([
+    'openai',
+    'anthropic',
+    'gemini',
+    'deepseek',
+    'localai',
+    'openrouter',
+    'zai',
+    'opencode-go'
+])
+
+/** Providers that use an encrypted API key setting. */
+const API_KEY_BY_PROVIDER: Record<string, keyof IEncryptedSettings> = {
+    openai: ENCRYPTED_SETTINGS.OPENAI_API_KEY as keyof IEncryptedSettings,
+    anthropic: ENCRYPTED_SETTINGS.ANTHROPIC_API_KEY as keyof IEncryptedSettings,
+    gemini: ENCRYPTED_SETTINGS.GEMINI_API_KEY as keyof IEncryptedSettings,
+    deepseek: ENCRYPTED_SETTINGS.DEEPSEEK_API_KEY as keyof IEncryptedSettings,
+    openrouter: ENCRYPTED_SETTINGS.OPENROUTER_API_KEY as keyof IEncryptedSettings,
+    zai: ENCRYPTED_SETTINGS.ZAI_API_KEY as keyof IEncryptedSettings,
+    'opencode-go': ENCRYPTED_SETTINGS.OPENCODE_GO_API_KEY as keyof IEncryptedSettings,
+    deepl: ENCRYPTED_SETTINGS.DEEPL_API_KEY as keyof IEncryptedSettings,
+    libretranslate: ENCRYPTED_SETTINGS.LIBRETRANSLATE_API_KEY as keyof IEncryptedSettings,
+    localai: ENCRYPTED_SETTINGS.LOCAL_AI_API_KEY as keyof IEncryptedSettings
+}
 
 const saveNotification = ref<InstanceType<typeof SaveNotification> | null>(null)
 const settingsStore = useSettingStore()
-const router = useRouter()
 
-const serviceOptions = ref<{ value: string; label: string }[]>([])
+const providerOptions = ref<{ value: string; label: string }[]>([])
+const chain = ref<ChainEntry[]>([{ provider: SERVICE_TYPE.LIBRETRANSLATE }])
+const modelOptions = reactive<Record<number, { value: string; label: string }[]>>({})
+const modelError = reactive<Record<number, string | null>>({})
+const modelSelectRefs = ref<Record<number, SelectComponentExpose | null>>({})
 
-function parseServices(raw: unknown): string[] {
-    const list = JSON.parse((raw as string) ?? '[]') as string[]
-    return list.length > 0 ? list : [SERVICE_TYPE.LIBRETRANSLATE]
-}
-
-const services = ref<string[]>(parseServices(settingsStore.getSetting(SETTINGS.SERVICE_TYPE)))
-const configuringIndex = ref(0)
-const configuringManifest = ref<IPluginManifest | null>(null)
-const manifestError = ref<string | null>(null)
-
-async function loadManifest(provider: string) {
-    try {
-        const manifest = await servicesApi.plugin.getManifest(provider)
-        await settingsStore.setPluginSettings(manifest.settings)
-
-        configuringManifest.value = manifest
-        manifestError.value = null
-    } catch (error) {
-        console.error('Failed to load manifest', error)
-        configuringManifest.value = null
-        manifestError.value = `No manifest available for ${provider}.`
+function setModelSelectRef(index: number, el: unknown) {
+    if (el) {
+        modelSelectRefs.value[index] = el as SelectComponentExpose
+    } else {
+        delete modelSelectRefs.value[index]
     }
 }
 
-function optionsForRow(index: number) {
-    const usedElsewhere = new Set(
-        services.value.filter((_, currentIndex) => currentIndex !== index)
-    )
-    return serviceOptions.value.filter((option) => !usedElsewhere.has(option.value))
+function supportsModel(provider?: string) {
+    return !!provider && MODEL_PROVIDERS.has(provider.toLowerCase())
 }
 
-async function save(next: string[]) {
-    services.value = next
-    await settingsStore.updateSetting(SETTINGS.SERVICE_TYPE, JSON.stringify(next), true)
+function apiKeySettingKey(provider?: string): keyof IEncryptedSettings | null {
+    if (!provider) return null
+    return API_KEY_BY_PROVIDER[provider.toLowerCase()] ?? null
+}
+
+function apiKeyValue(provider: string): string {
+    const key = apiKeySettingKey(provider)
+    if (!key) return ''
+    const stored = settingsStore.getEncryptedSetting(key)
+    return typeof stored === 'string' ? stored : ''
+}
+
+function setApiKey(provider: string, value: string) {
+    const key = apiKeySettingKey(provider)
+    if (!key) return
+    settingsStore.updateEncryptedSetting(key, value, true)
     saveNotification.value?.show()
 }
 
-function createRow(index: number, value: string) {
-    const next = services.value.map((service, currentIndex) =>
-        currentIndex === index ? value : service
+function parseChain(raw: unknown): ChainEntry[] {
+    try {
+        const text = (raw as string) ?? '[]'
+        if (!text.trim().startsWith('[')) {
+            return [{ provider: text.trim() || SERVICE_TYPE.LIBRETRANSLATE }]
+        }
+        const parsed = JSON.parse(text) as unknown[]
+        if (!Array.isArray(parsed) || parsed.length === 0) {
+            return [{ provider: SERVICE_TYPE.LIBRETRANSLATE }]
+        }
+        return parsed.map((item) => {
+            if (typeof item === 'string') return { provider: item }
+            const obj = item as { provider?: string; service?: string; model?: string }
+            return {
+                provider: obj.provider || obj.service || SERVICE_TYPE.LIBRETRANSLATE,
+                model: obj.model || null
+            }
+        })
+    } catch {
+        return [{ provider: SERVICE_TYPE.LIBRETRANSLATE }]
+    }
+}
+
+async function save(next: ChainEntry[]) {
+    chain.value = next
+    const payload = next.map((e) =>
+        e.model ? { provider: e.provider, model: e.model } : { provider: e.provider }
     )
+    await settingsStore.updateSetting(SETTINGS.SERVICE_TYPE, JSON.stringify(payload), true)
+    for (const entry of next) {
+        if (!entry.model || !supportsModel(entry.provider)) continue
+        const key = modelSettingKey(entry.provider)
+        if (key) {
+            await settingsStore.updateSetting(key as any, entry.model, true)
+        }
+    }
+    saveNotification.value?.show()
+}
+
+function modelSettingKey(provider: string): string | null {
+    const map: Record<string, string> = {
+        openai: SETTINGS.OPENAI_MODEL,
+        anthropic: SETTINGS.ANTHROPIC_MODEL,
+        gemini: SETTINGS.GEMINI_MODEL,
+        deepseek: SETTINGS.DEEPSEEK_MODEL,
+        localai: SETTINGS.LOCAL_AI_MODEL,
+        openrouter: (SETTINGS as any).OPENROUTER_MODEL,
+        zai: (SETTINGS as any).ZAI_MODEL,
+        'opencode-go': (SETTINGS as any).OPENCODE_GO_MODEL
+    }
+    return map[provider.toLowerCase()] ?? null
+}
+
+function setProvider(index: number, value: string) {
+    const next = chain.value.map((e, i) =>
+        i === index ? { provider: value, model: supportsModel(value) ? e.model : null } : e
+    )
+    save(next)
+    loadModels(index, false)
+}
+
+function setModel(index: number, value: string) {
+    const next = chain.value.map((e, i) => (i === index ? { ...e, model: value } : e))
     save(next)
 }
 
 function addRow() {
-    const unused = serviceOptions.value.find((option) => !services.value.includes(option.value))
-    if (!unused) {
-        return
-    }
-    save([...services.value, unused.value])
+    const preferred =
+        providerOptions.value.find((o) => o.value === 'microsoft')?.value ||
+        providerOptions.value[0]?.value ||
+        SERVICE_TYPE.LIBRETRANSLATE
+    save([...chain.value, { provider: preferred }])
 }
 
 function removeRow(index: number) {
-    if (services.value.length <= 1) {
-        return
-    }
-    save(services.value.filter((_, currentIndex) => currentIndex !== index))
-    configuringIndex.value = Math.min(configuringIndex.value, services.value.length - 1)
+    if (index === 0 || chain.value.length <= 1) return
+    const next = chain.value.filter((_, i) => i !== index)
+    save(next)
 }
 
 function moveRow(index: number, delta: number) {
     const target = index + delta
-    if (target < 0 || target >= services.value.length) {
-        return
-    }
-    const next = [...services.value]
-    const moved = next[index]
+    if (target < 0 || target >= chain.value.length) return
+    const next = [...chain.value]
+    const tmp = next[index]
     next[index] = next[target]
-    next[target] = moved
-    if (configuringIndex.value === index) {
-        configuringIndex.value = target
-    } else if (configuringIndex.value === target) {
-        configuringIndex.value = index
-    }
+    next[target] = tmp
     save(next)
 }
 
-const configuringLabel = computed(() => {
-    const value = services.value[configuringIndex.value]
-    return serviceOptions.value.find((option) => option.value === value)?.label ?? value
-})
+async function loadModels(index: number, refresh: boolean) {
+    const provider = chain.value[index]?.provider
+    if (!provider || !supportsModel(provider)) return
+    modelSelectRefs.value[index]?.setLoadingState(true)
+    try {
+        modelError[index] = null
+        const endpoint = `/api/plugin/${provider}/models${refresh ? '?refresh=true' : ''}`
+        const response = await servicesApi.plugin.getOptions(endpoint)
+        modelOptions[index] = (response.options || []).map((o: any) => ({
+            value: o.value,
+            label: o.label
+        }))
+        if (!modelOptions[index].length) {
+            modelError[index] = response.message || 'No models returned'
+        }
+    } catch (e) {
+        console.error(e)
+        modelError[index] = 'Error loading models'
+    } finally {
+        modelSelectRefs.value[index]?.setLoadingState(false)
+    }
+}
 
 watch(
     () => settingsStore.getSetting(SETTINGS.SERVICE_TYPE),
     (raw) => {
-        services.value = parseServices(raw)
+        chain.value = parseChain(raw)
     }
 )
 
-watch(
-    () => services.value[configuringIndex.value],
-    loadManifest,
-    { immediate: true }
-)
-
 onMounted(async () => {
+    chain.value = parseChain(settingsStore.getSetting(SETTINGS.SERVICE_TYPE))
     try {
         const summaries: IPluginSummary[] = await servicesApi.plugin.list()
-        serviceOptions.value = summaries
-            .map((summary) => ({ value: summary.provider, label: summary.displayName }))
+        providerOptions.value = summaries
+            .map((s) => ({ value: s.provider, label: s.displayName }))
             .sort((a, b) => a.label.localeCompare(b.label))
     } catch (error) {
         console.error('Failed to load translation provider list', error)
     }
+    // Ensure encrypted keys for providers on the chain are loaded into the store.
+    const keys = [
+        ...new Set(
+            chain.value
+                .map((e) => apiKeySettingKey(e.provider))
+                .filter((k): k is keyof IEncryptedSettings => !!k)
+        )
+    ]
+    if (keys.length) {
+        try {
+            await settingsStore.setPluginSettings(
+                keys.map((key) => ({
+                    key,
+                    label: key,
+                    type: PLUGIN_SETTING_TYPE.SECRET,
+                    required: false
+                })) as any
+            )
+        } catch {
+            /* store may already hold keys from global load */
+        }
+    }
+    chain.value.forEach((e, i) => {
+        if (supportsModel(e.provider)) loadModels(i, false)
+    })
 })
 </script>

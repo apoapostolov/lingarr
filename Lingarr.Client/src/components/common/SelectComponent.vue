@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { Ref, ref, nextTick, computed } from 'vue'
+import { Ref, ref, nextTick, computed, watch } from 'vue'
 import CaretRightIcon from '@/components/icons/CaretRightIcon.vue'
 import LoaderCircleIcon from '@/components/icons/LoaderCircleIcon.vue'
 import useClickOutside from '@/composables/useClickOutside'
@@ -63,6 +63,8 @@ const props = withDefaults(
         placeholder?: string
         noOptions?: string
         size?: 'sm' | 'md'
+        /** When true (default), options are sorted A–Z. Set false to keep API order (e.g. openrouter/free first). */
+        sortOptions?: boolean
     }>(),
     {
         label: '',
@@ -71,7 +73,8 @@ const props = withDefaults(
         placeholder: 'Select items...',
         noOptions: 'Select a source language first.',
         selectedLabel: '',
-        size: 'md'
+        size: 'md',
+        sortOptions: true
     }
 )
 
@@ -83,6 +86,9 @@ const clickOutside: Ref<HTMLElement | undefined> = ref()
 const excludeClickOutside: Ref<HTMLElement | undefined> = ref()
 
 const sortedOptions = computed(() => {
+    if (!props.sortOptions) {
+        return props.options
+    }
     return [...props.options].sort((a, b) => a.label.localeCompare(b.label))
 })
 
@@ -107,6 +113,17 @@ const toggleDropdown = async () => {
 const setLoadingState = async (loading: boolean) => {
     isLoading.value = loading
 }
+
+// Parent async loaders (models) must clear loading; also stop spinner when options arrive.
+watch(
+    () => props.options,
+    () => {
+        if (isLoading.value) {
+            isLoading.value = false
+        }
+    },
+    { deep: true }
+)
 
 const selectOption = (option: ISelectOption) => {
     emit('update:selected', option.value)

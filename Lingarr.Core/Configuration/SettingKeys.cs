@@ -62,6 +62,32 @@ public static class SettingKeys
             public const string RequestTemplate = "deepseek_request_template";
         }
 
+
+        public static class OpenRouter
+        {
+            public const string Model = "openrouter_model";
+            public const string ApiKey = "openrouter_api_key";
+            public const string Endpoint = "openrouter_endpoint";
+            public const string RequestTemplate = "openrouter_request_template";
+            public const string Temperature = "openrouter_temperature";
+            public const string MaxTokens = "openrouter_max_tokens";
+        }
+
+        public static class Zai
+        {
+            public const string Model = "zai_model";
+            public const string ApiKey = "zai_api_key";
+            public const string Endpoint = "zai_endpoint";
+            public const string RequestTemplate = "zai_request_template";
+        }
+
+        public static class OpenCodeGo
+        {
+            public const string Model = "opencode_go_model";
+            public const string ApiKey = "opencode_go_api_key";
+            public const string Endpoint = "opencode_go_endpoint";
+            public const string RequestTemplate = "opencode_go_request_template";
+        }
         public static class LibreTranslate
         {
             public const string Url = "libretranslate_url";

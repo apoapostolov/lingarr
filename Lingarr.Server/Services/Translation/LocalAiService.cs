@@ -77,7 +77,7 @@ public class LocalAiService : BaseLanguageService, ITranslationService, IBatchTr
                 SettingKeys.Translation.RetryDelayMultiplier,
                 SettingKeys.Translation.LanguageCodeFormat
             ]);
-            _model = settings[SettingKeys.Translation.LocalAi.Model];
+            _model = ResolveModel(settings[SettingKeys.Translation.LocalAi.Model]);
             _endpoint = settings[SettingKeys.Translation.LocalAi.Endpoint];
             _chatRequestTemplate = !string.IsNullOrEmpty(settings[SettingKeys.Translation.LocalAi.ChatRequestTemplate])
                 ? settings[SettingKeys.Translation.LocalAi.ChatRequestTemplate]

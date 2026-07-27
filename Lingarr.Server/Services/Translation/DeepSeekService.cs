@@ -62,7 +62,7 @@ public class DeepSeekService : BaseLanguageService
                 SettingKeys.Translation.AiPrompt,
                 SettingKeys.Translation.LanguageCodeFormat
             ]);
-            _model = settings[SettingKeys.Translation.DeepSeek.Model];
+            _model = ResolveModel(settings[SettingKeys.Translation.DeepSeek.Model]);
             _apiKey = await _settings.GetEncryptedSetting(SettingKeys.Translation.DeepSeek.ApiKey);
             _requestTemplate = !string.IsNullOrEmpty(settings[SettingKeys.Translation.DeepSeek.RequestTemplate])
                 ? settings[SettingKeys.Translation.DeepSeek.RequestTemplate]
