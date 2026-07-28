@@ -53,6 +53,9 @@ Browser → http://host:9876
 - **Compose image:** `lingarr-bedroom:latest`, `pull_policy: never`
 - **Build:** `Lingarr.Server/Dockerfile` (multi-stage: Node client → .NET publish)
 - **Fork ops:** Hermes skill `lingarr-local` + `AGENTS.md`
+- **Deployment-safe client loading:** the HTML shell is never cached, hashed
+  assets are immutable, missing old asset hashes return 404, and the client
+  performs one guarded refresh if an open tab crosses a deployment.
 
 ## 4. Request / data flow
 
@@ -75,8 +78,14 @@ Canonical format (Bedroom):
 
 ```json
 [
-  { "provider": "openrouter", "model": "openrouter/free" },
-  { "provider": "microsoft" }
+  {
+    "id": "row-1",
+    "provider": "openrouter",
+    "model": "openrouter/free",
+    "systemPromptProfileId": 3,
+    "contextPromptProfileId": 7
+  },
+  { "id": "row-2", "provider": "microsoft" }
 ]
 ```
 
@@ -88,6 +97,9 @@ Legacy accepted:
 Parsed by `TranslationChain.Parse` → `ITranslationServiceFactory.CreateTranslationServices(entries)`.
 
 Per-row `model` is applied via `IModelOverridable.OverrideModel` before translate.
+Stable row ids keep model and prompt-profile assignments attached through reorder.
+Built-in AI rows can override the active System and Context Prompt profiles;
+traditional translators never receive prompt content.
 
 ### 4.3 Manual / API line translate
 
@@ -169,7 +181,7 @@ Lingarr.Client/src
 The Bedroom settings rail has five stable destinations:
 
 1. **Connections** — Media servers and Path mapping
-2. **Translation** — Setup, Subtitles, and Advanced
+2. **Translation** — Setup, Subtitles, Prompts, and Advanced
 3. **Automation**
 4. **System** — Access, Tasks, and Logs
 5. **Plugins**
@@ -186,8 +198,9 @@ Each translation-service chain row is self-contained:
 
 1. Provider select  
 2. Model select (if multi-model)  
-3. API key (if provider needs one)  
-4. Reorder / delete (delete only fallbacks)
+3. System and Context Prompt profile selectors (built-in AI only)
+4. API key (if provider needs one)
+5. Reorder / delete (delete only fallbacks)
 
 No shared “last clicked” credentials panel.
 
@@ -232,6 +245,9 @@ Optional API key / JWT (`AuthController`, `AuthService`). Local Bedroom often ru
 | Subtitles | Parsers/writers under `Services/Subtitle` (SRT, SSA/ASS, …) |
 | Version | `/api/version` — Bedroom builds stamp `0.0.0-bedroom.<sha>` |
 | Provider health | `/api/provider-health` — structured outcomes, persisted snapshots, and safe provider probes |
+| Subtitle quality | `/api/translation-request/{id}/quality` — deterministic scores and line findings |
+| Recent activity | `/api/dashboard/activity` — bounded recent metrics and deterministic progress prose |
+| Prompt profiles | `/api/instruction-profile` — System/Context drafts, immutable versions, defaults, and history |
 
 ## 11. Bedroom-specific deltas vs upstream
 
@@ -243,6 +259,8 @@ Optional API key / JWT (`AuthController`, `AuthService`). Local Bedroom often ru
 6. Content API optional subtitle paths + Translations UI basename.  
 7. Theme-aligned Development badge and toast colours.  
 8. Services UI: stacked provider/model/key per row.
+9. Versioned System and Context Prompt libraries with per-AI-row assignment.
+10. Provider health, observe-only subtitle quality, and a human-readable recent-work Dashboard.
 
 Official upstream remains a **source for selective imports only**: https://github.com/lingarr-translate/lingarr
 

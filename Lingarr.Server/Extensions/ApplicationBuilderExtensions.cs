@@ -40,7 +40,21 @@ public static class ApplicationBuilderExtensions
 
         app.UseAuthentication();
         app.MapControllers();
-        app.UseStaticFiles();
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            OnPrepareResponse = context =>
+            {
+                var headers = context.Context.Response.Headers;
+                if (context.Context.Request.Path.StartsWithSegments("/assets"))
+                {
+                    headers["Cache-Control"] = "public, max-age=31536000, immutable";
+                }
+                else if (context.Context.Request.Path.Equals("/index.html"))
+                {
+                    SetHtmlShellCacheHeaders(headers);
+                }
+            }
+        });
         app.ConfigureSpa(basePath);
     }
 
@@ -113,7 +127,8 @@ public static class ApplicationBuilderExtensions
         app.MapWhen(httpContext =>
                 httpContext.Request.Path.Value != null &&
                 !httpContext.Request.Path.Value.StartsWith("/api") &&
-                !httpContext.Request.Path.Value.StartsWith("/signalr"),
+                !httpContext.Request.Path.Value.StartsWith("/signalr") &&
+                !httpContext.Request.Path.StartsWithSegments("/assets"),
             configBuilder =>
             {
                 var index = File.ReadAllText(Path.Combine(app.Environment.WebRootPath, "index.html"));
@@ -122,8 +137,16 @@ public static class ApplicationBuilderExtensions
                 configBuilder.Run(async ctx =>
                 {
                     ctx.Response.ContentType = "text/html";
+                    SetHtmlShellCacheHeaders(ctx.Response.Headers);
                     await ctx.Response.WriteAsync(index);
                 });
             });
+    }
+
+    private static void SetHtmlShellCacheHeaders(IHeaderDictionary headers)
+    {
+        headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+        headers["Pragma"] = "no-cache";
+        headers["Expires"] = "0";
     }
 }

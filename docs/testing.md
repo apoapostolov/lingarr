@@ -35,6 +35,10 @@ docker run --rm --network=host \
 | `Services/Translation/ModelCatalogServiceTests.cs` | Model list cache hit, refresh bypass, stale on failure |
 | `Services/Translation/OpenRouterModelOrderingTests.cs` | **`openrouter/free` always first**; inject if catalogue omits |
 | `Services/Translation/TranslationFallbackChainTests.cs` | Subtitle line falls through providers on failure |
+| `Services/TranslationPromptProfileServiceTests.cs` | Immutable prompt versions, AI-only resolution, exact usage history, and protected defaults |
+| `Services/TranslationQualityServiceTests.cs` | Observe-only quality rules, penalties, caps, and scoring |
+| `Services/DashboardActivityServiceTests.cs` | Bounded recent-work metrics and deterministic progress prose |
+| `Services/ProviderHealthServiceTests.cs` | Provider status precedence, recovery, and safe event classification |
 
 ### Upstream coverage already present
 
@@ -67,13 +71,27 @@ LINGARR_URL=http://192.168.1.10:9876 python3 tests/smoke/smoke_api.py
 
 ### Manual UI smoke (Services page)
 
-1. Hard-refresh Settings → Services.  
+1. Hard-refresh Settings → Translation → Setup.
 2. Each row: number badge, full-width provider, stacked model, stacked API key.  
 3. No shared credentials panel under the list.  
 4. Delete only on fallbacks; primary cannot be deleted.  
 5. OpenRouter model list: free first; spinner stops after load.  
 6. Development pill uses theme accent (not amber).  
 7. Save toast uses secondary/accent (not neon green).
+8. Prompts tab manages separate System and Context libraries with drafts, publish,
+   default selection, version history, and recommended examples.
+9. Built-in AI rows expose System/Context selectors; Microsoft and other
+   traditional providers do not.
+
+### Stale-tab deployment smoke
+
+1. Open Dashboard in a fresh tab without visiting Movies, TV Shows, or Path mapping.
+2. Deploy a client build with different asset hashes.
+3. In the still-open tab, open one of those lazy-loaded pages.
+4. Lingarr should refresh once and arrive on the requested page without a blank
+   view or repeated refresh.
+5. A removed `/assets/<old-hash>.js` URL must return 404, while `/` returns
+   `Cache-Control: no-cache, no-store, must-revalidate`.
 
 ## CI recommendations
 

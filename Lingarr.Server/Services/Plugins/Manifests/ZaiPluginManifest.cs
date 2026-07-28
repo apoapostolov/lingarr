@@ -13,6 +13,7 @@ public sealed class ZaiPluginManifest : IPluginManifest
         "Must use the Coding OpenAI base URL or calls hit balance/1113 errors. " +
         "Official models: glm-5.2, glm-5-turbo, glm-4.7.";
     public bool HasRequestTemplate => true;
+    public bool SupportsInstructionProfiles => true;
     public IReadOnlyList<PluginSettingField> Settings { get; } =
     [
         new()

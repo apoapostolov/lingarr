@@ -50,6 +50,8 @@ export const SETTINGS = {
     AI_CONTEXT_PROMPT: 'ai_context_prompt',
     AI_CONTEXT_BEFORE: 'ai_context_before',
     AI_CONTEXT_AFTER: 'ai_context_after',
+    ACTIVE_SYSTEM_PROMPT_PROFILE_ID: 'active_system_prompt_profile_id',
+    ACTIVE_CONTEXT_PROMPT_PROFILE_ID: 'active_context_prompt_profile_id',
     USE_BATCH_TRANSLATION: 'use_batch_translation',
     MAX_BATCH_SIZE: 'max_batch_size',
     USE_SUBTITLE_TAGGING: 'use_subtitle_tagging',
@@ -129,6 +131,8 @@ export interface ISettings {
     ai_context_prompt: string
     ai_context_before: string
     ai_context_after: string
+    active_system_prompt_profile_id: string
+    active_context_prompt_profile_id: string
     use_batch_translation: string
     max_batch_size: string
     use_subtitle_tagging: string

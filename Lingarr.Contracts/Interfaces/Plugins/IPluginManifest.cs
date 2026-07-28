@@ -13,4 +13,5 @@ public interface IPluginManifest
     string? Description { get; }
     IReadOnlyList<PluginSettingField> Settings { get; }
     bool HasRequestTemplate => false;
+    bool SupportsInstructionProfiles => false;
 }

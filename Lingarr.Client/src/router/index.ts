@@ -87,6 +87,11 @@ const routes: RouteRecordRaw[] = [
                         component: () => import('@/pages/settings/TranslationAdvancedPage.vue')
                     },
                     {
+                        path: 'translation/prompts',
+                        name: 'translation-prompts-settings',
+                        component: () => import('@/pages/settings/TranslationPromptsPage.vue')
+                    },
+                    {
                         path: 'translation/request-template/:service',
                         name: 'request-template-settings',
                         component: () => import('@/pages/settings/RequestTemplatePage.vue'),
@@ -171,7 +176,63 @@ const router = createRouter({
     routes
 })
 
+const staleAssetRecoveryKey = 'lingarr:stale-asset-recovery'
+const staleAssetRecoveryWindowMs = 60_000
+let staleAssetRecoveryStarted = false
+let pendingNavigationHref = window.location.href
+
+const isStaleAssetError = (error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error)
+    return /dynamically imported module|failed to fetch.*module|importing a module script failed|unable to preload css/i.test(
+        message
+    )
+}
+
+const recoverFromStaleAsset = (error: unknown, targetHref = pendingNavigationHref) => {
+    if (staleAssetRecoveryStarted || !isStaleAssetError(error)) return false
+
+    try {
+        const previousAttempt = Number(sessionStorage.getItem(staleAssetRecoveryKey))
+        if (
+            Number.isFinite(previousAttempt) &&
+            previousAttempt > 0 &&
+            Date.now() - previousAttempt < staleAssetRecoveryWindowMs
+        )
+            return false
+        sessionStorage.setItem(staleAssetRecoveryKey, Date.now().toString())
+    } catch {
+        // Reloading without a persisted guard could create an endless refresh loop.
+        return false
+    }
+
+    staleAssetRecoveryStarted = true
+    window.location.assign(targetHref)
+    return true
+}
+
+router.onError((error, to) => {
+    const targetHref = to ? router.resolve(to).href : pendingNavigationHref
+    if (!recoverFromStaleAsset(error, targetHref)) console.error('[Lingarr router]', error)
+})
+
+window.addEventListener('vite:preloadError', (event) => {
+    const error = (event as Event & { payload?: unknown }).payload
+    if (!isStaleAssetError(error)) return
+    event.preventDefault()
+    recoverFromStaleAsset(error)
+})
+
+router.isReady().then(() => {
+    try {
+        sessionStorage.removeItem(staleAssetRecoveryKey)
+    } catch {
+        // Storage may be unavailable in locked-down browser contexts.
+    }
+})
+
 router.beforeEach(async (to) => {
+    pendingNavigationHref = router.resolve(to).href
+
     if (!to.meta.authenticated) {
         return true
     }

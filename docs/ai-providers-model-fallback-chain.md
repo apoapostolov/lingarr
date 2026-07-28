@@ -44,13 +44,22 @@ Target:
 
 ```json
 [
-  { "provider": "openrouter", "model": "openrouter/free" },
-  { "provider": "deepseek", "model": "deepseek-chat" },
-  { "provider": "microsoft" }
+  {
+    "id": "row-1",
+    "provider": "openrouter",
+    "model": "openrouter/free",
+    "systemPromptProfileId": 3,
+    "contextPromptProfileId": 7
+  },
+  { "id": "row-2", "provider": "deepseek", "model": "deepseek-chat" },
+  { "id": "row-3", "provider": "microsoft" }
 ]
 ```
 
 Plain string `microsoft` (Bedroom compose env) still parses as a one-entry chain.
+Stable ids are generated when rich rows are normalized. Prompt profile fields are
+optional: a built-in AI row without them inherits the active System and Context
+defaults. Non-AI rows ignore and do not expose these fields.
 
 ## Providers
 
@@ -78,6 +87,8 @@ Model [ openrouter/free • Free metamodel (default for bulk) ▾ ]  ← positio
 Primary service
   Provider [ … ▾ ]
   Model    [ … ▾ ] [↻]     ← between provider and API (AI only)
+  System prompt  [ Use default ▾ ]  ← AI only
+  Context prompt [ Use default ▾ ]  ← AI only
   API key  [ … ]
   (extra fields…)
 

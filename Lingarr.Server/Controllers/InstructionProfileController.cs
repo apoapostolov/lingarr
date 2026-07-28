@@ -103,6 +103,10 @@ public class InstructionProfileController : ControllerBase
         {
             return NotFound();
         }
+        catch (InvalidOperationException exception)
+        {
+            return BadRequest(exception.Message);
+        }
     }
 
     private static async Task<ActionResult<PromptProfileResponse>> Execute(

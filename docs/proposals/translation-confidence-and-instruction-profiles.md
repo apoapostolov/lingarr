@@ -662,20 +662,24 @@ Lingarr currently exposes concepts that can be confused:
 
 | Object | Purpose |
 |--------|---------|
-| **Instruction profile** | User-authored translation behaviour: tone, glossary, persona, censorship, names, and style. |
-| **Context prompt** | Runtime neighbouring subtitle lines supplied to help interpret the current line. |
+| **System Prompt profile** | User-authored translation behaviour: tone, glossary, persona, censorship, names, and style. |
+| **Context Prompt profile** | Tagged runtime framing for the target line and its neighbouring subtitle lines. |
 | **Request template** | Provider-specific HTTP/JSON transport structure. |
 | **Lingarr output contract** | Non-editable protocol rules required to map provider output back to subtitle entries safely. |
 
-Instruction profiles replace the behavioural role of the single global `ai_prompt`. They do not replace provider request templates or Lingarr's non-editable output contract.
+The profile library replaces the two single global editors (`ai_prompt` and
+`ai_context_prompt`) without changing provider request templates or Lingarr's
+non-editable output contract. System and Context profiles remain separate object
+types so a reusable style guide is not mixed with runtime line framing.
 
 ### 7.2 Profile and version model
 
 Add:
 
-#### `TranslationInstructionProfile`
+#### `TranslationPromptProfile`
 
 - `Id`
+- `Type` (`system` or `context`)
 - `Name`
 - `Description`
 - `CurrentPublishedVersionId`
@@ -683,7 +687,7 @@ Add:
 - `CreatedAt`
 - `UpdatedAt`
 
-#### `TranslationInstructionVersion`
+#### `TranslationPromptProfileVersion`
 
 - `Id`
 - `ProfileId`
@@ -707,7 +711,10 @@ The instruction editor is an explicit-save specialist workspace. Immediate save 
 
 ### 7.3 Assignment
 
-An instruction profile is assigned to an individual AI provider/model row in the translation fallback chain.
+A System profile and a Context profile can each be assigned to an individual AI
+provider/model row. Leaving either selector at **Use default** inherits the
+corresponding published default, avoiding noisy copies of the default id in every
+chain row.
 
 Extend rich chain rows with stable ids:
 
@@ -717,7 +724,8 @@ Extend rich chain rows with stable ids:
     "id": "chain-row-uuid",
     "provider": "openrouter",
     "model": "openrouter/free",
-    "instructionProfileId": 3
+    "systemPromptProfileId": 3,
+    "contextPromptProfileId": 7
   }
 ]
 ```
@@ -732,9 +740,10 @@ Non-AI providers do not show the instruction selector and never receive instruct
 
 At request creation:
 
-1. Resolve the assigned profile's current published version.
-2. Store `InstructionProfileId`, `InstructionVersionId`, and content hash on the translation request/provider attempt.
-3. Use that immutable version for the entire request.
+1. Resolve each explicit assignment or its active System/Context default.
+2. Store both profile ids, both version ids, and both content hashes against the
+   translation request and stable chain-row id.
+3. Use those immutable published versions for the request.
 
 Publishing a new version affects future requests only. In-flight translations never change instructions halfway through a subtitle.
 
@@ -764,7 +773,9 @@ User instructions may contain any translation guidance, glossary, persona, or co
 
 ### 7.6 UI placement
 
-Under **Translation → Advanced**, add **Instruction profiles** as a route-backed specialist workspace.
+Add **Translation → Prompts** as a route-backed specialist workspace. It reuses
+the familiar System Prompt and Context Prompt containers, but each container now
+manages a library rather than one immediately saved text field.
 
 List view:
 
@@ -773,18 +784,20 @@ List view:
 - Last published time
 - Number of chain-row assignments
 - Archived state
-- **Create instruction profile**
+- **New profile**
 
 Editor:
 
 - Name
 - Description
-- Large plain-text/Markdown-friendly editor
+- Large plain-text/Markdown-friendly editor with placeholder assistance
 - Draft/published indicator
 - Change note
 - **Save draft**
 - **Publish version**
-- Version history and read-only comparison
+- Version history and restore-to-draft
+- Recommended example content and concise guidance
+- Current-default badge and guarded deletion
 
 Assignment appears inline in each AI chain row on **Translation → Setup**, after model selection and before credentials.
 
@@ -792,10 +805,15 @@ Assignment appears inline in each AI chain row on **Translation → Setup**, aft
 
 On upgrade:
 
-- If existing `ai_prompt` is non-empty, create **Default translation instructions**, version 1, containing that content.
-- Assign the new default profile to every currently configured built-in AI chain row.
-- Keep `ai_prompt` readable during one compatibility period but stop treating it as the primary editor.
-- Context prompt and request-template settings remain unchanged.
+- Import existing `ai_prompt` into **Default translation instructions**, version
+  1, without changing its text.
+- Import existing `ai_context_prompt` into **Default surrounding context**,
+  version 1, without changing its text.
+- Mark both imported profiles as active defaults. Existing AI rows inherit them
+  unless the user chooses explicit row overrides.
+- Keep both legacy settings synchronized to the active published defaults for
+  compatibility, but stop treating them as the primary editors.
+- Request-template settings remain unchanged.
 
 ### 7.8 Validation and safety
 
@@ -807,6 +825,8 @@ On upgrade:
 - The UI warns users not to place API keys or other secrets in an instruction profile.
 - If an assigned profile has no published version, starting a new translation is blocked with a direct recovery link.
 - If a profile is archived after a request is queued, the queued immutable version remains usable.
+- A default or currently assigned profile cannot be deleted. The user must first
+  choose a replacement or remove the row assignment.
 
 ### 7.9 Example instruction profile
 
@@ -952,6 +972,17 @@ Before returning the result, silently verify:
 - Instruction text never appears in logs, diagnostics, health events, or Dashboard summaries.
 - Request templates remain separately editable.
 
+**Implementation status (2026-07-28):** Implemented in the Bedroom fork with a
+small but important refinement to the original proposal: both System Prompt and
+Context Prompt are first-class, independently versioned profile libraries under
+the new **Translation → Prompts** tab. Existing prompt text is imported without
+loss. Each built-in AI chain row can override either profile, while **Use
+default** provides clean inheritance. Stable row ids preserve assignments through
+reordering and duplicate providers. Every translation records the resolved
+published version ids and content hashes; traditional translators never receive
+prompt content. Active, assigned, or historically used profiles are protected
+from destructive deletion as appropriate.
+
 ---
 
 ## 8. Shared API surface
@@ -975,7 +1006,7 @@ GET  /api/instruction-profile/{id}
 PUT  /api/instruction-profile/{id}/draft
 POST /api/instruction-profile/{id}/publish
 POST /api/instruction-profile/{id}/restore/{versionId}
-POST /api/instruction-profile/{id}/archive
+DELETE /api/instruction-profile/{id}
 ```
 
 The test endpoint returns a sanitized result:

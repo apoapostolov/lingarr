@@ -26,7 +26,7 @@
                     class="border-accent/20 bg-primary/45 overflow-hidden rounded-md border">
                     <button
                         type="button"
-                        class="focus-visible:ring-accent flex min-h-14 w-full items-center gap-3 px-3 py-2 text-left focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
+                        class="group focus-visible:ring-accent flex min-h-14 w-full items-center gap-3 px-3 py-2 text-left focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
                         :aria-expanded="expandedProvider === provider.provider"
                         @click="toggle(provider.provider)">
                         <span
@@ -34,19 +34,20 @@
                             :class="dotClass(provider.state)"
                             aria-hidden="true"></span>
                         <span class="min-w-0 grow">
-                            <span class="flex flex-wrap items-baseline justify-between gap-x-3">
-                                <span class="text-primary-content font-semibold">
-                                    {{ provider.displayName }}
-                                </span>
-                                <span class="text-primary-content text-sm font-medium">
-                                    {{ provider.statusLabel }}
-                                </span>
+                            <span class="text-primary-content block font-semibold">
+                                {{ provider.displayName }}
                             </span>
                             <span class="text-secondary-content/70 block truncate text-xs">
                                 {{ provider.model || lastRelevantEvent(provider) }}
                             </span>
                         </span>
-                        <span class="text-secondary-content/60 text-sm" aria-hidden="true">
+                        <span
+                            class="text-primary-content flex min-h-8 max-w-28 shrink-0 items-center px-2 text-right text-sm leading-tight font-medium">
+                            {{ provider.statusLabel }}
+                        </span>
+                        <span
+                            class="text-secondary-content/70 group-hover:border-accent/30 group-hover:bg-accent/10 flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-transparent text-xl leading-none font-medium transition-colors"
+                            aria-hidden="true">
                             {{ expandedProvider === provider.provider ? '−' : '+' }}
                         </span>
                     </button>
@@ -95,19 +96,7 @@
                             </div>
                         </dl>
 
-                        <p
-                            v-if="probeResults[provider.provider]"
-                            class="text-sm"
-                            :class="
-                                probeResults[provider.provider]?.success
-                                    ? 'text-green-400'
-                                    : 'text-yellow-400'
-                            "
-                            role="status">
-                            {{ probeResults[provider.provider]?.message }}
-                        </p>
-
-                        <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
                             <ButtonComponent
                                 variant="secondary"
                                 size="xs"
@@ -116,9 +105,20 @@
                                 @click.stop="testProvider(provider.provider)">
                                 Test provider
                             </ButtonComponent>
+                            <p
+                                v-if="probeResults[provider.provider]"
+                                class="min-w-48 flex-1 text-sm"
+                                :class="
+                                    probeResults[provider.provider]?.success
+                                        ? 'text-green-400'
+                                        : 'text-yellow-400'
+                                "
+                                role="status">
+                                {{ probeResults[provider.provider]?.message }}
+                            </p>
                             <router-link
                                 :to="{ name: 'translation-setup-settings' }"
-                                class="text-accent-content focus-visible:ring-accent rounded-sm text-xs underline underline-offset-2 focus-visible:ring-2 focus-visible:outline-none">
+                                class="text-accent-content focus-visible:ring-accent rounded-sm text-xs underline underline-offset-2 focus-visible:ring-2 focus-visible:outline-none sm:ml-auto">
                                 Open Translation Setup
                             </router-link>
                         </div>

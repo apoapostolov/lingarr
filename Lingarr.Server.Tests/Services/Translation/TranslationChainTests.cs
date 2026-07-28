@@ -103,6 +103,28 @@ public class TranslationChainTests
     }
 
     [Fact]
+    public void Serialize_RoundTripsStableRowAndPromptAssignments()
+    {
+        var entries = new List<TranslationChainEntry>
+        {
+            new()
+            {
+                Id = "stable-row",
+                Provider = "openrouter",
+                Model = "openrouter/free",
+                SystemPromptProfileId = 3,
+                ContextPromptProfileId = 7
+            }
+        };
+
+        var again = TranslationChain.Parse(TranslationChain.Serialize(entries));
+
+        Assert.Equal("stable-row", again[0].Id);
+        Assert.Equal(3, again[0].SystemPromptProfileId);
+        Assert.Equal(7, again[0].ContextPromptProfileId);
+    }
+
+    [Fact]
     public void Normalize_AcceptsLegacyAndEmitsJson()
     {
         var normalized = TranslationChain.Normalize("microsoft");

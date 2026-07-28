@@ -11,6 +11,7 @@ public sealed class OpenRouterPluginManifest : IPluginManifest
     public string Description =>
         "100+ models via a single OpenAI-compatible API. AI translation can be costly — keep automation cautious.";
     public bool HasRequestTemplate => true;
+    public bool SupportsInstructionProfiles => true;
     public IReadOnlyList<PluginSettingField> Settings { get; } =
     [
         new()

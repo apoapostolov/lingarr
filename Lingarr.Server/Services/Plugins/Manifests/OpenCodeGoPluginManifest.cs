@@ -11,6 +11,7 @@ public sealed class OpenCodeGoPluginManifest : IPluginManifest
     public string Description =>
         "OpenCode Go curated open models (OpenAI-compatible). Subscription key from opencode.ai.";
     public bool HasRequestTemplate => true;
+    public bool SupportsInstructionProfiles => true;
     public IReadOnlyList<PluginSettingField> Settings { get; } =
     [
         new()

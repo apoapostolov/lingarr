@@ -143,6 +143,16 @@ public class TranslationPromptProfileService : ITranslationPromptProfileService
         var profile = await _dbContext.TranslationPromptProfiles
             .FirstOrDefaultAsync(item => item.Id == id, cancellationToken)
             ?? throw new KeyNotFoundException();
+        var activeKey = profile.Type == PromptProfileTypes.System
+            ? SettingKeys.Translation.ActiveSystemPromptProfileId
+            : SettingKeys.Translation.ActiveContextPromptProfileId;
+        if (ParseId(await _settings.GetSetting(activeKey)) == id)
+            throw new InvalidOperationException(
+                "Choose a different default profile before deleting this one.");
+        var assignments = await CurrentAssignmentsAsync(cancellationToken);
+        if (assignments.GetValueOrDefault(id) > 0)
+            throw new InvalidOperationException(
+                "Remove this profile from the translation service chain before deleting it.");
         var usedHistorically = await _dbContext.TranslationPromptUsages.AnyAsync(
             usage => usage.SystemProfileId == id || usage.ContextProfileId == id,
             cancellationToken);
@@ -162,6 +172,8 @@ public class TranslationPromptProfileService : ITranslationPromptProfileService
         var profile = await ProfileQuery()
             .FirstOrDefaultAsync(item => item.Id == id, cancellationToken)
             ?? throw new KeyNotFoundException();
+        if (profile.IsArchived)
+            throw new InvalidOperationException("Archived profiles cannot be made the default.");
         var version = profile.CurrentPublishedVersionId.HasValue
             ? profile.Versions.FirstOrDefault(item =>
                 item.Id == profile.CurrentPublishedVersionId.Value)

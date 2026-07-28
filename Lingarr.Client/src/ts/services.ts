@@ -21,7 +21,12 @@ import {
     IProviderProbe,
     ITranslationQualityDetail,
     ITranslationQualitySummary,
-    IDashboardActivity
+    IDashboardActivity,
+    ICreatePromptProfile,
+    IPromptProfile,
+    IPromptProfileDeleteResult,
+    PromptProfileType,
+    ISavePromptProfileDraft
 } from '@/ts'
 
 export interface Services {
@@ -41,6 +46,17 @@ export interface Services {
     plugin: IPluginService
     providerHealth: IProviderHealthService
     dashboard: IDashboardService
+    promptProfile: IPromptProfileService
+}
+
+export interface IPromptProfileService {
+    list(type?: PromptProfileType): Promise<IPromptProfile[]>
+    create(request: ICreatePromptProfile): Promise<IPromptProfile>
+    saveDraft(id: number, request: ISavePromptProfileDraft): Promise<IPromptProfile>
+    publish(id: number, changeNote: string): Promise<IPromptProfile>
+    restore(id: number, versionId: number): Promise<IPromptProfile>
+    activate(id: number): Promise<void>
+    delete(id: number): Promise<IPromptProfileDeleteResult>
 }
 
 export interface IDashboardService {

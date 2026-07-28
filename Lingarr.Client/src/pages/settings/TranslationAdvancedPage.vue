@@ -4,8 +4,6 @@
         <div
             class="grid grid-flow-row auto-rows-max grid-cols-1 gap-4 p-4 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
             <TranslationSettings />
-            <SystemPrompt />
-            <ContextPrompt />
             <CardComponent title="Request Templates">
                 <template #description>
                     Customize the request body sent to each configured AI translation provider.
@@ -40,8 +38,6 @@ import ButtonComponent from '@/components/common/ButtonComponent.vue'
 import CardComponent from '@/components/common/CardComponent.vue'
 import SettingsSectionTabs from '@/components/features/settings/SettingsSectionTabs.vue'
 import TranslationSettings from '@/components/features/settings/TranslationSettings.vue'
-import SystemPrompt from '@/components/features/settings/SystemPrompt.vue'
-import ContextPrompt from '@/components/features/settings/ContextPrompt.vue'
 
 const router = useRouter()
 const settingsStore = useSettingStore()

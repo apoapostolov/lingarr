@@ -14,6 +14,7 @@ public sealed class LocalAiPluginManifest : IPluginManifest
         "Self-hosted OpenAI-compatible or Ollama-compatible deployments. The endpoint determines whether the chat/completions or the generate protocol is used; the API key is optional. Addresses usually consist of a path such as <code>/v1/chat/completions</code> or <code>/api/generate</code> and should follow the <a href='https://platform.openai.com/docs/api-reference/chat/create' target='_blank' rel='noopener'>OpenAI API specification</a>.";
 
     public bool HasRequestTemplate => true;
+    public bool SupportsInstructionProfiles => true;
 
     public IReadOnlyList<PluginSettingField> Settings { get; } =
     [

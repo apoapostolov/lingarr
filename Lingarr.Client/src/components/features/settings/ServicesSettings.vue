@@ -12,7 +12,7 @@
                 <ol class="space-y-3">
                     <li
                         v-for="(entry, index) in chain"
-                        :key="`row-${index}-${entry.provider}`"
+                        :key="entry.id"
                         class="border-accent/30 flex gap-3 rounded-md border p-3">
                         <!-- 1-based index badge (primary = 1) -->
                         <span
@@ -55,7 +55,67 @@
                                 </ButtonComponent>
                             </div>
 
-                            <!-- Row 3: API key (per provider, only when needed) -->
+                            <div
+                                v-if="supportsInstructions(entry.provider)"
+                                class="grid gap-2 rounded-md border border-accent/20 bg-primary/35 p-2 sm:grid-cols-2">
+                                <label>
+                                    <span class="mb-1 block text-xs font-semibold text-primary-content/65">
+                                        System prompt
+                                    </span>
+                                    <select
+                                        :value="entry.systemPromptProfileId ?? ''"
+                                        class="w-full rounded-md border border-accent bg-secondary px-2 py-2 text-sm text-primary-content"
+                                        @change="
+                                            setPromptProfile(
+                                                index,
+                                                'system',
+                                                ($event.target as HTMLSelectElement).value
+                                            )
+                                        ">
+                                        <option value="">
+                                            Default · {{ activeSystemProfileName }}
+                                        </option>
+                                        <option
+                                            v-for="profile in systemProfiles"
+                                            :key="profile.id"
+                                            :value="profile.id">
+                                            {{ profile.name }} · v{{ profile.currentVersionNumber ?? 'draft' }}
+                                        </option>
+                                    </select>
+                                </label>
+                                <label>
+                                    <span class="mb-1 block text-xs font-semibold text-primary-content/65">
+                                        Context prompt
+                                    </span>
+                                    <select
+                                        :value="entry.contextPromptProfileId ?? ''"
+                                        class="w-full rounded-md border border-accent bg-secondary px-2 py-2 text-sm text-primary-content"
+                                        @change="
+                                            setPromptProfile(
+                                                index,
+                                                'context',
+                                                ($event.target as HTMLSelectElement).value
+                                            )
+                                        ">
+                                        <option value="">
+                                            Default · {{ activeContextProfileName }}
+                                        </option>
+                                        <option
+                                            v-for="profile in contextProfiles"
+                                            :key="profile.id"
+                                            :value="profile.id">
+                                            {{ profile.name }} · v{{ profile.currentVersionNumber ?? 'draft' }}
+                                        </option>
+                                    </select>
+                                </label>
+                                <router-link
+                                    :to="{ name: 'translation-prompts-settings' }"
+                                    class="text-xs text-accent underline sm:col-span-2">
+                                    Manage prompt profiles
+                                </router-link>
+                            </div>
+
+                            <!-- API key (per provider, only when needed) -->
                             <InputComponent
                                 v-if="apiKeySettingKey(entry.provider)"
                                 :id="`api-key-${index}-${entry.provider}`"
@@ -108,7 +168,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useSettingStore } from '@/store/setting'
 import {
     ENCRYPTED_SETTINGS,
@@ -116,6 +176,7 @@ import {
     INPUT_TYPE,
     PLUGIN_SETTING_TYPE,
     IPluginSummary,
+    IPromptProfile,
     SETTINGS,
     SERVICE_TYPE,
     SelectComponentExpose
@@ -131,7 +192,13 @@ import CaretDownIcon from '@/components/icons/CaretDownIcon.vue'
 import TrashIcon from '@/components/icons/TrashIcon.vue'
 import PlusIcon from '@/components/icons/PlusIcon.vue'
 
-export type ChainEntry = { provider: string; model?: string | null }
+export type ChainEntry = {
+    id: string
+    provider: string
+    model?: string | null
+    systemPromptProfileId?: number | null
+    contextPromptProfileId?: number | null
+}
 
 const MODEL_PROVIDERS = new Set([
     'openai',
@@ -162,7 +229,13 @@ const saveNotification = ref<InstanceType<typeof SaveNotification> | null>(null)
 const settingsStore = useSettingStore()
 
 const providerOptions = ref<{ value: string; label: string }[]>([])
-const chain = ref<ChainEntry[]>([{ provider: SERVICE_TYPE.LIBRETRANSLATE }])
+const chain = ref<ChainEntry[]>([
+    { id: crypto.randomUUID(), provider: SERVICE_TYPE.LIBRETRANSLATE }
+])
+const promptProfiles = ref<IPromptProfile[]>([])
+const instructionProviders = ref(new Set<string>())
+const activeSystemProfileId = ref(0)
+const activeContextProfileId = ref(0)
 const modelOptions = reactive<Record<number, { value: string; label: string }[]>>({})
 const modelError = reactive<Record<number, string | null>>({})
 const modelSelectRefs = ref<Record<number, SelectComponentExpose | null>>({})
@@ -178,6 +251,31 @@ function setModelSelectRef(index: number, el: unknown) {
 function supportsModel(provider?: string) {
     return !!provider && MODEL_PROVIDERS.has(provider.toLowerCase())
 }
+
+function supportsInstructions(provider?: string) {
+    return !!provider && instructionProviders.value.has(provider.toLowerCase())
+}
+
+const systemProfiles = computed(() =>
+    promptProfiles.value.filter(
+        (profile) => profile.type === 'system' && profile.currentPublishedVersionId
+    )
+)
+const contextProfiles = computed(() =>
+    promptProfiles.value.filter(
+        (profile) => profile.type === 'context' && profile.currentPublishedVersionId
+    )
+)
+const activeSystemProfileName = computed(
+    () =>
+        systemProfiles.value.find((profile) => profile.id === activeSystemProfileId.value)?.name ??
+        'None'
+)
+const activeContextProfileName = computed(
+    () =>
+        contextProfiles.value.find((profile) => profile.id === activeContextProfileId.value)?.name ??
+        'None'
+)
 
 function apiKeySettingKey(provider?: string): keyof IEncryptedSettings | null {
     if (!provider) return null
@@ -202,30 +300,53 @@ function parseChain(raw: unknown): ChainEntry[] {
     try {
         const text = (raw as string) ?? '[]'
         if (!text.trim().startsWith('[')) {
-            return [{ provider: text.trim() || SERVICE_TYPE.LIBRETRANSLATE }]
+            return [
+                {
+                    id: crypto.randomUUID(),
+                    provider: text.trim() || SERVICE_TYPE.LIBRETRANSLATE
+                }
+            ]
         }
         const parsed = JSON.parse(text) as unknown[]
         if (!Array.isArray(parsed) || parsed.length === 0) {
-            return [{ provider: SERVICE_TYPE.LIBRETRANSLATE }]
+            return [{ id: crypto.randomUUID(), provider: SERVICE_TYPE.LIBRETRANSLATE }]
         }
         return parsed.map((item) => {
-            if (typeof item === 'string') return { provider: item }
-            const obj = item as { provider?: string; service?: string; model?: string }
+            if (typeof item === 'string') return { id: crypto.randomUUID(), provider: item }
+            const obj = item as {
+                id?: string
+                provider?: string
+                service?: string
+                model?: string
+                systemPromptProfileId?: number
+                contextPromptProfileId?: number
+            }
             return {
+                id: obj.id || crypto.randomUUID(),
                 provider: obj.provider || obj.service || SERVICE_TYPE.LIBRETRANSLATE,
-                model: obj.model || null
+                model: obj.model || null,
+                systemPromptProfileId: obj.systemPromptProfileId ?? null,
+                contextPromptProfileId: obj.contextPromptProfileId ?? null
             }
         })
     } catch {
-        return [{ provider: SERVICE_TYPE.LIBRETRANSLATE }]
+        return [{ id: crypto.randomUUID(), provider: SERVICE_TYPE.LIBRETRANSLATE }]
     }
 }
 
 async function save(next: ChainEntry[]) {
     chain.value = next
-    const payload = next.map((e) =>
-        e.model ? { provider: e.provider, model: e.model } : { provider: e.provider }
-    )
+    const payload = next.map((entry) => ({
+        id: entry.id,
+        provider: entry.provider,
+        ...(entry.model ? { model: entry.model } : {}),
+        ...(entry.systemPromptProfileId
+            ? { systemPromptProfileId: entry.systemPromptProfileId }
+            : {}),
+        ...(entry.contextPromptProfileId
+            ? { contextPromptProfileId: entry.contextPromptProfileId }
+            : {})
+    }))
     await settingsStore.updateSetting(SETTINGS.SERVICE_TYPE, JSON.stringify(payload), true)
     for (const entry of next) {
         if (!entry.model || !supportsModel(entry.provider)) continue
@@ -253,10 +374,33 @@ function modelSettingKey(provider: string): string | null {
 
 function setProvider(index: number, value: string) {
     const next = chain.value.map((e, i) =>
-        i === index ? { provider: value, model: supportsModel(value) ? e.model : null } : e
+        i === index
+            ? {
+                  ...e,
+                  provider: value,
+                  model: supportsModel(value) ? e.model : null,
+                  systemPromptProfileId: supportsInstructions(value)
+                      ? e.systemPromptProfileId
+                      : null,
+                  contextPromptProfileId: supportsInstructions(value)
+                      ? e.contextPromptProfileId
+                      : null
+              }
+            : e
     )
     save(next)
     loadModels(index, false)
+}
+
+function setPromptProfile(index: number, type: 'system' | 'context', value: string) {
+    const profileId = value ? Number(value) : null
+    const next = chain.value.map((entry, rowIndex) => {
+        if (rowIndex !== index) return entry
+        return type === 'system'
+            ? { ...entry, systemPromptProfileId: profileId }
+            : { ...entry, contextPromptProfileId: profileId }
+    })
+    save(next)
 }
 
 function setModel(index: number, value: string) {
@@ -269,7 +413,7 @@ function addRow() {
         providerOptions.value.find((o) => o.value === 'microsoft')?.value ||
         providerOptions.value[0]?.value ||
         SERVICE_TYPE.LIBRETRANSLATE
-    save([...chain.value, { provider: preferred }])
+    save([...chain.value, { id: crypto.randomUUID(), provider: preferred }])
 }
 
 function removeRow(index: number) {
@@ -322,11 +466,28 @@ onMounted(async () => {
     chain.value = parseChain(settingsStore.getSetting(SETTINGS.SERVICE_TYPE))
     try {
         const summaries: IPluginSummary[] = await servicesApi.plugin.list()
+        instructionProviders.value = new Set(
+            summaries
+                .filter((summary) => summary.supportsInstructionProfiles)
+                .map((summary) => summary.provider.toLowerCase())
+        )
         providerOptions.value = summaries
             .map((s) => ({ value: s.provider, label: s.displayName }))
             .sort((a, b) => a.label.localeCompare(b.label))
     } catch (error) {
         console.error('Failed to load translation provider list', error)
+    }
+    try {
+        const [profiles, activeSystem, activeContext] = await Promise.all([
+            servicesApi.promptProfile.list(),
+            servicesApi.setting.getSetting<string>(SETTINGS.ACTIVE_SYSTEM_PROMPT_PROFILE_ID),
+            servicesApi.setting.getSetting<string>(SETTINGS.ACTIVE_CONTEXT_PROMPT_PROFILE_ID)
+        ])
+        promptProfiles.value = profiles
+        activeSystemProfileId.value = Number(activeSystem) || 0
+        activeContextProfileId.value = Number(activeContext) || 0
+    } catch (error) {
+        console.error('Failed to load prompt profiles', error)
     }
     // Ensure encrypted keys for providers on the chain are loaded into the store.
     const keys = [

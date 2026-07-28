@@ -14,6 +14,7 @@ public sealed class DeepSeekPluginManifest : IPluginManifest
         "DeepSeek's OpenAI-compatible chat completion models. AI translation can be costly, only use it when you know what you are doing and keep automation disabled.";
 
     public bool HasRequestTemplate => true;
+    public bool SupportsInstructionProfiles => true;
 
     public IReadOnlyList<PluginSettingField> Settings { get; } =
     [

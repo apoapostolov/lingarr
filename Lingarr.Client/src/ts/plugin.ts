@@ -28,6 +28,7 @@ export interface IPluginSummary {
     isBuiltIn: boolean
     sourceFile?: string | null
     hasRequestTemplate: boolean
+    supportsInstructionProfiles: boolean
 }
 
 export interface IPluginManifest extends IPluginSummary {

@@ -154,7 +154,8 @@ public class PluginController : ControllerBase
             IsBuiltIn = plugin.IsBuiltIn,
             SourceFile = plugin.SourceFile,
             Settings = plugin.Manifest.Settings,
-            HasRequestTemplate = plugin.Manifest.HasRequestTemplate
+            HasRequestTemplate = plugin.Manifest.HasRequestTemplate,
+            SupportsInstructionProfiles = plugin.Manifest.SupportsInstructionProfiles
         };
     }
 }

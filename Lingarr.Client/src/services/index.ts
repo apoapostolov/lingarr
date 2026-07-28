@@ -17,6 +17,7 @@ import { requestTemplateService } from '@/services/requestTemplateService'
 import { pluginService } from '@/services/pluginService'
 import { providerHealthService } from '@/services/providerHealthService'
 import { dashboardService } from '@/services/dashboardService'
+import { promptProfileService } from '@/services/promptProfileService'
 
 axios.defaults.baseURL = baseUrl()
 
@@ -57,7 +58,8 @@ const services = (axios: AxiosStatic): Services => ({
     requestTemplate: requestTemplateService(axios),
     plugin: pluginService(axios),
     providerHealth: providerHealthService(axios),
-    dashboard: dashboardService(axios)
+    dashboard: dashboardService(axios),
+    promptProfile: promptProfileService(axios)
 })
 
 export default services(axios)
