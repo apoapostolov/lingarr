@@ -53,7 +53,9 @@ public class DeepLService : BaseTranslationService
             var settings = await _settings.GetSettings([
                 SettingKeys.Translation.MaxRetries,
                 SettingKeys.Translation.RetryDelay,
-                SettingKeys.Translation.RetryDelayMultiplier
+                SettingKeys.Translation.RetryDelayMultiplier,
+                SettingKeys.Translation.RequestTimeout,
+                SettingKeys.Translation.RequestTimeoutForProvider("deepl")
             ]);
 
             var authKey = await _settings.GetEncryptedSetting(SettingKeys.Translation.DeepL.DeeplApiKey);
@@ -78,7 +80,8 @@ public class DeepLService : BaseTranslationService
             _translator = new Translator(authKey, new TranslatorOptions
             {
                 MaximumNetworkRetries = 3,
-                PerRetryConnectionTimeout = TimeSpan.FromSeconds(10)
+                PerRetryConnectionTimeout = TimeSpan.FromMinutes(
+                    TranslationTimeoutPolicy.ResolveMinutes(settings, "deepl"))
             });
 
             var usage = await _translator.GetUsageAsync();

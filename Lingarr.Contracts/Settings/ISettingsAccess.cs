@@ -19,4 +19,13 @@ public interface ISettingsAccess
     /// backoff behaviour as the built-in providers.
     /// </summary>
     Task<TranslationHttpSettings> GetHttpSettingsAsync();
+
+    /// <summary>
+    /// Returns timeout and retry settings for a specific translation provider.
+    /// Implementations may fall back to the legacy global timeout.
+    /// </summary>
+    Task<TranslationHttpSettings> GetHttpSettingsAsync(string provider)
+    {
+        return GetHttpSettingsAsync();
+    }
 }

@@ -17,6 +17,9 @@ public class TranslationRequestDetail
     public DateTime? CompletedAt { get; set; }
     public string? ErrorMessage { get; set; }
     public string? StackTrace { get; set; }
+    public int? QualityScore { get; set; }
+    public string? QualityGrade { get; set; }
+    public string? QualityStatus { get; set; }
     public int Progress { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

@@ -54,11 +54,6 @@ public class SettingChangedListener
                 ])
             },
             {
-                "telemetry", ("Job", "Telemetry", [
-                    SettingKeys.Telemetry.TelemetryEnabled
-                ])
-            },
-            {
                 "clearHash", ("Action", "ClearHash", [
                     SettingKeys.Translation.SourceLanguages
                 ])
@@ -171,24 +166,6 @@ public class SettingChangedListener
                     else
                     {
                         recurringJobManager.RemoveIfExists("AutomatedTranslationJob");
-                    }
-
-                    break;
-                case "Telemetry":
-                    _logger.LogInformation(
-                        $"Settings changed for |Green|{jobName}|/Green|. Telemetry has been |Orange|modified|/Orange|.");
-                    var telemetryJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-                    if (settings[SettingKeys.Telemetry.TelemetryEnabled] == "true")
-                    {
-                        telemetryJobManager.RemoveIfExists("TelemetryJob");
-                        telemetryJobManager.AddOrUpdate<TelemetryJob>(
-                            "TelemetryJob",
-                            job => job.Execute(),
-                            "0 9 * * 5");
-                    }
-                    else
-                    {
-                        telemetryJobManager.RemoveIfExists("TelemetryJob");
                     }
 
                     break;

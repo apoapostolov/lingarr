@@ -252,8 +252,7 @@ public class StartupService : IHostedService
 
             { "DEEPL_API_KEY", SettingKeys.Translation.DeepL.DeeplApiKey },
 
-            { "AUTH_ENABLED", SettingKeys.Authentication.AuthEnabled },
-            { "TELEMETRY_ENABLED", SettingKeys.Telemetry.TelemetryEnabled }
+            { "AUTH_ENABLED", SettingKeys.Authentication.AuthEnabled }
         };
 
         foreach (var (envVar, settingKey) in environmentSettings)

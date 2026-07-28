@@ -59,26 +59,38 @@ const routes: RouteRecordRaw[] = [
                 path: '/settings',
                 component: () => import('@/pages/SettingPage.vue'),
                 name: 'settings',
+                redirect: { name: 'connections-media-settings' },
                 children: [
                     {
-                        path: 'services',
-                        name: 'services-settings',
-                        component: () => import('@/pages/settings/ServicesPage.vue')
-                    },
-                    {
-                        path: 'integration',
-                        name: 'integration-settings',
+                        path: 'connections/media-servers',
+                        name: 'connections-media-settings',
                         component: () => import('@/pages/settings/IntegrationPage.vue')
                     },
                     {
-                        path: 'authentication',
-                        name: 'authentication-settings',
-                        component: () => import('@/pages/settings/AuthenticationPage.vue')
+                        path: 'connections/path-mapping',
+                        name: 'connections-mapping-settings',
+                        component: () => import('@/pages/settings/MappingPage.vue')
                     },
                     {
-                        path: 'subtitle',
-                        name: 'subtitle-settings',
+                        path: 'translation/setup',
+                        name: 'translation-setup-settings',
+                        component: () => import('@/pages/settings/ServicesPage.vue')
+                    },
+                    {
+                        path: 'translation/subtitles',
+                        name: 'translation-subtitles-settings',
                         component: () => import('@/pages/settings/SubtitlePage.vue')
+                    },
+                    {
+                        path: 'translation/advanced',
+                        name: 'translation-advanced-settings',
+                        component: () => import('@/pages/settings/TranslationAdvancedPage.vue')
+                    },
+                    {
+                        path: 'translation/request-template/:service',
+                        name: 'request-template-settings',
+                        component: () => import('@/pages/settings/RequestTemplatePage.vue'),
+                        props: true
                     },
                     {
                         path: 'automation',
@@ -86,35 +98,67 @@ const routes: RouteRecordRaw[] = [
                         component: () => import('@/pages/settings/AutomationPage.vue')
                     },
                     {
-                        path: 'mapping',
-                        name: 'mapping-settings',
-                        component: () => import('@/pages/settings/MappingPage.vue')
+                        path: 'system/access',
+                        name: 'system-access-settings',
+                        component: () => import('@/pages/settings/AuthenticationPage.vue')
                     },
                     {
-                        path: 'tasks',
-                        name: 'tasks-settings',
+                        path: 'system/tasks',
+                        name: 'system-tasks-settings',
                         component: () => import('@/pages/settings/SchedulePage.vue')
                     },
                     {
-                        path: 'logs',
-                        name: 'logs-settings',
+                        path: 'system/logs',
+                        name: 'system-logs-settings',
                         component: () => import('@/pages/settings/LogsPage.vue')
-                    },
-                    {
-                        path: 'telemetry',
-                        name: 'telemetry-settings',
-                        component: () => import('@/pages/settings/TelemetryPage.vue')
-                    },
-                    {
-                        path: 'request-template/:service',
-                        name: 'request-template-settings',
-                        component: () => import('@/pages/settings/RequestTemplatePage.vue'),
-                        props: true
                     },
                     {
                         path: 'plugins',
                         name: 'plugins-settings',
                         component: () => import('@/pages/settings/PluginsPage.vue')
+                    },
+                    {
+                        path: 'integration',
+                        name: 'integration-settings',
+                        redirect: { name: 'connections-media-settings' }
+                    },
+                    {
+                        path: 'mapping',
+                        name: 'mapping-settings',
+                        redirect: { name: 'connections-mapping-settings' }
+                    },
+                    {
+                        path: 'services',
+                        name: 'services-settings',
+                        redirect: { name: 'translation-setup-settings' }
+                    },
+                    {
+                        path: 'subtitle',
+                        name: 'subtitle-settings',
+                        redirect: { name: 'translation-subtitles-settings' }
+                    },
+                    {
+                        path: 'authentication',
+                        name: 'authentication-settings',
+                        redirect: { name: 'system-access-settings' }
+                    },
+                    {
+                        path: 'tasks',
+                        name: 'tasks-settings',
+                        redirect: { name: 'system-tasks-settings' }
+                    },
+                    {
+                        path: 'logs',
+                        name: 'logs-settings',
+                        redirect: { name: 'system-logs-settings' }
+                    },
+                    {
+                        path: 'request-template/:service',
+                        name: 'legacy-request-template-settings',
+                        redirect: (to) => ({
+                            name: 'request-template-settings',
+                            params: { service: to.params.service }
+                        })
                     }
                 ]
             }

@@ -167,6 +167,7 @@ public static class ServiceCollectionExtensions
         builder.Services.AddScoped<ISubtitleService, SubtitleService>();
         builder.Services.AddScoped<ITranslationRequestService, TranslationRequestService>();
         builder.Services.AddScoped<ITranslationRequestEventService, TranslationRequestEventService>();
+        builder.Services.AddScoped<ITranslationQualityService, TranslationQualityService>();
         builder.Services.AddScoped<IMediaSubtitleProcessor, MediaSubtitleProcessor>();
         builder.Services.AddScoped<IDirectoryService, DirectoryService>();
         builder.Services.AddScoped<IMappingService, MappingService>();
@@ -215,8 +216,8 @@ public static class ServiceCollectionExtensions
 
         builder.Services.AddTransient<PathConversionService>();
         builder.Services.AddScoped<IStatisticsService, StatisticsService>();
-        builder.Services.AddScoped<ITelemetryService, TelemetryService>();
         builder.Services.AddScoped<ILingarrApiService, LingarrApiService>();
+        builder.Services.AddScoped<IProviderHealthService, ProviderHealthService>();
 
         // Add Sync services
         builder.Services.AddScoped<IShowSyncService, ShowSyncService>();

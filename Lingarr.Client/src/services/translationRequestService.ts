@@ -1,5 +1,10 @@
 import { AxiosError, AxiosResponse, AxiosStatic } from 'axios'
-import { ITranslationRequest, ITranslationRequestService } from '@/ts'
+import {
+    ITranslationQualityDetail,
+    ITranslationQualitySummary,
+    ITranslationRequest,
+    ITranslationRequestService
+} from '@/ts'
 
 const service = (
     http: AxiosStatic,
@@ -93,6 +98,16 @@ const service = (
                     reject(error.response)
                 })
         })
+    },
+    async quality(id: number): Promise<ITranslationQualityDetail> {
+        const response = await http.get<ITranslationQualityDetail>(`${resource}/${id}/quality`)
+        return response.data
+    },
+    async reEvaluateQuality(id: number): Promise<ITranslationQualitySummary> {
+        const response = await http.post<ITranslationQualitySummary>(
+            `${resource}/${id}/quality/re-evaluate`
+        )
+        return response.data
     }
 })
 

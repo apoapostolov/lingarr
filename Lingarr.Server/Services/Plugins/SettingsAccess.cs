@@ -36,16 +36,36 @@ internal sealed class SettingsAccess : ISettingsAccess
     /// <inheritdoc />
     public async Task<TranslationHttpSettings> GetHttpSettingsAsync()
     {
-        var settings = await _settings.GetSettings([
+        return await GetHttpSettingsCoreAsync(provider: null);
+    }
+
+    /// <inheritdoc />
+    public async Task<TranslationHttpSettings> GetHttpSettingsAsync(string provider)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(provider);
+        return await GetHttpSettingsCoreAsync(provider);
+    }
+
+    private async Task<TranslationHttpSettings> GetHttpSettingsCoreAsync(string? provider)
+    {
+        var keys = new List<string>
+        {
             SettingKeys.Translation.RequestTimeout,
             SettingKeys.Translation.MaxRetries,
             SettingKeys.Translation.RetryDelay,
             SettingKeys.Translation.RetryDelayMultiplier
-        ]);
+        };
+        if (!string.IsNullOrWhiteSpace(provider))
+        {
+            keys.Add(SettingKeys.Translation.RequestTimeoutForProvider(provider));
+        }
 
-        var timeoutMinutes = int.TryParse(settings[SettingKeys.Translation.RequestTimeout], out var timeout) && timeout > 0
-            ? timeout
-            : 5;
+        var settings = await _settings.GetSettings(keys);
+        var timeoutMinutes = !string.IsNullOrWhiteSpace(provider)
+            ? TranslationTimeoutPolicy.ResolveMinutes(settings, provider)
+            : int.TryParse(settings[SettingKeys.Translation.RequestTimeout], out var timeout) && timeout > 0
+                ? timeout
+                : TranslationTimeoutPolicy.DefaultTimeoutMinutes;
 
         var maxRetries = int.TryParse(settings[SettingKeys.Translation.MaxRetries], out var retries)
             ? retries

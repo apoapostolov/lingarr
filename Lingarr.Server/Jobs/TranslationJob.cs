@@ -29,6 +29,8 @@ public class TranslationJob
     private readonly ITranslationServiceFactory _translationServiceFactory;
     private readonly ITranslationRequestService _translationRequestService;
     private readonly ITranslationRequestEventService _eventService;
+    private readonly IProviderHealthService _providerHealth;
+    private readonly ITranslationQualityService _translationQuality;
 
     public TranslationJob(
         ILogger<TranslationJob> logger,
@@ -40,7 +42,9 @@ public class TranslationJob
         IStatisticsService statisticsService,
         ITranslationServiceFactory translationServiceFactory,
         ITranslationRequestService translationRequestService,
-        ITranslationRequestEventService eventService)
+        ITranslationRequestEventService eventService,
+        IProviderHealthService providerHealth,
+        ITranslationQualityService translationQuality)
     {
         _logger = logger;
         _settings = settings;
@@ -52,6 +56,8 @@ public class TranslationJob
         _translationServiceFactory = translationServiceFactory;
         _translationRequestService = translationRequestService;
         _eventService = eventService;
+        _providerHealth = providerHealth;
+        _translationQuality = translationQuality;
     }
 
     [AutomaticRetry(Attempts = 0)]
@@ -176,7 +182,11 @@ public class TranslationJob
                 throw new TranslationException($"No usable translation services configured: [{string.Join(", ", chain.Select(e => e.ProviderNormalized))}]");
             }
             translationService = services[0].Service;
-            var translator = new SubtitleTranslationService(services, _logger, _progressService);
+            var translator = new SubtitleTranslationService(
+                services,
+                _logger,
+                _progressService,
+                _providerHealth);
             var subtitles = await _subtitleService.ReadSubtitles(request.SubtitleToTranslate);
 
             // subtitle already carries a translation from an earlier prior run.
@@ -267,9 +277,6 @@ public class TranslationJob
             var newlyTranslatedSubtitles = persistedLines.Count == 0
                 ? translatedSubtitles
                 : translatedSubtitles.Where(s => !persistedLines.ContainsKey(s.Position)).ToList();
-            await _statisticsService.UpdateTranslationStatisticsFromSubtitles(
-                request, serviceType, translationService.ModelName, newlyTranslatedSubtitles);
-
             var subtitleTag = "";
             if (settings[SettingKeys.Translation.UseSubtitleTagging] == "true")
             {
@@ -277,6 +284,9 @@ public class TranslationJob
             }
 
             await WriteSubtitles(request, translatedSubtitles, stripSubtitleFormatting, subtitleTag, removeLanguageTag);
+            await EvaluateQualitySafely(request.Id, cancellationToken);
+            await _statisticsService.UpdateTranslationStatisticsFromSubtitles(
+                request, serviceType, translationService.ModelName, newlyTranslatedSubtitles);
             await HandleCompletion(jobName, request, cancellationToken);
         }
         catch (TaskCanceledException)
@@ -298,6 +308,21 @@ public class TranslationJob
             await _translationRequestService.UpdateActiveCount();
             await _progressService.Emit(translationRequest, 0);
             throw;
+        }
+    }
+
+    private async Task EvaluateQualitySafely(int translationRequestId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _translationQuality.EvaluateAsync(translationRequestId, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Subtitle quality evaluation failed for translation request {RequestId}; the translated file remains available.",
+                translationRequestId);
         }
     }
 

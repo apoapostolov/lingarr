@@ -13,7 +13,9 @@
                 <li>Wait a few minutes for the application to collect your media</li>
             </ol>
         </div>
-        <ButtonComponent variant="accent" @click="router.push({ name: 'integration-settings' })">
+        <ButtonComponent
+            variant="accent"
+            @click="router.push({ name: 'connections-media-settings' })">
             Go to Settings
         </ButtonComponent>
     </div>

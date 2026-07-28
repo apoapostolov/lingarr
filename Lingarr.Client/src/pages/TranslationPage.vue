@@ -72,6 +72,13 @@
                     <span v-else class="min-w-0 flex-1 md:flex-none">
                         {{ item.title }}
                     </span>
+                    <span
+                        v-if="item.qualityScore !== null && item.qualityScore !== undefined"
+                        class="shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold"
+                        :class="qualityBadgeClasses(item.qualityScore)"
+                        :title="`Subtitle quality: ${item.qualityGrade ?? 'Checked'}`">
+                        {{ item.qualityScore }}
+                    </span>
                     <span class="ml-auto flex flex-none items-center gap-2 md:hidden">
                         <TranslationAction
                             :item="item"
@@ -239,5 +246,12 @@ const handleDelete = async () => {
     }
     translationRequestStore.clearSelection()
     translationRequestStore.fetch()
+}
+
+const qualityBadgeClasses = (score: number) => {
+    if (score >= 85) return 'border-green-500/50 bg-green-500/10 text-green-200'
+    if (score >= 70) return 'border-yellow-500/50 bg-yellow-500/10 text-yellow-200'
+    if (score >= 50) return 'border-orange-500/50 bg-orange-500/10 text-orange-200'
+    return 'border-red-500/50 bg-red-500/10 text-red-200'
 }
 </script>

@@ -22,18 +22,21 @@ public class TranslateController : ControllerBase
     private readonly ISettingService _settings;
     private readonly LanguageCodeService _languageCodeService;
     private readonly ILogger<TranslateController> _logger;
+    private readonly IProviderHealthService _providerHealth;
 
     public TranslateController(
         ITranslationServiceFactory translationServiceFactory,
         ITranslationRequestService translationRequestService,
         ISettingService settings,
         LanguageCodeService languageCodeService,
+        IProviderHealthService providerHealth,
         ILogger<TranslateController> logger)
     {
         _translationServiceFactory = translationServiceFactory;
         _translationRequestService = translationRequestService;
         _settings = settings;
         _languageCodeService = languageCodeService;
+        _providerHealth = providerHealth;
         _logger = logger;
     }
 
@@ -88,7 +91,8 @@ public class TranslateController : ControllerBase
         var chain = TranslationChain.Parse(await _settings.GetSetting(SettingKeys.Translation.ServiceType));
         var subtitleTranslator = new SubtitleTranslationService(
             _translationServiceFactory.CreateTranslationServices(chain),
-            _logger);
+            _logger,
+            providerHealth: _providerHealth);
 
         if (translateAbleSubtitleLine.SubtitleLine == "")
         {

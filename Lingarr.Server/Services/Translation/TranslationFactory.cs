@@ -32,6 +32,7 @@ public class TranslationFactory : ITranslationServiceFactory
             "google" => new GTranslatorService<GoogleTranslator>(
                 _serviceProvider,
                 _serviceProvider.GetRequiredService<IHttpClientFactory>(),
+                "google",
                 "/app/Statics/google_languages.json",
                 _serviceProvider.GetRequiredService<ISettingService>(),
                 _serviceProvider.GetRequiredService<ILogger<GoogleTranslator>>(),
@@ -41,6 +42,7 @@ public class TranslationFactory : ITranslationServiceFactory
             "bing" => new GTranslatorService<BingTranslator>(
                 _serviceProvider,
                 _serviceProvider.GetRequiredService<IHttpClientFactory>(),
+                "bing",
                 "/app/Statics/bing_languages.json",
                 _serviceProvider.GetRequiredService<ISettingService>(),
                 _serviceProvider.GetRequiredService<ILogger<BingTranslator>>(),
@@ -50,6 +52,7 @@ public class TranslationFactory : ITranslationServiceFactory
             "microsoft" => new GTranslatorService<MicrosoftTranslator>(
                 _serviceProvider,
                 _serviceProvider.GetRequiredService<IHttpClientFactory>(),
+                "microsoft",
                 "/app/Statics/microsoft_languages.json",
                 _serviceProvider.GetRequiredService<ISettingService>(),
                 _serviceProvider.GetRequiredService<ILogger<MicrosoftTranslator>>(),
@@ -59,6 +62,7 @@ public class TranslationFactory : ITranslationServiceFactory
             "yandex" => new GTranslatorService<YandexTranslator>(
                 _serviceProvider,
                 _serviceProvider.GetRequiredService<IHttpClientFactory>(),
+                "yandex",
                 "/app/Statics/yandex_languages.json",
                 _serviceProvider.GetRequiredService<ISettingService>(),
                 _serviceProvider.GetRequiredService<ILogger<YandexTranslator>>(),

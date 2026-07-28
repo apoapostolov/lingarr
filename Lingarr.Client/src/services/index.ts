@@ -12,10 +12,10 @@ import { scheduleService } from '@/services/scheduleService'
 import { mappingService } from '@/services/mappingService'
 import { directoryService } from '@/services/directoryService'
 import { statisticsService } from '@/services/statisticsService'
-import { telemetryService } from '@/services/telemetryService'
 import { logsService } from '@/services/logsService'
 import { requestTemplateService } from '@/services/requestTemplateService'
 import { pluginService } from '@/services/pluginService'
+import { providerHealthService } from '@/services/providerHealthService'
 
 axios.defaults.baseURL = baseUrl()
 
@@ -53,9 +53,9 @@ const services = (axios: AxiosStatic): Services => ({
     directory: directoryService(axios),
     statistics: statisticsService(axios),
     logs: logsService(),
-    telemetry: telemetryService(axios),
     requestTemplate: requestTemplateService(axios),
-    plugin: pluginService(axios)
+    plugin: pluginService(axios),
+    providerHealth: providerHealthService(axios)
 })
 
 export default services(axios)

@@ -72,6 +72,7 @@ public class LocalAiService : BaseLanguageService, ITranslationService, IBatchTr
                 SettingKeys.Translation.AiContextPrompt,
                 SettingKeys.Translation.AiContextPromptEnabled,
                 SettingKeys.Translation.RequestTimeout,
+                SettingKeys.Translation.RequestTimeoutForProvider("localai"),
                 SettingKeys.Translation.MaxRetries,
                 SettingKeys.Translation.RetryDelay,
                 SettingKeys.Translation.RetryDelayMultiplier,
@@ -97,11 +98,8 @@ public class LocalAiService : BaseLanguageService, ITranslationService, IBatchTr
             _contextPrompt = settings[SettingKeys.Translation.AiContextPrompt];
             _isChatEndpoint = _endpoint.TrimEnd('/').EndsWith("completions", StringComparison.OrdinalIgnoreCase);
 
-            var requestTimeout = int.TryParse(settings[SettingKeys.Translation.RequestTimeout],
-                out var timeOut)
-                ? timeOut
-                : 5;
-            _httpClient.Timeout = TimeSpan.FromMinutes(requestTimeout);
+            _httpClient.Timeout = TimeSpan.FromMinutes(
+                TranslationTimeoutPolicy.ResolveMinutes(settings, "localai"));
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 

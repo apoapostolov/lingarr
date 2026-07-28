@@ -30,6 +30,7 @@
 7. **Model catalog cache** server-side (memory), TTL ~6h, `?refresh=true` bypass.
 8. **Docker:** only fork-built `lingarr-bedroom` — never official GHCR for Bedroom.
 9. **OpenRouter default metamodel:** `openrouter/free` is first in the model dropdown and the preferred Bedroom default for bulk / low-quality-OK subtitle work (free router). `openrouter/auto` is second. Paid catalogue models follow. Always inject `openrouter/free` if the API catalogue omits it.
+10. **Provider-specific request timeouts:** each provider reads `<provider>_request_timeout`, with the legacy global `request_timeout` retained as a fallback. Microsoft defaults to 15 minutes because its free GTranslate endpoint has repeatedly exceeded the former 5-minute limit; other built-ins default to 5 minutes.
 
 ## `service_type` schema
 
@@ -95,6 +96,7 @@ Fallback chain
 | P2 | OpenRouter port + **free-first ordering** | Done |
 | P3 | Z.ai + OpenCode Go | Done (OpenCode Go untested if unsubscribed) |
 | P4 | Polish empty states, automation warnings, docs/AGENTS | In progress |
+| P5 | Provider-specific request timeout settings; Microsoft 15-minute default | Done |
 
 ## Out of scope
 
@@ -108,6 +110,7 @@ Fallback chain
 - Automation cost warnings for paid AI
 - After ship: `build-bedroom-image.sh` + recreate container; re-check plain/env `SERVICE_TYPE` migration
 - Setting keys must be seeded (empty row) before encrypted set works
+- Timeout setting keys are seeded by migration 15; do not rely on `SetSetting` to create them
 
 ## Related files
 

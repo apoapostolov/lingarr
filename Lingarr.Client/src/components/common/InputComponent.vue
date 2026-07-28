@@ -28,6 +28,8 @@
             <button
                 v-if="type === INPUT_TYPE.PASSWORD"
                 type="button"
+                :aria-label="`${showPassword ? 'Hide' : 'Show'} ${label || 'password'}`"
+                :title="`${showPassword ? 'Hide' : 'Show'} ${label || 'password'}`"
                 class="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3"
                 @click="togglePassword">
                 <EyeOnIcon v-if="showPassword" class="h-5 w-5" />

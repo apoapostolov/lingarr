@@ -1,468 +1,601 @@
-# Proposal: Settings page IA, organization, and quality-of-life setting types
+# Proposal: Settings information architecture and interaction model
 
-**Status:** Draft proposal (not implemented)  
-**Scope:** Bedroom fork settings UX + setting model extensions  
-**Related:** [ai-providers-model-fallback-chain.md](../ai-providers-model-fallback-chain.md), [architecture.md](../architecture.md), [bedroom-reliability-development-plan.md](../bedroom-reliability-development-plan.md)  
-**Audience:** Product / UI / backend for Lingarr settings
+**Status:** Phase 1 implemented; Phases 2–4 remain proposed
 
----
+**Scope:** Bedroom fork settings navigation, organization, validation, and a small set of operator controls
 
-## 1. Problem statement
+**Related:** [ai-providers-model-fallback-chain.md](../ai-providers-model-fallback-chain.md), [architecture.md](../architecture.md), [bedroom-reliability-development-plan.md](../bedroom-reliability-development-plan.md)
 
-Settings has grown by accretion. Each new capability added another top-level nav item or a card on an existing page. After the AI provider + fallback chain work, **Services** is dense and power-user oriented, while other pages remain flat lists of toggles with little hierarchy, search, or progressive disclosure.
-
-Operators (Bedroom media stack) need to:
-
-1. Find the right control in seconds (not by hunting nine sidebar items).
-2. Understand **what changes with a save** (integrations vs translation quality vs automation risk).
-3. Express preferences that today live only as env vars, hard-coded defaults, or tribal knowledge (log noise, scan safety, Hangfire/SQLite care, post-translate refresh, retention).
-4. Avoid dangerous misconfiguration (empty API keys on every fallback row, automation on a huge library with no age threshold, etc.).
-
-This proposal reorganizes Settings **information architecture (IA)**, defines **new quality-of-life (QoL) setting types**, and outlines a phased implementation that stays compatible with the existing key/value store and plugin field model.
+**Audience:** Product, UI, and backend contributors to Lingarr settings
 
 ---
 
-## 2. Current state (as of `main` / bedroom)
+## 1. Decision summary
 
-### 2.1 Navigation (flat sidebar)
+Reorganize the existing settings without replacing Lingarr's interaction model.
 
-| Route | Label | Content today |
-|-------|--------|----------------|
-| `integration-settings` | Integrations | Radarr / Sonarr URL, API keys, default include |
-| `authentication-settings` | Authentication | Auth toggle, users, API key |
-| `services-settings` | Services | Provider+model fallback chain, API keys; adjacent **Translation** card (prompts, batch, retries) |
-| `subtitle-settings` | Subtitle | Output naming/tags + **Validation** card |
-| `automation-settings` | Automation | Enable, schedules, max per run, age thresholds |
-| `plugins-settings` | Plugins | Dynamic plugin forms |
-| `tasks-settings` | Tasks | Hangfire recurring job UI |
-| `logs-settings` | Logs | In-memory log viewer |
-| `telemetry-settings` | Telemetry | Opt-in telemetry |
-| *(orphan route)* `mapping-settings` | Path mapping | Exists in router, **not** in settings sidebar |
-| *(child)* `request-template-settings` | Request templates | Deep link from Services, not in nav |
+1. Reduce the settings rail to five stable destinations: **Connections**, **Translation**, **Automation**, **System**, and **Plugins**.
+2. Keep Lingarr's existing responsive card grid, compact navigation, theme tokens, and immediate save behavior.
+3. Use route-backed tabs only where a destination contains distinct tasks. Do not add an in-page table of contents, accordion hierarchy, or a second permanent sidebar.
+4. Add explicit **saving**, **saved**, **validation error**, and **save failed** feedback instead of a sticky Save bar and unsaved-change guard.
+5. Promote Path mapping into Connections, but preserve its specialized editor and explicit save action.
+6. Treat operational actions and status displays as purpose-built UI, not as stored setting field types.
+7. Limit the first implementation to existing behavior plus the already-backed automation cursors. Evaluate search, presets, import/export, and broad plugin-schema changes separately.
 
-### 2.2 Storage model
-
-- Flat `settings` table: `key` / `value` / optional `provider`.
-- Keys grouped only in code (`SettingKeys.*`).
-- Plugins declare fields via manifests; Services chain serializes rich JSON into `service_type`.
-- Secrets encrypted for known API key keys.
-
-### 2.3 Pain points
-
-1. **IA mismatch with mental model** — “How do I translate?” spans Services + Subtitle + Automation + Mapping + Tasks.
-2. **Mapping is orphaned** — critical for Docker path mounts, hidden from the settings nav.
-3. **Services + Translation co-located** — chain editor and prompt/batch knobs compete for attention; first-time setup vs fine-tuning is not staged.
-4. **No search / no “changed” indicator** — large installs cannot find `max_retries` or age thresholds quickly.
-5. **No presets** — “safe bulk free translate” vs “quality AI only” require manual multi-page setup.
-6. **Ops knobs missing from UI** — Hangfire WAL interval, automation cursor reset, log level, retention, media-server refresh after translate (skill-level ops only).
-7. **Validation is late** — bad chain (all free scrapers + empty keys) surfaces at job failure, not at save.
-8. **Mobile nav** — icon-only rail is easy to mis-tap; long pages lack in-page anchors.
+This is an information-architecture correction, not a visual redesign or a vehicle for every possible operator preference.
 
 ---
 
-## 3. Goals and non-goals
+## 2. Product brief
 
-### Goals
+| Item | Decision |
+|------|----------|
+| **User** | A self-hosting operator who understands their media stack but should not need to know Lingarr's internal setting keys. |
+| **Job** | Find and safely change translation, connection, automation, or system behavior without hunting through unrelated pages. |
+| **Current behavior** | Nine flat settings links mix configuration pages with operational workspaces. Path mapping is routed but absent from the rail. Most fields save immediately, while Path mapping uses an explicit save action. |
+| **Desired outcome** | Each setting has one predictable home; existing save semantics remain honest and visible; advanced tasks stay reachable without crowding the common path. |
+| **Success signal** | A returning operator can predict where a setting lives, reach Path mapping from the UI, and tell whether a change is saved or failed. |
+| **Non-goals** | Restyling Lingarr, changing Movies/Shows/Translations, exposing every environment variable, or building a universal administration console. |
+| **Objects** | Settings, provider-chain rows, path mappings, automation cursors, and operational job/log views. |
+| **Actions and consequence** | Most valid field changes persist immediately. Path mapping changes persist only when saved. Resetting a cursor changes where automation resumes; destructive history actions, if later approved, permanently remove records. |
+| **Permissions** | Existing Lingarr authentication rules apply. No new role model is introduced. |
+| **Open decisions** | Whether System uses four route-backed tabs or keeps Tasks and Logs as directly addressable child views; whether later usage evidence justifies cross-settings search. |
 
-| ID | Goal |
-|----|------|
-| G1 | Reorganize Settings into **task-oriented groups** with clear progressive disclosure. |
-| G2 | Surface **orphan and ops settings** in the UI (mapping, maintenance, logging). |
-| G3 | Introduce **typed QoL controls** (not only free-text / boolean) with validation and defaults. |
-| G4 | Support **presets / profiles** for common operator modes without forking config files. |
-| G5 | Keep the **key/value backend**; migrate via additive keys + optional JSON blobs. |
-| G6 | Stay fork-safe: no dependency on upstream GHCR; Bedroom can ship ahead of upstream. |
+---
 
-### Non-goals (this proposal)
+## 3. Current product language
 
-- Full redesign of Movies/Shows/Translations list UIs.
-- Replacing Hangfire or SQLite with another stack (only expose safe knobs).
-- Multi-tenant / multi-library org settings.
-- Real-time collaborative settings editing.
+The implementation establishes a recognizable Lingarr settings language:
+
+- A compact left settings rail: icons at narrow widths, icon plus label from `md` upward.
+- Route-level pages composed from a responsive grid of `CardComponent` surfaces.
+- Cards use the product's `primary` / `secondary` / `tertiary` / `accent` theme tokens, rounded corners, restrained gradients, and short title/description pairs.
+- Inputs, selects, toggles, and buttons come from shared components.
+- Most valid field changes are debounced and persisted immediately through the setting store.
+- Successful writes produce a small card-local **saved** notification.
+- Dense tools such as Logs, Tasks, Path mapping, and Request templates use purpose-built full-width layouts instead of being forced into generic cards.
+- Theme selection is global chrome in the application header, not a settings-page task.
+
+The proposal must extend these patterns. A new page shell should not introduce a visually unrelated dashboard, an always-visible second navigation column, or a conventional form-submit model.
+
+### Known inconsistencies worth fixing
+
+- Path mapping is a valid route but is missing from the settings rail.
+- Save feedback only represents success; a write in progress or a failed write is not visible.
+- Some settings pages contain mixed tasks without a clear local hierarchy.
+- Copy alternates between implementation terms (“Services”, “Indexer”) and user tasks (“Translation”, “Automation”).
+- Logs and Path mapping use one-off control styling in places where shared buttons and focus treatment should be reused.
 
 ---
 
 ## 4. Proposed information architecture
 
-### 4.1 Top-level groups (sidebar)
-
-Collapse nine flat items into **five primary destinations** plus one advanced:
+### 4.1 Settings rail
 
 ```text
 Settings
-├── 1. Connections      ← Sonarr, Radarr, path mapping, webhooks summary
-├── 2. Translation      ← Chain, languages, prompts, output, validation
-├── 3. Automation       ← Schedules, limits, age, include defaults, cursors
-├── 4. Appearance & UX  ← Theme, toasts, navigate-on-request, density (new)
-├── 5. System           ← Auth, tasks, logs, telemetry, maintenance (new)
-└── Plugins             ← Keep separate (dynamic; third-party)
+├── Connections
+├── Translation
+├── Automation
+├── System
+└── Plugins
 ```
 
-**Default landing:** `Connections` if Sonarr/Radarr incomplete; else `Translation`.
+Do not number the labels. The rail is navigation, not a setup wizard.
 
-### 4.2 Page layout pattern (all settings pages)
+**Default landing:** always **Connections**, preserving the current stable Settings entry point. Do not change the landing page according to configuration state; conditional navigation would make bookmarks, the back button, and user expectations less predictable.
+
+### 4.2 Local navigation
+
+Use the existing tab language for distinct tasks inside a destination. Tabs must be route-backed so refresh, bookmarks, browser history, and direct links preserve the selected task.
+
+At narrow widths, tabs may horizontally scroll or use a compact labeled control, but they must not become icon-only.
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│ Title · short description · [Search settings] · [Presets ▾] │
-├──────────────┬──────────────────────────────────────────────┤
-│ In-page TOC  │  Section cards (sticky save bar on change)   │
-│ (anchors)    │  · Required / Recommended / Advanced folds   │
-└──────────────┴──────────────────────────────────────────────┘
+Connections
+├── Media servers
+└── Path mapping
+
+Translation
+├── Setup
+├── Subtitles
+└── Advanced
+
+System
+├── Access
+├── Tasks
+└── Logs
 ```
 
-Shared chrome:
+Automation and Plugins remain single-page destinations until their content demonstrably needs subdivision.
 
-- **Sticky save bar** when dirty (page-scoped or global setting store dirty map).
-- **Unsaved guard** on route leave.
-- **Search** filters cards/fields by label + key + help text.
-- **Reset section to defaults** (per card).
-- **“Used by”** footer on fields that affect automation vs manual translate.
+### 4.3 Page shell
 
-### 4.3 Substructure by page
+Keep the current responsive content model:
 
-#### Connections
+```text
+┌──────────────────────────────────────────────────────┐
+│ Optional route-backed tab bar                        │
+├──────────────────────────────────────────────────────┤
+│ Responsive card grid or a purpose-built workspace    │
+│                                                      │
+│ [Card] [Card] [Card]                                 │
+└──────────────────────────────────────────────────────┘
+```
 
-| Card | Contents |
-|------|----------|
-| Sonarr | URL, API key, test connection, default include, last sync status |
-| Radarr | Same |
-| Path mapping | Host ↔ container path rules (promote Mapping into nav) |
-| Webhooks | Read-only endpoints + copy; link to docs (from existing WebhookInstructions) |
+Rules:
 
-#### Translation
-
-| Card | Contents |
-|------|----------|
-| Languages | Source / target multi-select (existing SourceAndTarget) |
-| Provider chain | Current ServicesSettings chain UI (primary workhorse) |
-| Output & naming | Tags, remove language tag, translator info, captions |
-| Quality & validation | Overlap fix, strip formatting, preserve breaks, validation thresholds |
-| Reliability | Timeout, retries, delay, multiplier; batch size |
-| Prompts & templates | AI prompt, context, deep link to request templates |
-
-Use **tabs or accordion**: *Setup* (languages + chain) → *Output* → *Advanced*.
-
-#### Automation
-
-| Card | Contents |
-|------|----------|
-| Master switch | Enable automation + plain-language risk note |
-| Throughput | Max per run, movie/show schedules |
-| Freshness | Age thresholds (global + note on per-title overrides) |
-| Cycle state | **Show/reset durable processing indices** (new; today settings keys only after reliability work) |
-| Library defaults | Link to include-all tools; default include from *arr |
-
-#### Appearance & UX (new)
-
-| Card | Contents |
-|------|----------|
-| Theme | Existing theme picker (if any) surfaced here |
-| Notifications | Toast duration, success/error sound off, density |
-| Navigation | Navigate to details on request; open translations in new tab |
-| Development chrome | Show/hide Development pill in non-dev builds (optional) |
-
-#### System
-
-| Card | Contents |
-|------|----------|
-| Authentication | Existing auth + users |
-| Background jobs | Tasks/schedule UI embed or link |
-| Logs | Viewer + **log level** + clear buffer |
-| Maintenance | Clear translation history, Hangfire checkpoint status, WAL size hint, vacuum schedule |
-| Telemetry | Existing |
-| About | Version, image tag, docs links |
-
-#### Plugins
-
-Unchanged entry point; ensure plugin fields support new field types (below).
+- Preserve the existing card spacing, radii, typography, and theme tokens.
+- Use hierarchy, spacing, and alignment before adding nested cards.
+- A page may use a full-width specialist workspace when the task is tabular or operational.
+- Do not add an in-page table of contents to these short pages.
+- Do not add Required / Recommended / Advanced accordions as a universal pattern. Reveal dependent fields inline and place genuinely specialist work under **Advanced**.
+- Keep one emphasized action per card or specialist workspace.
 
 ---
 
-## 5. New quality-of-life setting **types**
+## 5. Destination contents
 
-Today UI fields are mostly: text, password, boolean, select, multi-language JSON. Propose a **typed field vocabulary** shared by core settings and plugins.
+### 5.1 Connections
 
-### 5.1 Control types
+#### Media servers
 
-| Type | UI | Validation | Example uses |
-|------|-----|------------|--------------|
-| `boolean` | Toggle + optional danger confirm | — | Automation enabled |
-| `string` / `secret` | Text / password | min/max length, pattern | API keys |
-| `url` | Text + **Test** button | scheme/host reachability | Sonarr URL |
-| `enum` | Select | allow-list | Log level |
-| `multi_enum` | Multi-select chips | non-empty when required | Source languages |
-| `int` / `float` | Number stepper | min/max/step | Max translations, temperature |
-| `duration` | Value + unit (s/m/h) | range | Retry delay, request timeout, age threshold |
-| `cron` / `schedule` | Preset chips + advanced cron | parse + next-run preview | Movie/show schedules |
-| `path` | Text + browse modal | exists in container (optional) | Mapping paths |
-| `path_map` | List editor (from→to) | no cycles, unique from | Path mappings |
-| `ordered_chain` | Current provider+model rows | ≥1 row, unique constraints optional | `service_type` chain |
-| `json` | Monaco/code or structured form | schema | Rare power-user |
-| `preset_ref` | Card picker | — | Apply profile |
-| `action` | Button (not stored) | confirm | “Reset automation cursor”, “Clear translations”, “Checkpoint Hangfire WAL” |
-| `status` | Read-only badge/meter | — | Last sync, WAL size, queue depth |
-| `percent` / `slider` | Slider | 0–100 | Toast opacity / confidence thresholds (future) |
-| `tag_list` | Chip input | charset | Subtitle tags, ignored folder names |
+| Card | Contents |
+|------|----------|
+| **Radarr** | Address, API key, include new imports by default, Test connection, last successful check |
+| **Sonarr** | Address, API key, include new imports by default, Test connection, last successful check |
+| **Webhooks** | Existing webhook instructions and copyable endpoint |
 
-### 5.2 Field metadata (schema extension)
+Use the product names **Radarr** and **Sonarr** as the headings; avoid a generic “Integrations” card containing two unlabeled subsections.
 
-Each field declaration (core catalog or plugin) should support:
+Connection tests are explicit actions and do not change stored values. A test result appears within the relevant card and states what was tested.
+
+#### Path mapping
+
+Promote the existing mapping workspace into this destination without converting it to a generic setting card.
+
+- Keep Source, Destination, and Media type visible.
+- Keep Add mapping and Save mappings as named actions.
+- Mark the workspace dirty when rows change.
+- Disable Save mappings until every row is complete and valid.
+- On save failure, preserve every edited row and show a recovery action.
+- Removing an unsaved row is immediate. Removing an already-saved row takes effect only when Save mappings succeeds.
+
+### 5.2 Translation
+
+#### Setup
+
+| Card | Contents |
+|------|----------|
+| **Translation services** | Existing ordered provider + model + API-key rows |
+| **Languages** | Existing source and target language selectors |
+
+The provider chain remains the primary workhorse:
+
+- Each row stays self-contained.
+- Row 1 is **Primary**; later rows are **Fallback 1**, **Fallback 2**, and so on.
+- Provider, model, and credential fields stay in that order.
+- Reordering or removing a fallback saves immediately only after the resulting chain is valid.
+- The primary row cannot be removed.
+- Missing credentials are explained on the affected row. Do not warn about credential-free providers.
+
+#### Subtitles
+
+| Card | Contents |
+|------|----------|
+| **Output** | Subtitle tag, language tag, translator information, captions |
+| **Formatting** | Overlap fix, strip formatting, preserve line breaks |
+| **Validation** | Existing validation switch and thresholds |
+
+Use “Subtitles” for the destination task and short noun headings for cards. Avoid mixing “Quality”, “Output”, and “Validation” into one large card.
+
+#### Advanced
+
+| Card | Contents |
+|------|----------|
+| **Translation requests** | Batch mode, batch size, timeout, retries, retry delay, multiplier |
+| **AI prompts** | System and context prompt controls |
+| **Request templates** | Link to the existing provider-specific template workspace |
+
+Dependent fields reveal inline. For example, Max batch size is visible only while batch translation is enabled. Provider-specific prompt and template controls appear only when at least one configured provider supports them.
+
+### 5.3 Automation
+
+At two-column widths, **Indexing** is the left card and **Automation** is the right card.
+
+| Card | Contents |
+|------|----------|
+| **Library sync** | Movie and TV-show indexing schedules |
+| **Automated translation** | Master switch, translation schedule, maximum translations per run |
+| **File age** | Movie and TV-show age thresholds with units in the labels |
+| **Cycle progress** | Read-only movie/show cursor status and reset actions |
+
+Design requirements:
+
+- The master switch applies immediately.
+- Enabling automation requires valid translation services and a positive per-run limit. If not valid, keep the switch off and link to the field that needs attention.
+- Schedules use a readable preset when possible, with raw cron available as an advanced input and a next-run preview.
+- Cursor values are status, not editable number fields.
+- Actions are named **Reset movie cycle** and **Reset TV-show cycle**.
+- Before reset, explain that the next automation run starts scanning that media type from the beginning. The media library and translation history are not deleted.
+- Reset actions show pending, success, and failure states and cannot double-submit.
+
+### 5.4 System
+
+System groups administration and diagnostics, but it does not flatten operational workspaces into cards.
+
+| Tab | Contents |
+|-----|----------|
+| **Access** | Existing authentication toggle, API key, and user management |
+| **Tasks** | Existing recurring-jobs workspace |
+| **Logs** | Existing streaming log viewer |
+
+The app version and development badge remain in global navigation. The theme picker remains in the global header.
+
+A future **Maintenance** tab may be added only when it has at least one implemented status and one safe action. Do not create an empty destination around speculative Hangfire or SQLite controls.
+
+### 5.5 Plugins
+
+Keep Plugins as its own destination and preserve the current manifest-driven forms.
+
+Core settings and plugin settings may reuse visual components, but they should not be forced into one schema in the first IA change. Plugin manifests are a public extension contract; expanding them requires compatibility and validation work of their own.
+
+---
+
+## 6. Save, validation, and feedback
+
+### 6.1 Immediate-save fields
+
+Most Lingarr setting fields continue to save after a valid change. The shared feedback state is:
+
+```text
+idle → editing → saving → saved
+                     ↘ save failed → retry
+editing + invalid → inline validation error (not persisted)
+```
+
+Requirements:
+
+- Preserve the entered value through validation and recoverable failures.
+- Debounced text fields must not report **saved** before the request succeeds.
+- A failed request must state that the setting was not saved and offer Retry.
+- Saving and saved feedback belongs to the affected card or field, not a global sticky bar.
+- Route changes do not require an unsaved-change guard when all valid changes have already persisted.
+- If a write is still in flight during navigation, let it finish and surface a failure through persistent notification or restored field state.
+
+### 6.2 Explicit-save editors
+
+Keep explicit save for compound objects where partial persistence would be invalid:
+
+- Path mappings
+- A future multi-setting preset review
+- Settings import, if separately approved
+
+These surfaces may use a sticky local action row on small screens only when the Save action would otherwise scroll out of reach.
+
+### 6.3 Destructive and operational actions
+
+Do not model actions as setting fields.
+
+| Action impact | Confirmation |
+|---------------|--------------|
+| Reset automation cursor | Plain confirmation that names the media type and consequence |
+| Clear only the current in-memory log view | No confirmation; the source log stream is not deleted |
+| Permanently delete translation history | Dedicated future flow with object count, retention consequence, and explicit **Delete translation history** action |
+
+Typed confirmation is reserved for high-impact irreversible actions. A checkbox and typed phrase are not both required by default.
+
+---
+
+## 7. Field vocabulary
+
+### 7.1 First-wave reusable field types
+
+Use a small vocabulary backed by real settings:
+
+| Type | Control | Examples |
+|------|---------|----------|
+| `text` | Existing text input | Subtitle tag |
+| `secret` | Existing password input | API keys |
+| `url` | Text input plus separate Test action | Radarr/Sonarr address |
+| `boolean` | Existing toggle | Automation enabled |
+| `enum` | Existing select | Provider or media type |
+| `integer` | Number input with min/max/step | Per-run limit, retries |
+| `duration` | Number plus a fixed, visible unit | Timeout, retry delay, file age |
+| `schedule` | Preset plus advanced cron input and next-run preview | Indexing and translation schedules |
+
+Keep these as specialist components:
+
+- `ordered_chain`
+- `path_map`
+- multi-language selection
+- structured request templates
+
+Keep these outside the setting-field vocabulary:
+
+- Actions
+- Status displays
+- Presets
+- Import/export
+
+Do not add slider, percent, tag-list, arbitrary JSON, or preset-reference types until an approved setting needs them.
+
+### 7.2 Optional core field metadata
+
+If repeated form code justifies a catalog after the IA settles, use a client-owned core catalog first:
 
 ```ts
-type SettingField = {
+type CoreSettingField = {
   key: string
-  type: FieldType
+  type: 'text' | 'secret' | 'url' | 'boolean' | 'enum' | 'integer' | 'duration' | 'schedule'
   label: string
   description?: string
-  group: string          // card id
+  section: string
   order?: number
-  importance: 'required' | 'recommended' | 'advanced'
   default?: string
-  dependsOn?: { key: string; equals?: string; notEmpty?: boolean }
-  danger?: boolean       // confirm + red affordance
-  restartHint?: boolean  // “applies on next job / restart”
-  tags?: string[]        // search: ['automation','performance']
+  validation?: {
+    required?: boolean
+    min?: number
+    max?: number
+    step?: number
+    pattern?: string
+  }
+  visibleWhen?: { key: string; equals: string }
+  applies?: 'immediately' | 'next-job' | 'restart'
+  searchTerms?: string[]
 }
 ```
 
-**DependsOn** enables progressive disclosure (e.g. batch size only if batch enabled; model only if AI provider).
+The catalog must use the same shared components as hand-written cards. It is an implementation aid, not a second visual system.
 
-### 5.3 New **setting keys** (QoL product surface)
-
-Proposed additive keys (names illustrative; final keys follow `SettingKeys` conventions):
-
-#### Operator / library safety
-
-| Key | Type | Purpose |
-|-----|------|---------|
-| `automation_dry_run` | boolean | Log what would translate without creating jobs |
-| `automation_skip_if_target_exists` | boolean | Explicit; align with hash/skip behavior, make user-visible |
-| `subtitle_exclude_dirs` | tag_list | Extra junk dirs beyond built-in Trailers/Featurettes |
-| `subtitle_scan_mode` | enum | `adjacent` \| `subs_folder` \| `legacy_deep` (gate deep scan) |
-| `library_size_warning_threshold` | int | Warn in UI when episode count &gt; N |
-
-#### Translation QoL
-
-| Key | Type | Purpose |
-|-----|------|---------|
-| `preferred_chain_profile` | enum | `free_bulk` \| `quality_ai` \| `custom` |
-| `fallback_on_empty_translation` | boolean | Treat empty line as failure → next chain row |
-| `min_translated_line_ratio` | percent | Fail job if too many lines empty/unchanged |
-| `notify_on_job_complete` | boolean | Toast / future webhook |
-| `default_manual_provider_index` | int | Which chain row “Translate” uses first |
-
-#### Automation cursors & maintenance
-
-| Key | Type | Purpose |
-|-----|------|---------|
-| `automation_movie_processing_index` | int + action reset | Already backend; **expose + Reset** |
-| `automation_show_processing_index` | int + action reset | Same |
-| `translation_history_retention_days` | int | Drive CleanupJob instead of hard-coded week |
-| `hangfire_wal_checkpoint_minutes` | int | Surface env `HANGFIRE_WAL_CHECKPOINT_MINUTES` |
-| `clear_translation_history` | action | Operator wipe (with confirm) |
-
-#### Logging & diagnostics
-
-| Key | Type | Purpose |
-|-----|------|---------|
-| `log_level_default` | enum | Information / Warning / Debug |
-| `log_level_hangfire` | enum | Separate Hangfire noise |
-| `log_level_sync` | enum | Quiet Sonarr/Radarr sync |
-| `logs_buffer_size` | int | In-memory sink capacity |
-| `logs_clear` | action | Clear buffer |
-
-#### Media ecosystem (Bedroom-oriented)
-
-| Key | Type | Purpose |
-|-----|------|---------|
-| `refresh_plex_after_translate` | boolean | Hook existing refresh skill/script |
-| `refresh_jellyfin_after_translate` | boolean | Same |
-| `bazarr_notify` | boolean | Optional bridge flag |
-
-#### UX
-
-| Key | Type | Purpose |
-|-----|------|---------|
-| `ui_density` | enum | comfortable / compact |
-| `toast_duration_ms` | duration | |
-| `settings_show_advanced_by_default` | boolean | |
-| `settings_last_section` | string | Remember last settings route |
+Do not add `GET /api/setting/catalog` in the first phase. Server-driven layout would couple the API to presentation and expand the plugin contract before the core interaction has been proven.
 
 ---
 
-## 6. Presets / profiles
+## 8. First approved additions
 
-One-click packages that write multiple keys (and can be re-applied):
+This proposal approves only additions that are already backed by current product behavior or a verified hard-coded policy.
 
-| Preset | Intent | Representative writes |
-|--------|--------|------------------------|
-| **Bedroom free bulk** | Maximize coverage, low cost | Chain: microsoft → optional openrouter/free; automation on; conservative age; batch off or small |
-| **Quality AI** | Manual / selective | Primary OpenRouter/paid or local; automation off or low max/run; validation strict |
-| **Safe first run** | New library | Automation off; dry-run on; age threshold high; deep scan off |
-| **Debug** | Incident | log_level Debug; sync Debug; hangfire Warning |
+| Addition | Surface | Behavior |
+|----------|---------|----------|
+| Test Radarr connection | Connections / Radarr | Read-only connection check; no setting key |
+| Test Sonarr connection | Connections / Sonarr | Read-only connection check; no setting key |
+| Movie automation cursor | Automation / Cycle progress | Read-only status plus **Reset movie cycle** |
+| TV-show automation cursor | Automation / Cycle progress | Read-only status plus **Reset TV-show cycle** |
+| `translation_history_retention_days` | Future System / Maintenance | Replaces CleanupJob's hard-coded seven-day retention after backend and migration work |
 
-Presets **never** overwrite API keys unless the preset explicitly includes empty placeholders and the user checks “replace secrets”.
+The cursor keys already exist:
 
-UI: `Presets ▾` on Translation and Automation headers; show diff modal before apply.
+- `automation_movie_processing_index`
+- `automation_show_processing_index`
 
----
+They remain internal state. The UI reads them as status and resets them through a named action endpoint; it does not write arbitrary index values.
 
-## 7. Validation and safety
+### Deferred proposals
 
-### 7.1 On save
+The following require product or backend behavior beyond a settings-screen reorganization and are not approved here:
 
-- Connections: optional **Test** (HTTP to Sonarr/Radarr `/api/v3/system/status`).
-- Chain: at least one row; warn if AI row has empty API key; warn if only free scrapers for large library.
-- Automation: if enabled and max/run ≤ 0 → error; if age threshold 0 → warning (“will thrash new files”).
-- Path maps: reject empty sides; warn if container path not visible (probe).
+- Automation dry run
+- Subtitle scan modes or configurable exclusion directories
+- Translation-quality heuristics and empty-line fallback rules
+- Runtime log-level controls
+- Editable Hangfire WAL checkpoint interval or vacuum schedule
+- Plex, Jellyfin, or Bazarr refresh/notification hooks
+- UI density, toast duration, sounds, or development-badge preferences
+- Cross-page presets
+- Settings import/export
 
-### 7.2 Health strip (System page)
-
-Read-only status row:
-
-- Sonarr/Radarr reachable  
-- Translation queue depth / active jobs  
-- Hangfire WAL size band (ok / large / critical)  
-- Last automation cycle index + last success time  
-
-### 7.3 Danger actions
-
-All `action` types that delete data require:
-
-1. Typed confirm string or checkbox  
-2. Audit log line (even if only in app logs)  
-3. No accidental double-submit  
+Prefer a safe default or automatic behavior over adding a permanent control. Each deferred item needs its own object, consequence, default, failure states, and implementation evidence.
 
 ---
 
-## 8. UX details
+## 9. Search and presets
 
-1. **Importance folds** — Required always open; Recommended default open; Advanced collapsed unless search matches or user preference.
-2. **Inline docs** — “Learn more” opens fork docs fragment (`docs/…`) or Lingarr.Docs path, not external walls of text.
-3. **Env var parity** — Each field shows “Env: `SONARR_URL`” when applicable (from existing configuration table).
-4. **Import / export** — Download/upload settings JSON (secrets redacted by default; optional include secrets with warning).
-5. **Keyboard** — `/` focuses settings search; `S` saves when dirty.
-6. **Mobile** — Bottom sheet for TOC; single-column cards; chain rows full-width (already mostly true).
+### 9.1 Search
 
----
+Do not make settings search a Phase 1 requirement. First fix the naming, orphan route, and task grouping, then measure whether operators still fail to find controls.
 
-## 9. Technical approach
+If later justified, search should return navigable results grouped by destination. Selecting a result routes to the correct tab and focuses the field; it should not hide unrelated fields in place and leave the user without context.
 
-### 9.1 Frontend
+Search terms may include user-facing synonyms. Raw setting keys may be searchable for operators, but they should not be displayed as primary labels.
 
-- Introduce `settingsCatalog.ts`: declarative field list → renderer `DynamicSettingField.vue` (reuse PluginField patterns).
-- Refactor page shells to `SettingsPageLayout.vue` (search, TOC, sticky save, presets).
-- Keep specialized editors for **ordered_chain** and **path_map** (too rich for generic controls).
-- Setting store: track `dirtyKeys`, `defaults`, `searchIndex`.
+### 9.2 Presets
 
-### 9.2 Backend
+Cross-page presets are deferred until the provider chain and automation safety rules are stable.
 
-- Additive keys only; seed defaults in FluentMigrator when needed.
-- Optional `GET /api/setting/catalog` returns field metadata for UI and plugins.
-- Action endpoints under `/api/system/...` or `/api/setting/actions/...` (clear history, reset cursors, wal checkpoint).
-- Log level: apply to `ILoggingBuilder` filters at runtime where possible; else document restart.
+Any future preset flow must:
 
-### 9.3 Compatibility
+- Show a before/after diff grouped by destination.
+- Never include or erase secrets.
+- Apply all changes atomically or restore the previous values.
+- State whether automation will be enabled and what the next run will do.
+- Use a single review surface; do not stack confirmation modals.
+- Save a custom configuration as custom rather than continually claiming a preset remains active.
 
-- Old routes keep redirects (`/settings/services` → `/settings/translation?tab=chain`).
-- `service_type` rich JSON unchanged.
-- Env bootstrap in `StartupService` remains source of truth on first boot.
+Presets are actions over multiple settings, not a stored field type.
 
 ---
 
-## 10. Implementation phases
+## 10. Responsive and accessibility requirements
 
-### Phase 0 — Spec lock (0.5–1 d)
+- At narrow widths, the settings rail remains icon-only only when every item has an accessible name and tooltip; local tabs remain text-labeled.
+- All primary tasks must be keyboard-completable with the shared visible focus treatment.
+- Icon-only reorder, remove, refresh, add, and save controls require accessible names.
+- Provider-chain rows stack vertically without horizontal scrolling.
+- Long model names, paths, error messages, and localized labels must wrap or truncate with an accessible full value.
+- Loading, empty, partial, validation, save-failed, and disabled states must be designed for every new data-backed surface.
+- A disabled control must explain why the action is unavailable.
+- Focus moves to inline validation summaries only when the error is not already adjacent to the field.
 
-- Finalize group names, redirects, and first-wave keys.
-- Capture screenshots of current Services/Subtitle/Automation for before/after.
-
-### Phase 1 — Shell + IA (3–5 d)
-
-- `SettingsPageLayout`, search, TOC, dirty bar.
-- Reshuffle routes/nav; promote Mapping; redirect legacy paths.
-- Move Translation card under Translation page; no new keys yet.
-
-### Phase 2 — Field catalog + types (3–5 d)
-
-- Shared field renderer + dependsOn.
-- Migrate Integration + Automation to catalog-driven cards.
-- Duration/enum/url test-connection for *arr.
-
-### Phase 3 — QoL keys + actions (3–4 d)
-
-- Retention, log levels, cursor reset, exclude dirs, scan mode.
-- Maintenance status strip (WAL size, queue).
-- Clear translation history action (confirm).
-
-### Phase 4 — Presets + import/export (2–3 d)
-
-- Three presets + diff apply modal.
-- Export/import redacted JSON.
-
-### Phase 5 — Polish (2 d)
-
-- Mobile, a11y, empty states, docs links.
-- Smoke tests: catalog load, save round-trip, preset apply, redirects.
-
-**Rough total:** ~2–3 weeks calendar for one full-stack engineer familiar with the fork.
+Keyboard shortcuts such as `/` for search or `S` for save are not part of the first implementation. Lingarr currently has no settings-shortcut vocabulary, and most settings do not use an explicit Save action.
 
 ---
 
-## 11. Success metrics
+## 11. Technical approach
 
-| Metric | Target |
-|--------|--------|
-| Time to find “path mapping” | &lt; 10 s for returning users (was: often never found) |
-| Support questions “where is X setting?” | Down after one release cycle |
-| Accidental automation stampede | Zero after dry-run + warnings ship |
-| Settings save errors pre-job | Prefer validation at save over failed Hangfire jobs |
-| Mobile settings task completion | Can edit chain + languages without horizontal overflow |
+### 11.1 Frontend
 
-Qualitative: operators can describe Settings as “Connections → Translation → Automation → System” without a wiki.
+- Update `SettingPage.vue` to the five stable destinations.
+- Add route-backed child tabs using the established `TabComponent` language.
+- Recompose existing settings components before rewriting them.
+- Keep `CardComponent`, shared fields, theme tokens, and responsive page grids.
+- Extend the current saved notification into a small save-status component with `saving`, `saved`, and `failed` states.
+- Keep the provider chain, Path mapping, Logs, Tasks, and Request templates specialized.
+- Pilot any core field catalog on one simple page before migrating Integration or Automation wholesale.
+
+### 11.2 Backend
+
+- Keep the existing key/value and encrypted-setting storage.
+- Add connection-test endpoints that return a bounded, user-facing result.
+- Add dedicated cursor-status and cursor-reset endpoints; do not expose arbitrary cursor writes.
+- Seed every new stored key through a migration. `SetSetting` must not be assumed to create a missing row.
+- Add retention configuration only alongside the CleanupJob behavior and migration that consume it.
+
+### 11.3 Compatibility
+
+- Preserve old route paths as redirects:
+  - `/settings/integration` → `/settings/connections/media-servers`
+  - `/settings/mapping` → `/settings/connections/path-mapping`
+  - `/settings/services` → `/settings/translation/setup`
+  - `/settings/subtitle` → `/settings/translation/subtitles`
+  - `/settings/authentication` → `/settings/system/access`
+  - `/settings/tasks` → `/settings/system/tasks`
+  - `/settings/logs` → `/settings/system/logs`
+- Preserve provider-specific Request template deep links.
+- Keep `service_type` rich JSON unchanged.
+- Keep global environment bootstrap behavior unchanged.
 
 ---
 
-## 12. Risks and mitigations
+## 12. Implementation phases
+
+### Phase 0 — Interaction lock (complete)
+
+- Confirm the five destination labels and route map.
+- Capture current wide and narrow screenshots.
+- Confirm immediate-save versus explicit-save behavior for every existing surface.
+
+### Phase 1 — IA using existing components (implemented 2026-07-28)
+
+- Update settings rail and redirects.
+- Promote Path mapping under Connections.
+- Recompose Translation and System with route-backed tabs.
+- Preserve cards, specialist workspaces, theme picker, version badge, and auto-save.
+- Add no new setting keys.
+
+### Phase 2 — Honest save and validation states
+
+- Add saving/saved/failed feedback.
+- Preserve invalid or failed input.
+- Add retry behavior for failed saves.
+- Add connection tests.
+- Improve compound Path mapping validation and dirty state.
+
+### Phase 3 — Small operator additions
+
+- Add cursor status and reset actions.
+- Add retention only after the CleanupJob contract is specified and tested.
+- Pilot `duration` and `schedule` controls where they replace existing raw-number or raw-cron inputs.
+
+### Phase 4 — Evidence-based follow-up
+
+- Measure findability and task completion.
+- Consider cross-settings search only if the new IA remains insufficient.
+- Write separate proposals for presets, import/export, runtime log configuration, or media-server refresh hooks.
+
+Mobile and accessibility verification happen in every phase, not as a final polish phase.
+
+---
+
+## 13. Acceptance criteria
+
+### Navigation
+
+- Settings always opens Connections.
+- Every former settings URL redirects to the equivalent new location.
+- Path mapping is reachable from visible navigation.
+- Refresh and browser history preserve the selected local tab.
+
+### Interaction
+
+- Valid simple changes persist without a page-level Save button.
+- Save feedback appears only after the write result is known.
+- Failed saves remain visible and retryable.
+- Invalid input is retained locally and is not persisted.
+- Path mapping retains its explicit Save mappings action and preserves edits on failure.
+
+### Design language
+
+- Existing theme tokens, card treatment, shared controls, and responsive grids remain in use.
+- No permanent second sidebar, global sticky Save bar, universal accordion system, or settings-only keyboard vocabulary is introduced.
+- Theme and version controls stay in global chrome.
+- Logs, Tasks, Path mapping, and Request templates remain purpose-built workspaces.
+
+### Safety
+
+- Automation cannot be enabled with an invalid provider chain or non-positive per-run limit.
+- Cursor resets name the media type and consequence.
+- All new async actions have pending, success, and failure states and prevent double-submit.
+- No secret is exposed by status, test, search, or future preset output.
+
+---
+
+## 14. Success measures
+
+| Measure | Target |
+|---------|--------|
+| Find Path mapping from Settings | Under 10 seconds for a returning operator |
+| Predict destination for provider, subtitle, automation, and log controls | At least 4 of 5 moderated attempts without hints |
+| Save-state comprehension | Operator can distinguish saved, invalid, saving, and failed |
+| Route compatibility | All former settings URLs land on an equivalent task |
+| Narrow-screen task completion | Edit the provider chain and save a path mapping without horizontal page overflow |
+
+Qualitative target: operators can describe the structure as “Connections, Translation, Automation, System, Plugins” without learning internal setting keys.
+
+---
+
+## 15. Risks and mitigations
 
 | Risk | Mitigation |
 |------|------------|
-| Large refactor breaks plugin forms | Share field renderer; keep Plugins page on old path until catalog stable |
-| Route renames break bookmarks | Permanent redirects |
-| Too many new keys confuse | Presets + Advanced fold; ship keys in waves |
-| Action endpoints abuse | Auth required when auth enabled; confirm tokens |
-| Scope creep into media UI | Strict non-goals; separate proposals |
+| Consolidation creates very long pages | Use route-backed tabs for distinct tasks; keep cards concise |
+| Auto-save failures become more visible | Treat that visibility as correctness; provide retry and retain input |
+| Route changes break bookmarks | Permanent redirects and route-level tests |
+| Generic field rendering changes visual language | Pilot it on one page and require shared Lingarr components |
+| System becomes a dumping ground | Admit only existing administration/diagnostic tasks; require a separate proposal for new operational behavior |
+| New controls expose unsafe internals | Prefer read-only status plus named actions over editable raw values |
 
 ---
 
-## 13. Open questions
+## 16. Open questions
 
-1. Should **Appearance** stay separate, or fold into System?
-2. Do we expose Hangfire dashboard link in System for development images only?
-3. Preset storage: hardcoded in client vs server-defined JSON for remote update?
-4. Is **dry-run automation** worth full job pipeline hooks, or log-only first?
-5. Upstream contribution: IA-only changes vs Bedroom-only ops keys?
-
----
-
-## 14. Recommendation
-
-**Approve Phase 1–2** as the near-term product bet: reorganize IA, promote Mapping, introduce layout/search/dirty-save, and catalog-driven simple fields.  
-
-**Phase 3** should follow immediately for Bedroom (cursor reset, retention, log levels, maintenance strip)—these map directly to production pain (translation clutter, Hangfire WAL, automation memory).  
-
-**Presets (Phase 4)** after the chain UI is stable so free-bulk vs quality-AI is one click instead of a checklist.
+1. Should System tabs live under one route with child paths, or remain separate child routes rendered through one tab shell? The visible behavior should be identical.
+2. What exact state should Test connection report without leaking URLs, keys, or raw exceptions?
+3. Should a cursor reset take effect immediately if an automation job is running, or be rejected until that job finishes?
+4. What minimum and maximum retention values are safe for CleanupJob?
+5. After Phase 1, does measured findability justify cross-settings search?
 
 ---
 
-## 15. Doc maintenance
+## 17. Recommendation
+
+Approve **Phase 1** as the near-term product change. It fixes the orphan route and mental-model mismatch while preserving Lingarr's visual and interaction language.
+
+Follow with **Phase 2** before adding broad new settings. Honest persistence and failure feedback are more valuable than a larger control catalog.
+
+Approve **Phase 3** only for cursor status/reset and retention backed by implemented server behavior. Keep presets, import/export, runtime log controls, Hangfire tuning, media-server hooks, and appearance preferences out of this proposal until they have separate evidence and safety contracts.
+
+---
+
+## 18. Documentation maintenance
 
 | When | Update |
 |------|--------|
-| Phase completes | Checkboxes / status at top of this file |
-| New setting keys | `SettingKeys.cs` + this §5.3 table + Settings.MD if user-facing |
-| Nav changes | `SettingPage.vue` routes + this §4 |
+| Product behavior changes | This proposal and the affected active proposal in the same commit |
+| Navigation changes | Router, `SettingPage.vue`, `docs/architecture.md`, and this route map |
+| Setting key added | `SettingKeys.cs`, client types, migration seed, tests, and the relevant user-facing documentation |
+| Provider-chain behavior changes | [ai-providers-model-fallback-chain.md](../ai-providers-model-fallback-chain.md) |
 
-**Suggested branch name:** `feat/settings-ia-qol`  
-**Deploy:** merge to `main` → fast-forward `bedroom` → rebuild `lingarr-bedroom` (never official GHCR).
+**Suggested branch:** `codex/settings-ia-qol`
+
+**Deploy:** merge to the Bedroom fork, rebuild `lingarr-bedroom`, and never point Bedroom compose at official GHCR.

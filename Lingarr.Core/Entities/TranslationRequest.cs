@@ -16,4 +16,7 @@ public class TranslationRequest : BaseEntity
     public DateTime? CompletedAt { get; set; }
     public string? ErrorMessage { get; set; }
     public string? StackTrace { get; set; }
+    public int? QualityScore { get; set; }
+    public string? QualityGrade { get; set; }
+    public string? QualityStatus { get; set; }
 }

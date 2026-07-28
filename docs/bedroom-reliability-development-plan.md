@@ -70,14 +70,16 @@ Deploy image: fork-built `lingarr-bedroom:*` only (never official GHCR). Config:
 
 ### P1 — Microsoft / GTranslate resilience
 
-**Problem:** Timeouts and connection resets throw immediately as “unexpected” without retry; 300s client timeout ties the single worker.
+**Problem:** Timeouts and connection resets previously threw immediately as “unexpected”; the shared 300s timeout also caused repeated Microsoft retries even when other providers did not need a longer limit.
 
-**Plan:**
+**Implemented:**
 1. Retry transient errors (timeout, connection reset, `HttpRequestException` without permanent status) with exponential backoff + jitter.
 2. Honor caller `CancellationToken` for shutdown.
-3. Leave multi-provider fallback to existing feature branches; this change makes single-provider mode survivable.
+3. Resolve request timeouts per provider through `<provider>_request_timeout`, retaining the legacy global timeout as fallback.
+4. Default Microsoft to 15 minutes (3× the former shared default); retain 5 minutes for other built-in providers.
+5. Leave multi-provider fallback to the existing chain; this change makes single-provider mode more tolerant.
 
-**Files:** `GTranslatorService.cs`.
+**Files:** `GTranslatorService.cs`, `TranslationTimeoutPolicy.cs`, migration `M0015`.
 
 ---
 

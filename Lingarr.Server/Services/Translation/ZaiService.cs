@@ -101,7 +101,9 @@ public class ZaiService : BaseLanguageService
                 SettingKeys.Translation.AiContextPromptEnabled,
                 SettingKeys.Translation.AiContextPrompt,
                 SettingKeys.Translation.AiPrompt,
-                SettingKeys.Translation.LanguageCodeFormat
+                SettingKeys.Translation.LanguageCodeFormat,
+                SettingKeys.Translation.RequestTimeout,
+                SettingKeys.Translation.RequestTimeoutForProvider("zai")
             ]);
             _model = ResolveModel(settings[SettingKeys.Translation.Zai.Model]);
             if (string.IsNullOrWhiteSpace(_model))
@@ -124,6 +126,8 @@ public class ZaiService : BaseLanguageService
                 ? ReplacePlaceholders(rawPrompt, _replacements)
                 : $"Translate from {_replacements["sourceLanguage"]} to {_replacements["targetLanguage"]}. Only return the translated text without any additional explanation.";
             _contextPrompt = settings[SettingKeys.Translation.AiContextPrompt];
+            _httpClient.Timeout = TimeSpan.FromMinutes(
+                TranslationTimeoutPolicy.ResolveMinutes(settings, "zai"));
             _initialized = true;
         }
         finally { _initLock.Release(); }

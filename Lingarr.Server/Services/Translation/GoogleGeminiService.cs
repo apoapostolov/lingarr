@@ -68,6 +68,7 @@ public class GoogleGeminiService : BaseLanguageService, ITranslationService, IBa
                 SettingKeys.Translation.AiContextPrompt,
                 SettingKeys.Translation.AiContextPromptEnabled,
                 SettingKeys.Translation.RequestTimeout,
+                SettingKeys.Translation.RequestTimeoutForProvider("gemini"),
                 SettingKeys.Translation.MaxRetries,
                 SettingKeys.Translation.RetryDelay,
                 SettingKeys.Translation.RetryDelayMultiplier,
@@ -89,11 +90,8 @@ public class GoogleGeminiService : BaseLanguageService, ITranslationService, IBa
             _prompt = ReplacePlaceholders(settings[SettingKeys.Translation.AiPrompt], _replacements);
             _contextPrompt = settings[SettingKeys.Translation.AiContextPrompt];
 
-            var requestTimeout = int.TryParse(settings[SettingKeys.Translation.RequestTimeout],
-                out var timeOut)
-                ? timeOut
-                : 5;
-            _httpClient.Timeout = TimeSpan.FromMinutes(requestTimeout);
+            _httpClient.Timeout = TimeSpan.FromMinutes(
+                TranslationTimeoutPolicy.ResolveMinutes(settings, "gemini"));
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 

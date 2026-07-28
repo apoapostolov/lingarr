@@ -34,7 +34,6 @@ const steps = computed(() => {
         labels.push('Account')
     }
 
-    labels.push('Telemetry')
     labels.push('Complete')
 
     return labels

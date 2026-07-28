@@ -20,19 +20,6 @@
                         {{ enableAuth === 'true' ? 'Enabled' : 'Disabled' }}
                     </span>
                 </div>
-
-                <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-400">Telemetry</span>
-                    <span
-                        class="rounded px-2 py-1 text-xs font-medium"
-                        :class="
-                            enableTelemetry === 'true'
-                                ? 'bg-green-900/30 text-green-400'
-                                : 'bg-gray-800 text-gray-400'
-                        ">
-                        {{ enableTelemetry === 'true' ? 'Enabled' : 'Disabled' }}
-                    </span>
-                </div>
             </div>
 
             <div v-if="enableAuth === 'true'" class="mt-4 space-y-2 border-t border-gray-700 pt-4">
@@ -54,7 +41,6 @@ import ExclamationIcon from '@/components/icons/ExclamationIcon.vue'
 
 interface Props {
     enableAuth: string
-    enableTelemetry: string
 }
 
 defineProps<Props>()

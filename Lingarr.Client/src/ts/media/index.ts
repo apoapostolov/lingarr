@@ -43,6 +43,9 @@ export interface ITranslationRequest {
     completedAt?: string | null
     errorMessage?: string | null
     stackTrace?: string | null
+    qualityScore?: number | null
+    qualityGrade?: string | null
+    qualityStatus?: string | null
     createdAt?: string
 }
 

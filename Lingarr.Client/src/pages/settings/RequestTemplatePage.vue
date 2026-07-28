@@ -1,11 +1,12 @@
 <template>
     <div class="w-full">
+        <SettingsSectionTabs section="translation" />
         <div class="bg-tertiary flex items-stretch gap-3 px-4">
             <div class="flex items-center py-4">
                 <ButtonComponent
                     variant="ghost"
                     size="xs"
-                    @click="router.push({ name: 'services-settings' })">
+                    @click="router.push({ name: 'translation-advanced-settings' })">
                     <ArrowLeft class="ml-1 h-3.5 w-3.5" />
                 </ButtonComponent>
             </div>
@@ -37,6 +38,7 @@ import services from '@/services'
 import ButtonComponent from '@/components/common/ButtonComponent.vue'
 import TabComponent from '@/components/common/TabComponent.vue'
 import ArrowLeft from '@/components/icons/ArrowLeft.vue'
+import SettingsSectionTabs from '@/components/features/settings/SettingsSectionTabs.vue'
 import RequestTemplate from '@/components/features/settings/template/RequestTemplate.vue'
 import SystemPrompt from '@/components/features/settings/SystemPrompt.vue'
 import ContextPrompt from '@/components/features/settings/ContextPrompt.vue'
@@ -51,7 +53,21 @@ const pluginsLoaded = ref(false)
 const configuredServices = computed<string[]>(() => {
     const raw = (settingsStore.getSetting(SETTINGS.SERVICE_TYPE) as string) ?? '[]'
     try {
-        return JSON.parse(raw) as string[]
+        if (!raw.trim().startsWith('[')) {
+            return raw.trim() ? [raw.trim()] : []
+        }
+
+        const parsed = JSON.parse(raw) as unknown[]
+        return parsed
+            .map((entry) => {
+                if (typeof entry === 'string') return entry
+                if (entry && typeof entry === 'object') {
+                    const item = entry as { provider?: string; service?: string }
+                    return item.provider || item.service || ''
+                }
+                return ''
+            })
+            .filter(Boolean)
     } catch {
         return []
     }
@@ -87,7 +103,7 @@ watch(
             return
         }
         if (options.length === 0) {
-            router.push({ name: 'services-settings' })
+            router.push({ name: 'translation-advanced-settings' })
             return
         }
         if (!options.some((option) => option.value === current)) {

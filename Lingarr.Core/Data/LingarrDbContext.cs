@@ -19,6 +19,10 @@ public class LingarrDbContext : DbContext
     public DbSet<Statistics> Statistics { get; set; }
     public DbSet<DailyStatistics> DailyStatistics { get; set; }
     public DbSet<User> Users { get; set; }
+    public DbSet<ProviderOperationalEvent> ProviderOperationalEvents { get; set; }
+    public DbSet<ProviderHealthSnapshot> ProviderHealthSnapshots { get; set; }
+    public DbSet<TranslationQualityAssessment> TranslationQualityAssessments { get; set; }
+    public DbSet<TranslationLineQualityFinding> TranslationLineQualityFindings { get; set; }
 
     public LingarrDbContext(DbContextOptions options) : base(options)
     {

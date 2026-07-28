@@ -112,6 +112,12 @@ public static class SettingKeys
         public const string SubtitleTag = "subtitle_tag";
         public const string IgnoreCaptions = "ignore_captions";
         public const string RequestTimeout = "request_timeout";
+
+        public static string RequestTimeoutForProvider(string provider)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(provider);
+            return $"{provider.Trim().ToLowerInvariant().Replace("-", "_")}_request_timeout";
+        }
         public const string MaxRetries = "max_retries";
         public const string RetryDelay = "retry_delay";
         public const string RetryDelayMultiplier = "retry_delay_multiplier";
@@ -152,13 +158,4 @@ public static class SettingKeys
         public const string OnboardingCompleted = "onboarding_completed";
     }
 
-    public static class Telemetry
-    {
-        public const string TelemetryEnabled = "telemetry_enabled";
-        public const string LastSubmission = "telemetry_last_submission";
-        
-        public const string LastReportedLines = "telemetry_last_reported_lines";
-        public const string LastReportedFiles = "telemetry_last_reported_files";
-        public const string LastReportedCharacters = "telemetry_last_reported_characters";
-    }
 }

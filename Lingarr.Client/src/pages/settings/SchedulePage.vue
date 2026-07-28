@@ -1,11 +1,12 @@
 ﻿<template>
     <div class="w-full">
-        <div class="flex flex-wrap items-center justify-end gap-2 bg-tertiary p-4">
+        <SettingsSectionTabs section="system" />
+        <div class="bg-tertiary flex flex-wrap items-center justify-end gap-2 p-4">
             <ReloadComponent @toggle:update="scheduleStore.fetchRecurringJobs" />
         </div>
 
         <div class="w-full px-4">
-            <div class="hidden border-b border-accent font-bold md:grid md:grid-cols-12">
+            <div class="border-accent hidden border-b font-bold md:grid md:grid-cols-12">
                 <div class="col-span-5 px-4 py-2">Job Name</div>
                 <div class="col-span-2 px-4 py-2">State</div>
                 <div class="col-span-2 px-4 py-2">Last Execution</div>
@@ -20,9 +21,7 @@
                 <div class="flex w-full items-center gap-2 md:col-span-5 md:w-auto md:px-4 md:py-2">
                     <span class="min-w-0 flex-1 md:flex-none">{{ job.id }}</span>
                     <span class="ml-auto flex-none md:hidden">
-                        <TriggerJob
-                            title="Run"
-                            @toggle:trigger="scheduleStore.startJob(job.id)" />
+                        <TriggerJob title="Run" @toggle:trigger="scheduleStore.startJob(job.id)" />
                     </span>
                 </div>
                 <div class="flex items-center md:col-span-2 md:px-4 md:py-2">
@@ -66,6 +65,7 @@ import { useSignalR } from '@/composables/useSignalR'
 import { useScheduleStore } from '@/store/schedule'
 import ReloadComponent from '@/components/common/ReloadComponent.vue'
 import TriggerJob from '@/components/common/TriggerJob.vue'
+import SettingsSectionTabs from '@/components/features/settings/SettingsSectionTabs.vue'
 
 const scheduleStore = useScheduleStore()
 const signalR = useSignalR()

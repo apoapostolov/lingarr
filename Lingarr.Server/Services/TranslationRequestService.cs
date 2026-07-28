@@ -35,6 +35,8 @@ public class TranslationRequestService : ITranslationRequestService
     private readonly ISettingService _settingService;
     private readonly ISubtitleService _subtitleService;
     private readonly ITranslationRequestEventService _eventService;
+    private readonly IProviderHealthService _providerHealth;
+    private readonly ITranslationQualityService _translationQuality;
     private readonly ILogger<TranslationRequestService> _logger;
     private static readonly ConcurrentDictionary<int, CancellationTokenSource> _asyncTranslationJobs = new();
 
@@ -49,6 +51,8 @@ public class TranslationRequestService : ITranslationRequestService
         ISettingService settingService,
         ISubtitleService subtitleService,
         ITranslationRequestEventService eventService,
+        IProviderHealthService providerHealth,
+        ITranslationQualityService translationQuality,
         ILogger<TranslationRequestService> logger)
     {
         _dbContext = dbContext;
@@ -61,6 +65,8 @@ public class TranslationRequestService : ITranslationRequestService
         _settingService = settingService;
         _subtitleService = subtitleService;
         _eventService = eventService;
+        _providerHealth = providerHealth;
+        _translationQuality = translationQuality;
         _logger = logger;
     }
 
@@ -102,6 +108,9 @@ public class TranslationRequestService : ITranslationRequestService
             CompletedAt = request.CompletedAt,
             ErrorMessage = request.ErrorMessage,
             StackTrace = request.StackTrace,
+            QualityScore = request.QualityScore,
+            QualityGrade = request.QualityGrade,
+            QualityStatus = request.QualityStatus,
             Progress = request.Status == TranslationStatus.Completed ? 100 : 0,
             CreatedAt = request.CreatedAt,
             UpdatedAt = request.UpdatedAt,
@@ -643,7 +652,11 @@ public class TranslationRequestService : ITranslationRequestService
                 _logger.LogInformation("Processing batch translation request with {lineCount} lines from {sourceLanguage} to {targetLanguage}",
                     translateAbleContent.Lines.Count, translateAbleContent.SourceLanguage, translateAbleContent.TargetLanguage);
 
-                var subtitleTranslator = new SubtitleTranslationService(services, _logger, _progressService);
+                var subtitleTranslator = new SubtitleTranslationService(
+                    services,
+                    _logger,
+                    _progressService,
+                    _providerHealth);
                 var totalSize = translateAbleContent.Lines.Count;
                 var stripSubtitleFormatting = settings[SettingKeys.Translation.StripSubtitleFormatting] == "true";
                 var maxSize = int.TryParse(settings[SettingKeys.Translation.MaxBatchSize], out var batchSize)
@@ -686,7 +699,10 @@ public class TranslationRequestService : ITranslationRequestService
                     translateAbleContent.SourceLanguage,
                     translateAbleContent.TargetLanguage);
 
-                var subtitleTranslator = new SubtitleTranslationService(services, _logger);
+                var subtitleTranslator = new SubtitleTranslationService(
+                    services,
+                    _logger,
+                    providerHealth: _providerHealth);
                 var tempResults = new List<BatchTranslatedLine>();
 
                 var iteration = 1;
@@ -705,8 +721,10 @@ public class TranslationRequestService : ITranslationRequestService
                     LanguagePair? pairUsed = null;
                     if (!string.IsNullOrWhiteSpace(translateLine.SubtitleLine))
                     {
-                        var result = await subtitleTranslator.TranslateSubtitleLine(translateLine,
-                            cancellationToken);
+                        var result = await subtitleTranslator.TranslateSubtitleLine(
+                            translateLine,
+                            cancellationToken,
+                            translationRequest.Id);
                         translatedText = result.Translation;
                         serviceUsed = result.Service;
                         pairUsed = result.Pair;
@@ -806,7 +824,19 @@ public class TranslationRequestService : ITranslationRequestService
         BatchTranslatedLine[] results,
         CancellationToken cancellationToken)
     {
-        await _statisticsService.UpdateTranslationStatisticsFromLines(translationRequest, serviceType, translationService.ModelName, results);
+        try
+        {
+            await _translationQuality.EvaluateAsync(translationRequest.Id, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Subtitle quality evaluation failed for translation request {RequestId}; the translation remains completed.",
+                translationRequest.Id);
+        }
+        await _statisticsService.UpdateTranslationStatisticsFromLines(
+            translationRequest, serviceType, translationService.ModelName, results);
 
         var now = DateTime.UtcNow;
         await _dbContext.TranslationRequests

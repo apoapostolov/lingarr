@@ -1,14 +1,14 @@
 <template>
     <div class="grid h-full grid-cols-[auto_1fr]">
-        <aside class="w-[3.175rem] shrink-0 bg-secondary md:w-40">
-            <nav class="flex h-full flex-col pt-4 md:pl-4 md:pt-8">
+        <aside class="bg-secondary w-[3.175rem] shrink-0 md:w-40">
+            <nav class="flex h-full flex-col pt-4 md:pt-8 md:pl-4">
                 <ul class="flex flex-col space-y-4">
                     <li
                         v-for="(item, index) in menuItems"
                         :key="index"
                         :class="[
                             'w-full hover:brightness-150',
-                            { 'brightness-150': $route.name === item.route }
+                            { 'brightness-150': isActive(item) }
                         ]">
                         <router-link
                             :to="{ name: item.route }"
@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { MenuItem, SETTINGS } from '@/ts'
 import { useSettingStore } from '@/store/setting'
 import services from '@/services'
@@ -54,39 +54,29 @@ import IntegrationIcon from '@/components/icons/IntegrationIcon.vue'
 import KeyIcon from '@/components/icons/KeyIcon.vue'
 import SettingIcon from '@/components/icons/SettingIcon.vue'
 import AutomationIcon from '@/components/icons/AutomationIcon.vue'
-import TaskIcon from '@/components/icons/TaskIcon.vue'
 import LanguageIcon from '@/components/icons/LanguageIcon.vue'
-import LogIcon from '@/components/icons/LogIcon.vue'
 import LogoutIcon from '@/components/icons/LogoutIcon.vue'
-import TelemetryIcon from '@/components/icons/TelemetryIcon.vue'
 
 const router = useRouter()
+const route = useRoute()
 const settings = useSettingStore()
 
 const menuItems: MenuItem[] = [
     {
-        label: 'Integrations',
+        label: 'Connections',
         icon: IntegrationIcon,
-        route: 'integration-settings',
-        children: []
+        route: 'connections-media-settings',
+        children: ['connections-mapping-settings']
     },
     {
-        label: 'Authentication',
-        icon: KeyIcon,
-        route: 'authentication-settings',
-        children: []
-    },
-    {
-        label: 'Services',
-        icon: SettingIcon,
-        route: 'services-settings',
-        children: []
-    },
-    {
-        label: 'Subtitle',
+        label: 'Translation',
         icon: LanguageIcon,
-        route: 'subtitle-settings',
-        children: []
+        route: 'translation-setup-settings',
+        children: [
+            'translation-subtitles-settings',
+            'translation-advanced-settings',
+            'request-template-settings'
+        ]
     },
     {
         label: 'Automation',
@@ -95,15 +85,18 @@ const menuItems: MenuItem[] = [
         children: []
     },
     {
-        label: 'Plugins',
-        icon: SettingIcon,
-        route: 'plugins-settings',
-        children: []
+        label: 'System',
+        icon: KeyIcon,
+        route: 'system-access-settings',
+        children: ['system-tasks-settings', 'system-logs-settings']
     },
-    { label: 'Tasks', icon: TaskIcon, route: 'tasks-settings', children: [] },
-    { label: 'Logs', icon: LogIcon, route: 'logs-settings', children: [] },
-    { label: 'Telemetry', icon: TelemetryIcon, route: 'telemetry-settings', children: [] }
+    { label: 'Plugins', icon: SettingIcon, route: 'plugins-settings', children: [] }
 ]
+
+const isActive = (item: MenuItem) => {
+    if (item.route === route.name) return true
+    return item.children.includes(route.name as string)
+}
 
 const handleLogout = async () => {
     try {

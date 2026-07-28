@@ -20,7 +20,7 @@ public class VersionController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the current version information and checks for available updates.
+    /// Retrieves the current version information and checks the Bedroom fork for available updates.
     /// </summary>
     /// <returns>A Task containing an ActionResult with VersionInfo data. Returns HTTP 200 OK on success.</returns>
     /// <response code="200">Returns the version information</response>

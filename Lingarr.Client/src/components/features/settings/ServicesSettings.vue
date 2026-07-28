@@ -1,5 +1,5 @@
 <template>
-    <CardComponent title="Services">
+    <CardComponent title="Translation Services">
         <template #description>
             Configure the translation service for subtitle localization. Each row is self-contained:
             provider, model (when needed), and API key. Fallbacks run in order if earlier rows fail.
@@ -13,7 +13,7 @@
                     <li
                         v-for="(entry, index) in chain"
                         :key="`row-${index}-${entry.provider}`"
-                        class="flex gap-3 rounded-md border border-accent/30 p-3">
+                        class="border-accent/30 flex gap-3 rounded-md border p-3">
                         <!-- 1-based index badge (primary = 1) -->
                         <span
                             class="bg-accent/20 text-accent-content mt-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sm font-semibold tabular-nums"
@@ -103,8 +103,6 @@
                     </li>
                 </ol>
             </div>
-
-            <SourceAndTarget @save="saveNotification?.show()" />
         </template>
     </CardComponent>
 </template>
@@ -128,7 +126,6 @@ import SelectComponent from '@/components/common/SelectComponent.vue'
 import ButtonComponent from '@/components/common/ButtonComponent.vue'
 import InputComponent from '@/components/common/InputComponent.vue'
 import SaveNotification from '@/components/common/SaveNotification.vue'
-import SourceAndTarget from '@/components/features/settings/SourceAndTarget.vue'
 import CaretUpIcon from '@/components/icons/CaretUpIcon.vue'
 import CaretDownIcon from '@/components/icons/CaretDownIcon.vue'
 import TrashIcon from '@/components/icons/TrashIcon.vue'

@@ -1,20 +1,19 @@
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
 using Lingarr.Core;
 using Lingarr.Server.Interfaces.Services;
-using Lingarr.Server.Models.Telemetry;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Lingarr.Server.Services;
 
 public class LingarrApiService : ILingarrApiService
 {
+    private const string ForkOwner = "apoapostolov";
+    private const string ForkRepository = "lingarr";
+    private const string GitHubApiVersion = "2022-11-28";
+    private const string CacheKeyLatestVersion = "ForkRepository_LatestVersion";
+
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<LingarrApiService> _logger;
     private readonly IMemoryCache _cache;
-    private readonly string _baseUrl;
-    private const string CacheKeyLatestVersion = "LingarrApi_LatestVersion";
 
     public LingarrApiService(
         IHttpClientFactory httpClientFactory,
@@ -24,12 +23,6 @@ public class LingarrApiService : ILingarrApiService
         _httpClientFactory = httpClientFactory;
         _logger = logger;
         _cache = cache;
-
-        _baseUrl = new UriBuilder
-        {
-            Scheme = Uri.UriSchemeHttps,
-            Host = $"api.{LingarrVersion.Name.ToLower()}.com"
-        }.Uri.ToString();
     }
 
     public async Task<string?> GetLatestVersion()
@@ -45,88 +38,94 @@ public class LingarrApiService : ILingarrApiService
         {
             var httpClient = _httpClientFactory.CreateClient();
             httpClient.DefaultRequestHeaders.Add("User-Agent", $"{LingarrVersion.Name}/{LingarrVersion.Number}");
+            httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+            httpClient.DefaultRequestHeaders.Add("X-GitHub-Api-Version", GitHubApiVersion);
 
-            var response = await httpClient.GetAsync($"{_baseUrl}/version/latest");
+            var releaseVersion = await GetLatestReleaseVersion(httpClient);
+            var latestVersion = releaseVersion ?? await GetLatestTagVersion(httpClient);
 
-            if (!response.IsSuccessStatusCode)
+            if (latestVersion is null)
             {
-                _logger.LogWarning("Failed to get latest version from Lingarr API: {StatusCode}",
-                    response.StatusCode);
+                _logger.LogWarning(
+                    "No semantic version release or tag was found in {Owner}/{Repository}",
+                    ForkOwner,
+                    ForkRepository);
                 return null;
             }
 
-            var content = await response.Content.ReadAsStringAsync();
-            var versionResponse = JsonSerializer.Deserialize<VersionResponse>(content,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+            var cacheOptions = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(TimeSpan.FromHours(24));
+            _cache.Set(CacheKeyLatestVersion, latestVersion, cacheOptions);
 
-            if (versionResponse?.Version != null)
-            {
-                var cacheOptions = new MemoryCacheEntryOptions()
-                    .SetAbsoluteExpiration(TimeSpan.FromHours(24));
-                _cache.Set(CacheKeyLatestVersion, versionResponse.Version, cacheOptions);
-
-                _logger.LogInformation("Retrieved latest version: {Version}", versionResponse.Version);
-                return versionResponse.Version;
-            }
-
-            _logger.LogWarning("Lingarr API returned empty version");
-            return null;
+            _logger.LogInformation(
+                "Retrieved latest fork version {Version} from {Owner}/{Repository}",
+                latestVersion,
+                ForkOwner,
+                ForkRepository);
+            return latestVersion;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to fetch latest version from Lingarr API");
+            _logger.LogError(
+                ex,
+                "Failed to fetch the latest version from fork repository {Owner}/{Repository}",
+                ForkOwner,
+                ForkRepository);
             return null;
         }
     }
 
-    public async Task<bool> SubmitTelemetry(TelemetryPayload payload)
+    private static async Task<string?> GetLatestReleaseVersion(HttpClient httpClient)
     {
-        try
+        var response = await httpClient.GetAsync(
+            $"https://api.github.com/repos/{ForkOwner}/{ForkRepository}/releases/latest");
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
-            var json = JsonSerializer.Serialize(payload, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
-
-            var signature = GenerateHmac(json);
-            var httpClient = _httpClientFactory.CreateClient();
-            var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl)
-            {
-                Content = new StringContent(json, Encoding.UTF8, "application/json")
-            };
-
-            request.Headers.Add("X-Signature", signature);
-            var response = await httpClient.SendAsync(request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                return true;
-            }
-            _logger.LogWarning("Telemetry submission failed: {Status} - {Response}",
-                response.StatusCode,
-                await response.Content.ReadAsStringAsync());
-            return false;
-
+            return null;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to submit telemetry to Lingarr API");
-            return false;
-        }
+
+        response.EnsureSuccessStatusCode();
+        var release = await response.Content.ReadFromJsonAsync<GitHubRelease>();
+        return NormalizeSemanticVersion(release?.TagName);
     }
 
-    private string GenerateHmac(string payload)
+    private static async Task<string?> GetLatestTagVersion(HttpClient httpClient)
     {
-        using var hmac = new HMACSHA256("tSBTCU4Qv76so0c2U8bBX0faSzc3uc6Z"u8.ToArray());
-        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
-        return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+        var response = await httpClient.GetAsync(
+            $"https://api.github.com/repos/{ForkOwner}/{ForkRepository}/tags?per_page=100");
+        response.EnsureSuccessStatusCode();
+
+        var tags = await response.Content.ReadFromJsonAsync<List<GitHubTag>>() ?? [];
+
+        return tags
+            .Select(tag => NormalizeSemanticVersion(tag.Name))
+            .Where(version => version is not null)
+            .Select(version => new
+            {
+                Text = version!,
+                Parsed = Version.Parse(version!)
+            })
+            .OrderByDescending(version => version.Parsed)
+            .Select(version => version.Text)
+            .FirstOrDefault();
     }
 
-    private class VersionResponse
+    private static string? NormalizeSemanticVersion(string? value)
     {
-        public string? Version { get; set; }
+        var normalized = value?.Trim().TrimStart('v');
+        return Version.TryParse(normalized, out _) ? normalized : null;
+    }
+
+    private sealed class GitHubRelease
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("tag_name")]
+        public string? TagName { get; init; }
+    }
+
+    private sealed class GitHubTag
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string? Name { get; init; }
     }
 }

@@ -64,12 +64,6 @@ The following settings are all **optional** and can be provided via environment 
 | `AUTH_ENABLED` | Enables or disables authentication. |
 | `ENCRYPTION_KEYS` | The path for storing encryption keys, stored by default in the config directory. |
 
-## Telemetry
-
-| **Environment Variable** | **Description** |
-|--------------------------|-----------------|
-| `TELEMETRY_ENABLED` | Opt-in for anonymized telemetry to help other Lingarr users, defaults to false. |
-
 ## Translation services
 
 | **Environment Variable** | **Description** |

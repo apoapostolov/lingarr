@@ -50,7 +50,9 @@ public class OpenCodeGoService : BaseLanguageService
                 SettingKeys.Translation.AiContextPromptEnabled,
                 SettingKeys.Translation.AiContextPrompt,
                 SettingKeys.Translation.AiPrompt,
-                SettingKeys.Translation.LanguageCodeFormat
+                SettingKeys.Translation.LanguageCodeFormat,
+                SettingKeys.Translation.RequestTimeout,
+                SettingKeys.Translation.RequestTimeoutForProvider("opencode-go")
             ]);
             _model = ResolveModel(settings[SettingKeys.Translation.OpenCodeGo.Model]);
             var ep = settings[SettingKeys.Translation.OpenCodeGo.Endpoint];
@@ -65,6 +67,8 @@ public class OpenCodeGoService : BaseLanguageService
             SetLanguageReplacements(sourceLanguage, targetLanguage, settings[SettingKeys.Translation.LanguageCodeFormat]);
             _prompt = ReplacePlaceholders(settings[SettingKeys.Translation.AiPrompt], _replacements);
             _contextPrompt = settings[SettingKeys.Translation.AiContextPrompt];
+            _httpClient.Timeout = TimeSpan.FromMinutes(
+                TranslationTimeoutPolicy.ResolveMinutes(settings, "opencode-go"));
             _initialized = true;
         }
         finally { _initLock.Release(); }

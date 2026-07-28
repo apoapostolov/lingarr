@@ -56,7 +56,9 @@ public class LibreService : BaseLanguageService
                 SettingKeys.Translation.LibreTranslate.Url,
                 SettingKeys.Translation.MaxRetries,
                 SettingKeys.Translation.RetryDelay,
-                SettingKeys.Translation.RetryDelayMultiplier
+                SettingKeys.Translation.RetryDelayMultiplier,
+                SettingKeys.Translation.RequestTimeout,
+                SettingKeys.Translation.RequestTimeoutForProvider("libretranslate")
             ]);
             _apiUrl = settings[SettingKeys.Translation.LibreTranslate.Url];
             _apiKey = await _settings.GetEncryptedSetting(SettingKeys.Translation.LibreTranslate.ApiKey);
@@ -74,6 +76,9 @@ public class LibreService : BaseLanguageService
             _retryDelayMultiplier = int.TryParse(settings[SettingKeys.Translation.RetryDelayMultiplier], out var multiplier)
                 ? multiplier
                 : 2;
+
+            _httpClient.Timeout = TimeSpan.FromMinutes(
+                TranslationTimeoutPolicy.ResolveMinutes(settings, "libretranslate"));
 
             _initialized = true;
         }

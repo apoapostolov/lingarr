@@ -43,9 +43,10 @@
             </template>
 
             <div class="flex flex-col space-x-2">
-                <span class="font-semibold">Request timeout:</span>
+                <span class="font-semibold">{{ requestTimeoutLabel }}:</span>
                 Maximum time in minutes to wait for a translation response before the request is
-                cancelled. Increase this if you run a slow local AI on minimal hardware for example.
+                cancelled. Each provider keeps its own value; Microsoft defaults to 15 minutes
+                while other providers default to 5.
             </div>
             <InputComponent
                 v-model="requestTimeout"
@@ -85,7 +86,7 @@
 <script setup lang="ts">
 import { computed, ref, reactive } from 'vue'
 import { useSettingStore } from '@/store/setting'
-import { INPUT_VALIDATION_TYPE, SERVICE_TYPE, SETTINGS } from '@/ts'
+import { INPUT_VALIDATION_TYPE, ISettings, SERVICE_TYPE, SETTINGS } from '@/ts'
 import CardComponent from '@/components/common/CardComponent.vue'
 import SaveNotification from '@/components/common/SaveNotification.vue'
 import InputComponent from '@/components/common/InputComponent.vue'
@@ -101,6 +102,48 @@ const isValid = reactive({
     retryDelayMultiplier: true
 })
 const serviceType = computed(() => settingsStore.getSetting(SETTINGS.SERVICE_TYPE))
+
+const providerTimeoutKeys: Record<string, keyof ISettings> = {
+    libretranslate: SETTINGS.LIBRETRANSLATE_REQUEST_TIMEOUT,
+    google: SETTINGS.GOOGLE_REQUEST_TIMEOUT,
+    bing: SETTINGS.BING_REQUEST_TIMEOUT,
+    microsoft: SETTINGS.MICROSOFT_REQUEST_TIMEOUT,
+    yandex: SETTINGS.YANDEX_REQUEST_TIMEOUT,
+    deepl: SETTINGS.DEEPL_REQUEST_TIMEOUT,
+    openai: SETTINGS.OPENAI_REQUEST_TIMEOUT,
+    anthropic: SETTINGS.ANTHROPIC_REQUEST_TIMEOUT,
+    localai: SETTINGS.LOCALAI_REQUEST_TIMEOUT,
+    gemini: SETTINGS.GEMINI_REQUEST_TIMEOUT,
+    deepseek: SETTINGS.DEEPSEEK_REQUEST_TIMEOUT,
+    openrouter: SETTINGS.OPENROUTER_REQUEST_TIMEOUT,
+    zai: SETTINGS.ZAI_REQUEST_TIMEOUT,
+    'opencode-go': SETTINGS.OPENCODE_GO_REQUEST_TIMEOUT
+}
+
+const activeProvider = computed((): string => {
+    const raw = serviceType.value
+    if (typeof raw !== 'string') return ''
+    try {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed) && typeof parsed[0]?.provider === 'string') {
+            return parsed[0].provider.toLowerCase()
+        }
+    } catch {
+        // Legacy plain provider value.
+    }
+    return raw.toLowerCase()
+})
+
+const requestTimeoutKey = computed(
+    (): keyof ISettings =>
+        providerTimeoutKeys[activeProvider.value] ?? SETTINGS.REQUEST_TIMEOUT
+)
+
+const requestTimeoutLabel = computed(() =>
+    activeProvider.value
+        ? `${activeProvider.value.replace('-', ' ')} request timeout`
+        : 'Default request timeout'
+)
 
 const useBatchTranslation = computed({
     get: (): string => settingsStore.getSetting(SETTINGS.USE_BATCH_TRANSLATION) as string,
@@ -119,9 +162,9 @@ const maxBatchSize = computed({
 })
 
 const requestTimeout = computed({
-    get: (): string => settingsStore.getSetting(SETTINGS.REQUEST_TIMEOUT) as string,
+    get: (): string => settingsStore.getSetting(requestTimeoutKey.value) as string,
     set: (newValue: string): void => {
-        settingsStore.updateSetting(SETTINGS.REQUEST_TIMEOUT, newValue, isValid.requestTimeout)
+        settingsStore.updateSetting(requestTimeoutKey.value, newValue, isValid.requestTimeout)
         saveNotification.value?.show()
     }
 })

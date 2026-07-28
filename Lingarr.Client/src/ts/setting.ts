@@ -57,12 +57,25 @@ export const SETTINGS = {
     SUBTITLE_TAG: 'subtitle_tag',
     IGNORE_CAPTIONS: 'ignore_captions',
     REQUEST_TIMEOUT: 'request_timeout',
+    LIBRETRANSLATE_REQUEST_TIMEOUT: 'libretranslate_request_timeout',
+    GOOGLE_REQUEST_TIMEOUT: 'google_request_timeout',
+    BING_REQUEST_TIMEOUT: 'bing_request_timeout',
+    MICROSOFT_REQUEST_TIMEOUT: 'microsoft_request_timeout',
+    YANDEX_REQUEST_TIMEOUT: 'yandex_request_timeout',
+    DEEPL_REQUEST_TIMEOUT: 'deepl_request_timeout',
+    OPENAI_REQUEST_TIMEOUT: 'openai_request_timeout',
+    ANTHROPIC_REQUEST_TIMEOUT: 'anthropic_request_timeout',
+    LOCALAI_REQUEST_TIMEOUT: 'localai_request_timeout',
+    GEMINI_REQUEST_TIMEOUT: 'gemini_request_timeout',
+    DEEPSEEK_REQUEST_TIMEOUT: 'deepseek_request_timeout',
+    OPENROUTER_REQUEST_TIMEOUT: 'openrouter_request_timeout',
+    ZAI_REQUEST_TIMEOUT: 'zai_request_timeout',
+    OPENCODE_GO_REQUEST_TIMEOUT: 'opencode_go_request_timeout',
     MAX_RETRIES: 'max_retries',
     RETRY_DELAY: 'retry_delay',
     RETRY_DELAY_MULTIPLIER: 'retry_delay_multiplier',
     AUTH_ENABLED: 'auth_enabled',
     ONBOARDING_COMPLETED: 'onboarding_completed',
-    TELEMETRY_ENABLED: 'telemetry_enabled',
     NAVIGATE_TO_DETAILS_ON_REQUEST: 'navigate_to_details_on_request',
     OPENAI_REQUEST_TEMPLATE: 'openai_request_template',
     ANTHROPIC_REQUEST_TEMPLATE: 'anthropic_request_template',
@@ -122,12 +135,25 @@ export interface ISettings {
     subtitle_tag: string
     ignore_captions: string
     request_timeout: string
+    libretranslate_request_timeout: string
+    google_request_timeout: string
+    bing_request_timeout: string
+    microsoft_request_timeout: string
+    yandex_request_timeout: string
+    deepl_request_timeout: string
+    openai_request_timeout: string
+    anthropic_request_timeout: string
+    localai_request_timeout: string
+    gemini_request_timeout: string
+    deepseek_request_timeout: string
+    openrouter_request_timeout: string
+    zai_request_timeout: string
+    opencode_go_request_timeout: string
     max_retries: string
     retry_delay: string
     retry_delay_multiplier: string
     auth_enabled: string
     onboarding_completed: string
-    telemetry_enabled: string
     navigate_to_details_on_request: string
     openai_request_template: string
     anthropic_request_template: string
@@ -139,7 +165,6 @@ export interface ISettings {
     radarr_default_include: string
     sonarr_default_include: string
 }
-
 
 export const ENCRYPTED_SETTINGS = {
     API_KEY: 'api_key',
@@ -154,7 +179,7 @@ export const ENCRYPTED_SETTINGS = {
     OPENCODE_GO_API_KEY: 'opencode_go_api_key',
     DEEPL_API_KEY: 'deepl_api_key',
     LIBRETRANSLATE_API_KEY: 'libretranslate_api_key',
-    LOCAL_AI_API_KEY: 'local_ai_api_key',
+    LOCAL_AI_API_KEY: 'local_ai_api_key'
 } as const
 
 export interface IEncryptedSettings {

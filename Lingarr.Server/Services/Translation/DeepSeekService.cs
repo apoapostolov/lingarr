@@ -60,7 +60,9 @@ public class DeepSeekService : BaseLanguageService
                 SettingKeys.Translation.AiContextPromptEnabled,
                 SettingKeys.Translation.AiContextPrompt,
                 SettingKeys.Translation.AiPrompt,
-                SettingKeys.Translation.LanguageCodeFormat
+                SettingKeys.Translation.LanguageCodeFormat,
+                SettingKeys.Translation.RequestTimeout,
+                SettingKeys.Translation.RequestTimeoutForProvider("deepseek")
             ]);
             _model = ResolveModel(settings[SettingKeys.Translation.DeepSeek.Model]);
             _apiKey = await _settings.GetEncryptedSetting(SettingKeys.Translation.DeepSeek.ApiKey);
@@ -81,6 +83,8 @@ public class DeepSeekService : BaseLanguageService
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+            _httpClient.Timeout = TimeSpan.FromMinutes(
+                TranslationTimeoutPolicy.ResolveMinutes(settings, "deepseek"));
 
             _initialized = true;
         }

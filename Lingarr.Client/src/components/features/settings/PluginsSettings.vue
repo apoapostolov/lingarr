@@ -1,8 +1,13 @@
 <template>
     <CardComponent title="Plugins">
         <template #description>
-            Third-party translation services loaded from the plugins folder. Credentials are configured on the
-            <a class="cursor-pointer underline" @click="router.push({ name: 'services-settings' })">Services</a>
+            Third-party translation services loaded from the plugins folder. Credentials are
+            configured on the
+            <a
+                class="cursor-pointer underline"
+                @click="router.push({ name: 'translation-setup-settings' })">
+                Translation Setup
+            </a>
             page.
         </template>
         <template #content>
@@ -17,7 +22,7 @@
                 <li
                     v-for="plugin in plugins"
                     :key="plugin.provider"
-                    class="rounded-md border border-accent/40 p-3">
+                    class="border-accent/40 rounded-md border p-3">
                     <span class="font-semibold">{{ plugin.displayName }}</span>
                     <div v-if="plugin.description" class="mt-1 text-xs opacity-60">
                         {{ plugin.description }}

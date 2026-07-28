@@ -42,8 +42,7 @@ public class StartupServiceTests : IDisposable
         ("DEEPSEEK_MODEL", SettingKeys.Translation.DeepSeek.Model),
         ("DEEPSEEK_API_KEY", SettingKeys.Translation.DeepSeek.ApiKey),
         ("DEEPL_API_KEY", SettingKeys.Translation.DeepL.DeeplApiKey),
-        ("AUTH_ENABLED", SettingKeys.Authentication.AuthEnabled),
-        ("TELEMETRY_ENABLED", SettingKeys.Telemetry.TelemetryEnabled)
+        ("AUTH_ENABLED", SettingKeys.Authentication.AuthEnabled)
     };
 
     private readonly string _tempDir;

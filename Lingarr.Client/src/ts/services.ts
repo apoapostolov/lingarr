@@ -16,7 +16,11 @@ import {
     IPluginManifest,
     IPluginOptionsResponse,
     IPluginStatus,
-    IPluginSummary
+    IPluginSummary,
+    IProviderHealth,
+    IProviderProbe,
+    ITranslationQualityDetail,
+    ITranslationQualitySummary
 } from '@/ts'
 
 export interface Services {
@@ -32,9 +36,14 @@ export interface Services {
     directory: IDirectoryService
     statistics: IStatisticsService
     logs: ILogsService
-    telemetry: ITelemetryService
     requestTemplate: IRequestTemplateService
     plugin: IPluginService
+    providerHealth: IProviderHealthService
+}
+
+export interface IProviderHealthService {
+    list(): Promise<IProviderHealth[]>
+    test(provider: string): Promise<IProviderProbe>
 }
 
 export interface IPluginService {
@@ -101,11 +110,7 @@ export interface ITranslateService {
         target: ILanguage,
         mediaType: MediaType
     ): Promise<T>
-    bulkTranslate<T>(
-        mediaIds: number[],
-        targetLanguage: string,
-        mediaType: MediaType
-    ): Promise<T>
+    bulkTranslate<T>(mediaIds: number[], targetLanguage: string, mediaType: MediaType): Promise<T>
     getLanguages<T>(): Promise<T>
 }
 
@@ -122,6 +127,8 @@ export interface ITranslationRequestService {
     remove<T>(translationRequest: ITranslationRequest): Promise<T>
     retry<T>(translationRequest: ITranslationRequest): Promise<T>
     resume<T>(translationRequest: ITranslationRequest): Promise<T>
+    quality(id: number): Promise<ITranslationQualityDetail>
+    reEvaluateQuality(id: number): Promise<ITranslationQualitySummary>
 }
 
 export interface IScheduleService {
@@ -149,10 +156,6 @@ export interface IStatisticsService {
 
 export interface ILogsService {
     getStream(): EventSource
-}
-
-export interface ITelemetryService {
-    preview<T>(): Promise<T>
 }
 
 export interface IRequestTemplateService {

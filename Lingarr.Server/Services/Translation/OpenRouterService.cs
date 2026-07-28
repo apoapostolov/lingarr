@@ -61,7 +61,9 @@ public class OpenRouterService : BaseLanguageService
                 SettingKeys.Translation.AiPrompt,
                 SettingKeys.Translation.AiContextPromptEnabled,
                 SettingKeys.Translation.AiContextPrompt,
-                SettingKeys.Translation.LanguageCodeFormat
+                SettingKeys.Translation.LanguageCodeFormat,
+                SettingKeys.Translation.RequestTimeout,
+                SettingKeys.Translation.RequestTimeoutForProvider("openrouter")
             ]);
 
             _endpoint = settings[SettingKeys.Translation.OpenRouter.Endpoint];
@@ -110,6 +112,9 @@ public class OpenRouterService : BaseLanguageService
             {
                 throw new InvalidOperationException("OpenRouter model is not selected.");
             }
+
+            _httpClient.Timeout = TimeSpan.FromMinutes(
+                TranslationTimeoutPolicy.ResolveMinutes(settings, "openrouter"));
 
             _initialized = true;
         }

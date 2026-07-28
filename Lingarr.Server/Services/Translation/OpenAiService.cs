@@ -69,6 +69,7 @@ public class OpenAiService : BaseLanguageService, ITranslationService, IBatchTra
                 SettingKeys.Translation.AiContextPrompt,
                 SettingKeys.Translation.AiContextPromptEnabled,
                 SettingKeys.Translation.RequestTimeout,
+                SettingKeys.Translation.RequestTimeoutForProvider("openai"),
                 SettingKeys.Translation.MaxRetries,
                 SettingKeys.Translation.RetryDelay,
                 SettingKeys.Translation.RetryDelayMultiplier,
@@ -91,11 +92,8 @@ public class OpenAiService : BaseLanguageService, ITranslationService, IBatchTra
             _prompt = ReplacePlaceholders(settings[SettingKeys.Translation.AiPrompt], _replacements);
             _contextPrompt = settings[SettingKeys.Translation.AiContextPrompt];
 
-            var requestTimeout = int.TryParse(settings[SettingKeys.Translation.RequestTimeout],
-                out var timeOut)
-                ? timeOut
-                : 5;
-            _httpClient.Timeout = TimeSpan.FromMinutes(requestTimeout);
+            _httpClient.Timeout = TimeSpan.FromMinutes(
+                TranslationTimeoutPolicy.ResolveMinutes(settings, "openai"));
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 

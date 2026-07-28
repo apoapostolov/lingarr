@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Lingarr.Contracts.Exceptions;
 using Lingarr.Contracts.Models;
 using Lingarr.Contracts.Models.Batch;
@@ -7,6 +8,7 @@ using Lingarr.Server.Interfaces.Services;
 using Lingarr.Server.Interfaces.Services.Translation;
 using Lingarr.Server.Models;
 using Lingarr.Server.Models.FileSystem;
+using Lingarr.Server.Models.ProviderHealth;
 using Lingarr.Server.Services.Subtitle;
 
 namespace Lingarr.Server.Services;
@@ -17,6 +19,7 @@ public class SubtitleTranslationService
     private int _lastProgression = -1;
     private readonly IReadOnlyList<TranslationServiceEntry> _services;
     private readonly IProgressService? _progressService;
+    private readonly IProviderHealthService? _providerHealth;
     private readonly ILogger _logger;
     private readonly Dictionary<int, (string Service, LanguagePair Pair)> _translationByPosition = [];
     private readonly HashSet<string> _loggedSkips = [];
@@ -26,7 +29,8 @@ public class SubtitleTranslationService
     public SubtitleTranslationService(
         IReadOnlyList<TranslationServiceEntry> services,
         ILogger logger,
-        IProgressService? progressService = null)
+        IProgressService? progressService = null,
+        IProviderHealthService? providerHealth = null)
     {
         if (services.Count == 0)
         {
@@ -34,6 +38,7 @@ public class SubtitleTranslationService
         }
         _services = services;
         _progressService = progressService;
+        _providerHealth = providerHealth;
         _logger = logger;
     }
 
@@ -134,7 +139,7 @@ public class SubtitleTranslationService
                     TargetLanguage = translationRequest.TargetLanguage,
                     ContextLinesBefore = contextLinesBefore.Count > 0 ? contextLinesBefore : null,
                     ContextLinesAfter = contextLinesAfter.Count > 0 ? contextLinesAfter : null
-                }, cancellationToken);
+                }, cancellationToken, translationRequest.Id);
                 translationCache[cacheKey] = result.Translation;
                 translatedLines.Add(result.Translation);
                 service ??= result.Service;
@@ -174,7 +179,8 @@ public class SubtitleTranslationService
     /// <returns>The translated line, the service name that produced it, and the language pair used.</returns>
     public async Task<(string Translation, string Service, LanguagePair Pair)> TranslateSubtitleLine(
         TranslateAbleSubtitleLine translateAbleSubtitle,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        int? translationRequestId = null)
     {
         var candidates = await GetTranslationCandidates(
             translateAbleSubtitle.SourceLanguage,
@@ -192,6 +198,7 @@ public class SubtitleTranslationService
         foreach (var candidate in candidates)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var stopwatch = Stopwatch.StartNew();
             try
             {
                 var translated = await candidate.Entry.Service.TranslateAsync(
@@ -201,6 +208,15 @@ public class SubtitleTranslationService
                     translateAbleSubtitle.ContextLinesBefore,
                     translateAbleSubtitle.ContextLinesAfter,
                     cancellationToken);
+                stopwatch.Stop();
+                await RecordProviderOutcome(
+                    candidate.Entry,
+                    "translate",
+                    "success",
+                    stopwatch.ElapsedMilliseconds,
+                    translationRequestId,
+                    null,
+                    false);
                 LogFallback(candidate, translateAbleSubtitle.SourceLanguage, translateAbleSubtitle.TargetLanguage);
                 return (translated, candidate.Entry.Name, candidate.Pair);
             }
@@ -210,6 +226,16 @@ public class SubtitleTranslationService
             }
             catch (Exception ex)
             {
+                stopwatch.Stop();
+                var classification = ProviderHealthService.Classify(ex);
+                await RecordProviderOutcome(
+                    candidate.Entry,
+                    "translate",
+                    "failure",
+                    stopwatch.ElapsedMilliseconds,
+                    translationRequestId,
+                    classification.Family,
+                    classification.Transient);
                 lastError = ex;
                 _logger.LogWarning(ex, "Translation service {Service} failed.", candidate.Entry.Name);
             }
@@ -321,7 +347,8 @@ public class SubtitleTranslationService
                 translationRequest.TargetLanguage,
                 stripSubtitleFormatting,
                 preserveLineBreaks,
-                cancellationToken);
+                cancellationToken,
+                translationRequest.Id);
 
             if (newlyTranslated.Count > 0)
             {
@@ -358,7 +385,8 @@ public class SubtitleTranslationService
         string targetLanguage,
         bool stripSubtitleFormatting,
         bool preserveLineBreaks,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        int? translationRequestId = null)
     {
         var toTranslate = currentBatch.Where(subtitle => subtitle.TranslatedLines.Count == 0).ToList();
         if (toTranslate.Count == 0)
@@ -384,6 +412,7 @@ public class SubtitleTranslationService
         foreach (var candidate in capableCandidates)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var stopwatch = Stopwatch.StartNew();
             try
             {
                 await RunBatch(
@@ -392,6 +421,15 @@ public class SubtitleTranslationService
                     stripSubtitleFormatting,
                     preserveLineBreaks,
                     cancellationToken);
+                stopwatch.Stop();
+                await RecordProviderOutcome(
+                    candidate.Entry,
+                    "batch",
+                    "success",
+                    stopwatch.ElapsedMilliseconds,
+                    translationRequestId,
+                    null,
+                    false);
                 LogFallback(candidate, sourceLanguage, targetLanguage);
                 return toTranslate;
             }
@@ -401,12 +439,59 @@ public class SubtitleTranslationService
             }
             catch (Exception ex)
             {
+                stopwatch.Stop();
+                var classification = ProviderHealthService.Classify(ex);
+                await RecordProviderOutcome(
+                    candidate.Entry,
+                    "batch",
+                    "failure",
+                    stopwatch.ElapsedMilliseconds,
+                    translationRequestId,
+                    classification.Family,
+                    classification.Transient);
                 lastError = ex;
                 _logger.LogWarning(ex, "Batch translation service {Service} failed.", candidate.Entry.Name);
             }
         }
 
         throw new TranslationException("All configured batch translation services failed.", lastError);
+    }
+
+    private async Task RecordProviderOutcome(
+        TranslationServiceEntry entry,
+        string operation,
+        string outcome,
+        long durationMs,
+        int? translationRequestId,
+        string? errorFamily,
+        bool isTransient)
+    {
+        if (_providerHealth is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _providerHealth.RecordAsync(new ProviderOperationalResult
+            {
+                Provider = entry.Name,
+                Model = entry.Model ?? entry.Service.ModelName,
+                Operation = operation,
+                Outcome = outcome,
+                ErrorFamily = errorFamily,
+                IsTransient = isTransient,
+                DurationMs = durationMs,
+                TranslationRequestId = translationRequestId
+            });
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Could not persist provider health for {Service}; translation will continue.",
+                entry.Name);
+        }
     }
 
     private async Task RunBatch(

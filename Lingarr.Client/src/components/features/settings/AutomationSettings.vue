@@ -29,8 +29,10 @@
         <template #description>
             Set up automation. Note that if automation is implemented, you also need to configure
             the necessary
-            <a class="cursor-pointer underline" @click="router.push({ name: 'services-settings' })">
-                services
+            <a
+                class="cursor-pointer underline"
+                @click="router.push({ name: 'translation-setup-settings' })">
+                translation services
             </a>
             .
         </template>
@@ -39,7 +41,7 @@
                 <div class="flex items-center space-x-2">
                     <span>Automated translation:</span>
                     <ToggleButton v-model="automationEnabled">
-                        <span class="text-sm font-medium text-primary-content">
+                        <span class="text-primary-content text-sm font-medium">
                             {{ automationEnabled === 'true' ? 'Enabled' : 'Disabled' }}
                         </span>
                     </ToggleButton>

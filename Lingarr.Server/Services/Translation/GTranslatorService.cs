@@ -11,6 +11,7 @@ public class GTranslatorService<T> : BaseLanguageService where T : ITranslator
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly string _provider;
     private T? _translator;
     private bool _initialized;
     private readonly SemaphoreSlim _initLock = new(1, 1);
@@ -26,6 +27,7 @@ public class GTranslatorService<T> : BaseLanguageService where T : ITranslator
     public GTranslatorService(
         IServiceProvider serviceProvider,
         IHttpClientFactory httpClientFactory,
+        string provider,
         string languageFilePath,
         ISettingService settings,
         ILogger logger,
@@ -33,6 +35,7 @@ public class GTranslatorService<T> : BaseLanguageService where T : ITranslator
     {
         _serviceProvider = serviceProvider;
         _httpClientFactory = httpClientFactory;
+        _provider = provider;
     }
 
     private async Task InitializeAsync()
@@ -48,7 +51,8 @@ public class GTranslatorService<T> : BaseLanguageService where T : ITranslator
                 SettingKeys.Translation.MaxRetries,
                 SettingKeys.Translation.RetryDelay,
                 SettingKeys.Translation.RetryDelayMultiplier,
-                SettingKeys.Translation.RequestTimeout
+                SettingKeys.Translation.RequestTimeout,
+                SettingKeys.Translation.RequestTimeoutForProvider(_provider)
             ]);
 
             _maxRetries = int.TryParse(settings[SettingKeys.Translation.MaxRetries], out var maxRetries)
@@ -64,12 +68,9 @@ public class GTranslatorService<T> : BaseLanguageService where T : ITranslator
                 ? multiplier
                 : 2;
 
-            var requestTimeoutMinutes = int.TryParse(settings[SettingKeys.Translation.RequestTimeout], out var requestTimeout) && requestTimeout > 0
-                ? requestTimeout
-                : 5;
-
             var httpClient = _httpClientFactory.CreateClient();
-            httpClient.Timeout = TimeSpan.FromMinutes(requestTimeoutMinutes);
+            httpClient.Timeout = TimeSpan.FromMinutes(
+                TranslationTimeoutPolicy.ResolveMinutes(settings, _provider));
 
             _translator ??= ActivatorUtilities.CreateInstance<T>(_serviceProvider, httpClient);
 
@@ -121,7 +122,7 @@ public class GTranslatorService<T> : BaseLanguageService where T : ITranslator
 
                 _logger.LogWarning(
                     "{ServiceName} received {StatusCode}. Retrying in {Delay}... (Attempt {Attempt}/{MaxRetries})",
-                    "GTranslator", ex.StatusCode, delay, attempt, _maxRetries);
+                    _provider, ex.StatusCode, delay, attempt, _maxRetries);
 
                 await Task.Delay(WithJitter(delay), linked.Token).ConfigureAwait(false);
                 delay = TimeSpan.FromTicks(delay.Ticks * _retryDelayMultiplier);
@@ -135,7 +136,7 @@ public class GTranslatorService<T> : BaseLanguageService where T : ITranslator
                 // Timeouts / connection resets from free Microsoft (and peers) should not fail the job on first hit.
                 _logger.LogWarning(ex,
                     "{ServiceName} transient error. Retrying in {Delay}... (Attempt {Attempt}/{MaxRetries})",
-                    "GTranslator", delay, attempt, _maxRetries);
+                    _provider, delay, attempt, _maxRetries);
 
                 await Task.Delay(WithJitter(delay), linked.Token).ConfigureAwait(false);
                 delay = TimeSpan.FromTicks(delay.Ticks * _retryDelayMultiplier);

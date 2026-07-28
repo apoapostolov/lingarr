@@ -68,6 +68,7 @@ public class AnthropicService : BaseLanguageService, ITranslationService, IBatch
                 SettingKeys.Translation.AiContextPrompt,
                 SettingKeys.Translation.AiContextPromptEnabled,
                 SettingKeys.Translation.RequestTimeout,
+                SettingKeys.Translation.RequestTimeoutForProvider("anthropic"),
                 SettingKeys.Translation.MaxRetries,
                 SettingKeys.Translation.RetryDelay,
                 SettingKeys.Translation.RetryDelayMultiplier,
@@ -90,11 +91,8 @@ public class AnthropicService : BaseLanguageService, ITranslationService, IBatch
             _prompt = ReplacePlaceholders(settings[SettingKeys.Translation.AiPrompt], _replacements);
             _contextPrompt = settings[SettingKeys.Translation.AiContextPrompt];
             
-            var requestTimeout = int.TryParse(settings[SettingKeys.Translation.RequestTimeout],
-                out var timeOut)
-                ? timeOut
-                : 5;
-            _httpClient.Timeout = TimeSpan.FromMinutes(requestTimeout);
+            _httpClient.Timeout = TimeSpan.FromMinutes(
+                TranslationTimeoutPolicy.ResolveMinutes(settings, "anthropic"));
             _httpClient.DefaultRequestHeaders.Add("x-api-key", _apiKey);
             _httpClient.DefaultRequestHeaders.Add("anthropic-version",
                 settings[SettingKeys.Translation.Anthropic.Version]);

@@ -70,11 +70,6 @@ public class M0002_SeedSettings : Migration
         Insert.IntoTable("settings").Row(new { key = "api_key", value = "" });
         Insert.IntoTable("settings").Row(new { key = "onboarding_completed", value = "false" });
         Insert.IntoTable("settings").Row(new { key = "auth_enabled", value = "false" });
-        Insert.IntoTable("settings").Row(new { key = "telemetry_enabled", value = "false" });
-        Insert.IntoTable("settings").Row(new { key = "telemetry_last_submission", value = "" });
-        Insert.IntoTable("settings").Row(new { key = "telemetry_last_reported_lines", value = "0" });
-        Insert.IntoTable("settings").Row(new { key = "telemetry_last_reported_files", value = "0" });
-        Insert.IntoTable("settings").Row(new { key = "telemetry_last_reported_characters", value = "0" });
     }
 
     public override void Down()

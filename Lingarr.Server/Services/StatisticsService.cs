@@ -10,14 +10,10 @@ namespace Lingarr.Server.Services;
 public class StatisticsService : IStatisticsService
 {
     private readonly LingarrDbContext _dbContext;
-    private readonly ISettingService _settingService;
 
-    public StatisticsService(
-        LingarrDbContext dbContext,
-        ISettingService settingService)
+    public StatisticsService(LingarrDbContext dbContext)
     {
         _dbContext = dbContext;
-        _settingService = settingService;
     }
 
     public async Task<Statistics> GetStatistics()
@@ -156,15 +152,6 @@ public class StatisticsService : IStatisticsService
         // Delete all daily statistics
         var dailyStats = await _dbContext.DailyStatistics.ToListAsync();
         _dbContext.DailyStatistics.RemoveRange(dailyStats);
-
-        // Reset telemetry snapshot settings
-        var telemetrySettings = new Dictionary<string, string>
-        {
-            { "telemetry_last_reported_lines", "0" },
-            { "telemetry_last_reported_files", "0" },
-            { "telemetry_last_reported_characters", "0" }
-        };
-        await _settingService.SetSettings(telemetrySettings);
 
         await _dbContext.SaveChangesAsync();
     }

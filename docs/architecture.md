@@ -164,7 +164,25 @@ Lingarr.Client/src
 └── assets/style.css       # CSS variables: primary/secondary/accent themes
 ```
 
-**Services settings UI (Bedroom):** each chain row is self-contained:
+### 6.1 Settings navigation
+
+The Bedroom settings rail has five stable destinations:
+
+1. **Connections** — Media servers and Path mapping
+2. **Translation** — Setup, Subtitles, and Advanced
+3. **Automation**
+4. **System** — Access, Tasks, and Logs
+5. **Plugins**
+
+Connections, Translation, and System use route-backed local tabs. Legacy settings paths redirect to
+the equivalent new route so saved links continue to work.
+
+Most valid setting fields retain Lingarr's immediate-save behavior. Compound Path mapping edits keep
+their explicit save action.
+
+### 6.2 Translation Setup
+
+Each translation-service chain row is self-contained:
 
 1. Provider select  
 2. Model select (if multi-model)  
@@ -193,9 +211,12 @@ Hangfire jobs (representative):
 - Automated translation scan
 - Translation job execution
 - Media sync from Sonarr/Radarr
-- Telemetry (optional)
 
 Schedules come from settings; changes fire `SettingChangedListener`.
+
+The Bedroom fork does not include anonymous usage telemetry or its former scheduled submission job.
+The separate version check reads public release/tag metadata from GitHub repository
+`apoapostolov/lingarr`; it does not contact the upstream Lingarr API.
 
 ## 9. Auth
 
@@ -210,6 +231,7 @@ Optional API key / JWT (`AuthController`, `AuthService`). Local Bedroom often ru
 | Path mapping | `PathConversionService` / mapping API |
 | Subtitles | Parsers/writers under `Services/Subtitle` (SRT, SSA/ASS, …) |
 | Version | `/api/version` — Bedroom builds stamp `0.0.0-bedroom.<sha>` |
+| Provider health | `/api/provider-health` — structured outcomes, persisted snapshots, and safe provider probes |
 
 ## 11. Bedroom-specific deltas vs upstream
 

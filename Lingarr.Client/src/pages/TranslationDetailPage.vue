@@ -88,6 +88,11 @@
                 </template>
             </CardComponent>
 
+            <TranslationQualityPanel
+                v-if="detail.status === TRANSLATION_STATUS.COMPLETED"
+                :request-id="detail.id"
+                @focus-line="focusLine" />
+
             <CardComponent v-if="reversedLines.length > 0" title="Translated Lines">
                 <template #content>
                     <div class="border-accent hidden border-b font-bold md:grid md:grid-cols-12">
@@ -99,10 +104,13 @@
                     <div class="max-h-96 overflow-y-auto">
                         <div
                             v-for="line in reversedLines"
+                            :id="`translation-line-${line.position}`"
                             :key="line.position"
                             class="border-accent/30 grid grid-cols-1 gap-1 border-b transition-colors duration-500 last:border-b-0 md:grid-cols-12 md:gap-0"
                             :class="
-                                line.position === latestPosition
+                                line.position === focusedPosition
+                                    ? 'bg-yellow-400/15 ring-1 ring-inset ring-yellow-400/60'
+                                    : line.position === latestPosition
                                     ? 'bg-accent/10'
                                     : line.position === latestPosition - 1
                                       ? 'bg-accent/5'
@@ -132,7 +140,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
     Hub,
@@ -151,6 +159,7 @@ import ButtonComponent from '@/components/common/ButtonComponent.vue'
 import CardComponent from '@/components/common/CardComponent.vue'
 import LoaderCircleIcon from '@/components/icons/LoaderCircleIcon.vue'
 import ArrowLeft from '@/components/icons/ArrowLeft.vue'
+import TranslationQualityPanel from '@/components/features/translation/TranslationQualityPanel.vue'
 
 const props = defineProps<{
     id: string
@@ -164,6 +173,7 @@ const loading = ref(true)
 const progress = ref(0)
 const hubConnection = ref<Hub>()
 const latestPosition = ref<number>(0)
+const focusedPosition = ref<number | null>(null)
 
 const reversedLines = computed(() => (detail.value ? [...detail.value.lines].reverse() : []))
 
@@ -208,6 +218,17 @@ const handleLineTranslated = (line: ILineTranslated) => {
         })
         latestPosition.value = line.position
     }
+}
+
+const focusLine = async (position: number) => {
+    focusedPosition.value = position
+    await nextTick()
+    document
+        .getElementById(`translation-line-${position}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    window.setTimeout(() => {
+        if (focusedPosition.value === position) focusedPosition.value = null
+    }, 2400)
 }
 
 onMounted(async () => {
