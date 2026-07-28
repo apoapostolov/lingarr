@@ -31,6 +31,7 @@ public class TranslationJob
     private readonly ITranslationRequestEventService _eventService;
     private readonly IProviderHealthService _providerHealth;
     private readonly ITranslationQualityService _translationQuality;
+    private readonly ITranslationPromptProfileService _promptProfiles;
 
     public TranslationJob(
         ILogger<TranslationJob> logger,
@@ -44,7 +45,8 @@ public class TranslationJob
         ITranslationRequestService translationRequestService,
         ITranslationRequestEventService eventService,
         IProviderHealthService providerHealth,
-        ITranslationQualityService translationQuality)
+        ITranslationQualityService translationQuality,
+        ITranslationPromptProfileService promptProfiles)
     {
         _logger = logger;
         _settings = settings;
@@ -58,6 +60,7 @@ public class TranslationJob
         _eventService = eventService;
         _providerHealth = providerHealth;
         _translationQuality = translationQuality;
+        _promptProfiles = promptProfiles;
     }
 
     [AutomaticRetry(Attempts = 0)]
@@ -106,6 +109,7 @@ public class TranslationJob
                 SettingKeys.Translation.SubtitleTag
             ]);
             var chain = TranslationChain.Parse(settings[SettingKeys.Translation.ServiceType], _logger);
+            await _promptProfiles.ResolveChainAsync(chain, request.Id, cancellationToken);
             var stripSubtitleFormatting = settings[SettingKeys.Translation.StripSubtitleFormatting] == "true";
             var preserveLineBreaks = settings[SettingKeys.Translation.PreserveLineBreaks] == "true";
             var addTranslatorInfo = settings[SettingKeys.Translation.AddTranslatorInfo] == "true";

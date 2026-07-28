@@ -218,6 +218,8 @@ public static class ServiceCollectionExtensions
         builder.Services.AddScoped<IStatisticsService, StatisticsService>();
         builder.Services.AddScoped<ILingarrApiService, LingarrApiService>();
         builder.Services.AddScoped<IProviderHealthService, ProviderHealthService>();
+        builder.Services.AddScoped<IDashboardActivityService, DashboardActivityService>();
+        builder.Services.AddScoped<ITranslationPromptProfileService, TranslationPromptProfileService>();
 
         // Add Sync services
         builder.Services.AddScoped<IShowSyncService, ShowSyncService>();

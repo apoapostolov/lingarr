@@ -2,6 +2,11 @@
 
 public static class SettingKeys
 {
+    public static class Dashboard
+    {
+        public const string ActivityWindowHours = "dashboard_activity_window_hours";
+    }
+
     public static class Integration
     {
         public const string RadarrUrl = "radarr_url";
@@ -101,6 +106,8 @@ public static class SettingKeys
         public const string AiContextPrompt = "ai_context_prompt";
         public const string AiContextBefore = "ai_context_before";
         public const string AiContextAfter = "ai_context_after";
+        public const string ActiveSystemPromptProfileId = "active_system_prompt_profile_id";
+        public const string ActiveContextPromptProfileId = "active_context_prompt_profile_id";
         public const string FixOverlappingSubtitles = "fix_overlapping_subtitles";
         public const string StripSubtitleFormatting = "strip_subtitle_formatting";
         public const string PreserveLineBreaks = "preserve_line_breaks";

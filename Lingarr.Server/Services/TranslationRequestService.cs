@@ -37,6 +37,7 @@ public class TranslationRequestService : ITranslationRequestService
     private readonly ITranslationRequestEventService _eventService;
     private readonly IProviderHealthService _providerHealth;
     private readonly ITranslationQualityService _translationQuality;
+    private readonly ITranslationPromptProfileService _promptProfiles;
     private readonly ILogger<TranslationRequestService> _logger;
     private static readonly ConcurrentDictionary<int, CancellationTokenSource> _asyncTranslationJobs = new();
 
@@ -53,6 +54,7 @@ public class TranslationRequestService : ITranslationRequestService
         ITranslationRequestEventService eventService,
         IProviderHealthService providerHealth,
         ITranslationQualityService translationQuality,
+        ITranslationPromptProfileService promptProfiles,
         ILogger<TranslationRequestService> logger)
     {
         _dbContext = dbContext;
@@ -67,6 +69,7 @@ public class TranslationRequestService : ITranslationRequestService
         _eventService = eventService;
         _providerHealth = providerHealth;
         _translationQuality = translationQuality;
+        _promptProfiles = promptProfiles;
         _logger = logger;
     }
 
@@ -604,6 +607,7 @@ public class TranslationRequestService : ITranslationRequestService
             ]);
             var preserveLineBreaks = settings[SettingKeys.Translation.PreserveLineBreaks] == "true";
             var chain = TranslationChain.Parse(settings[SettingKeys.Translation.ServiceType], _logger);
+            await _promptProfiles.ResolveChainAsync(chain, cancellationToken: cancellationToken);
             var services = _translationServiceFactory.CreateTranslationServices(chain);
             var serviceType = services.Count > 0 ? services[0].Name : "unknown";
             if (services.Count == 0)
@@ -637,6 +641,8 @@ public class TranslationRequestService : ITranslationRequestService
             // Add TranslationRequest
             _dbContext.TranslationRequests.Add(translationRequest);
             await _dbContext.SaveChangesAsync(cancellationToken);
+            await _promptProfiles.ResolveChainAsync(
+                chain, translationRequest.Id, cancellationToken);
             await _eventService.LogEvent(translationRequest.Id, TranslationStatus.InProgress);
             await UpdateActiveCount();
 

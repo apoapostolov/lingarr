@@ -23,6 +23,7 @@ public class TranslateController : ControllerBase
     private readonly LanguageCodeService _languageCodeService;
     private readonly ILogger<TranslateController> _logger;
     private readonly IProviderHealthService _providerHealth;
+    private readonly ITranslationPromptProfileService _promptProfiles;
 
     public TranslateController(
         ITranslationServiceFactory translationServiceFactory,
@@ -30,6 +31,7 @@ public class TranslateController : ControllerBase
         ISettingService settings,
         LanguageCodeService languageCodeService,
         IProviderHealthService providerHealth,
+        ITranslationPromptProfileService promptProfiles,
         ILogger<TranslateController> logger)
     {
         _translationServiceFactory = translationServiceFactory;
@@ -37,6 +39,7 @@ public class TranslateController : ControllerBase
         _settings = settings;
         _languageCodeService = languageCodeService;
         _providerHealth = providerHealth;
+        _promptProfiles = promptProfiles;
         _logger = logger;
     }
 
@@ -89,6 +92,7 @@ public class TranslateController : ControllerBase
         CancellationToken cancellationToken)
     {
         var chain = TranslationChain.Parse(await _settings.GetSetting(SettingKeys.Translation.ServiceType));
+        await _promptProfiles.ResolveChainAsync(chain, cancellationToken: cancellationToken);
         var subtitleTranslator = new SubtitleTranslationService(
             _translationServiceFactory.CreateTranslationServices(chain),
             _logger,

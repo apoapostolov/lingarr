@@ -642,6 +642,16 @@ Index live request queries by status and time. Never scan all translation lines 
 - Dashboard queries remain bounded as translation history grows.
 - No destructive statistics action appears as a casual Dashboard control.
 
+**Implementation status (2026-07-28):** Implemented in the Bedroom fork. The
+Dashboard now leads with a persisted 48-hour recent-work window (12/24/48/72/168
+hours), reuses the shared Provider Health panel, summarizes recent subtitle volume
+and quality, shows a bounded activity trend and provider/language participation,
+and produces deterministic human-readable progress sentences. Lifetime line, file,
+and character totals are retained as secondary context; the destructive reset
+control has been removed from the Dashboard. The current bounded query reads only
+requests and their lines inside the selected maximum seven-day window, avoiding a
+lifetime scan while preserving accurate pre-rollup history.
+
 ---
 
 ## 7. Workstream D — AI Instruction Profiles

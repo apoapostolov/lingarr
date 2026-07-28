@@ -23,6 +23,9 @@ public class LingarrDbContext : DbContext
     public DbSet<ProviderHealthSnapshot> ProviderHealthSnapshots { get; set; }
     public DbSet<TranslationQualityAssessment> TranslationQualityAssessments { get; set; }
     public DbSet<TranslationLineQualityFinding> TranslationLineQualityFindings { get; set; }
+    public DbSet<TranslationPromptProfile> TranslationPromptProfiles { get; set; }
+    public DbSet<TranslationPromptProfileVersion> TranslationPromptProfileVersions { get; set; }
+    public DbSet<TranslationPromptUsage> TranslationPromptUsages { get; set; }
 
     public LingarrDbContext(DbContextOptions options) : base(options)
     {

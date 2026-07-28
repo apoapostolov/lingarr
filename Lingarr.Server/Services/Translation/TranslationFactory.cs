@@ -159,6 +159,12 @@ public class TranslationFactory : ITranslationServiceFactory
                 {
                     overridable.OverrideModel(entry.Model);
                 }
+                if (service is IInstructionOverridable instructionOverridable)
+                {
+                    instructionOverridable.OverrideInstructions(
+                        entry.ResolvedSystemPrompt,
+                        entry.ResolvedContextPrompt);
+                }
                 services.Add(new TranslationServiceEntry(name, service, service as IBatchTranslationService, entry.Model));
             }
             catch (ArgumentException)

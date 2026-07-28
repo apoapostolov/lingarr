@@ -6,7 +6,9 @@ using Lingarr.Server.Models;
 
 namespace Lingarr.Server.Services.Translation.Base;
 
-public abstract class BaseLanguageService : BaseTranslationService, Interfaces.Services.Translation.IModelOverridable
+public abstract class BaseLanguageService : BaseTranslationService,
+    Interfaces.Services.Translation.IModelOverridable,
+    Interfaces.Services.Translation.IInstructionOverridable
 {
     private readonly string? _languageFilePath;
     private Task<List<SourceLanguage>>? _cachedLanguages;
@@ -14,6 +16,8 @@ public abstract class BaseLanguageService : BaseTranslationService, Interfaces.S
     protected string? _contextPromptEnabled;
     protected Dictionary<string, string> _replacements;
     protected string? ModelOverride { get; private set; }
+    private string? SystemPromptOverride { get; set; }
+    private string? ContextPromptOverride { get; set; }
 
     public void OverrideModel(string? model)
     {
@@ -25,6 +29,18 @@ public abstract class BaseLanguageService : BaseTranslationService, Interfaces.S
 
     protected string ResolveModel(string? fromSettings) =>
         !string.IsNullOrWhiteSpace(ModelOverride) ? ModelOverride! : (fromSettings ?? string.Empty);
+
+    public void OverrideInstructions(string? systemPrompt, string? contextPrompt)
+    {
+        SystemPromptOverride = systemPrompt;
+        ContextPromptOverride = contextPrompt;
+    }
+
+    protected string ResolveSystemPrompt(string? fromSettings) =>
+        SystemPromptOverride ?? fromSettings ?? string.Empty;
+
+    protected string ResolveContextPrompt(string? fromSettings) =>
+        ContextPromptOverride ?? fromSettings ?? string.Empty;
 
     protected BaseLanguageService(
         ISettingService settings,

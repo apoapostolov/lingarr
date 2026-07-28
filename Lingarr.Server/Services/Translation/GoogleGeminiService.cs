@@ -87,8 +87,9 @@ public class GoogleGeminiService : BaseLanguageService, ITranslationService, IBa
             }
 
             SetLanguageReplacements(sourceLanguage, targetLanguage, settings[SettingKeys.Translation.LanguageCodeFormat]);
-            _prompt = ReplacePlaceholders(settings[SettingKeys.Translation.AiPrompt], _replacements);
-            _contextPrompt = settings[SettingKeys.Translation.AiContextPrompt];
+            _prompt = ReplacePlaceholders(
+                ResolveSystemPrompt(settings[SettingKeys.Translation.AiPrompt]), _replacements);
+            _contextPrompt = ResolveContextPrompt(settings[SettingKeys.Translation.AiContextPrompt]);
 
             _httpClient.Timeout = TimeSpan.FromMinutes(
                 TranslationTimeoutPolicy.ResolveMinutes(settings, "gemini"));

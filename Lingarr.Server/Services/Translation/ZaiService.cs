@@ -121,11 +121,11 @@ public class ZaiService : BaseLanguageService
             if (string.IsNullOrEmpty(_model) || string.IsNullOrEmpty(_apiKey))
                 throw new InvalidOperationException("Z.ai Coding Plan API key or model is not configured.");
             SetLanguageReplacements(sourceLanguage, targetLanguage, settings[SettingKeys.Translation.LanguageCodeFormat]);
-            var rawPrompt = settings[SettingKeys.Translation.AiPrompt];
+            var rawPrompt = ResolveSystemPrompt(settings[SettingKeys.Translation.AiPrompt]);
             _prompt = !string.IsNullOrWhiteSpace(rawPrompt)
                 ? ReplacePlaceholders(rawPrompt, _replacements)
                 : $"Translate from {_replacements["sourceLanguage"]} to {_replacements["targetLanguage"]}. Only return the translated text without any additional explanation.";
-            _contextPrompt = settings[SettingKeys.Translation.AiContextPrompt];
+            _contextPrompt = ResolveContextPrompt(settings[SettingKeys.Translation.AiContextPrompt]);
             _httpClient.Timeout = TimeSpan.FromMinutes(
                 TranslationTimeoutPolicy.ResolveMinutes(settings, "zai"));
             _initialized = true;

@@ -80,11 +80,12 @@ public class OpenRouterService : BaseLanguageService
             _requestTemplate = !string.IsNullOrEmpty(settings[SettingKeys.Translation.OpenRouter.RequestTemplate])
                 ? settings[SettingKeys.Translation.OpenRouter.RequestTemplate]
                 : _requestTemplateService.GetDefaultTemplate(SettingKeys.Translation.OpenRouter.RequestTemplate);
-            _prompt = !string.IsNullOrEmpty(settings[SettingKeys.Translation.AiPrompt])
-                ? settings[SettingKeys.Translation.AiPrompt]
+            var resolvedPrompt = ResolveSystemPrompt(settings[SettingKeys.Translation.AiPrompt]);
+            _prompt = !string.IsNullOrEmpty(resolvedPrompt)
+                ? resolvedPrompt
                 : "Translate from {sourceLanguage} to {targetLanguage}. Only return the translated text without any additional explanation.";
             _contextPromptEnabled = settings[SettingKeys.Translation.AiContextPromptEnabled];
-            _contextPrompt = settings[SettingKeys.Translation.AiContextPrompt];
+            _contextPrompt = ResolveContextPrompt(settings[SettingKeys.Translation.AiContextPrompt]);
 
             if (double.TryParse(settings[SettingKeys.Translation.OpenRouter.Temperature], 
                 out var parsedTemp) && parsedTemp >= 0 && parsedTemp <= 2)

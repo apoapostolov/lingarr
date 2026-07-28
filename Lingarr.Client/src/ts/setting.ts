@@ -85,7 +85,8 @@ export const SETTINGS = {
     GEMINI_REQUEST_TEMPLATE: 'gemini_request_template',
     LANGUAGE_CODE_FORMAT: 'language_code_format',
     RADARR_DEFAULT_INCLUDE: 'radarr_default_include',
-    SONARR_DEFAULT_INCLUDE: 'sonarr_default_include'
+    SONARR_DEFAULT_INCLUDE: 'sonarr_default_include',
+    DASHBOARD_ACTIVITY_WINDOW_HOURS: 'dashboard_activity_window_hours'
 } as const
 
 export interface ISettings {
@@ -164,6 +165,7 @@ export interface ISettings {
     language_code_format: string
     radarr_default_include: string
     sonarr_default_include: string
+    dashboard_activity_window_hours: string
 }
 
 export const ENCRYPTED_SETTINGS = {

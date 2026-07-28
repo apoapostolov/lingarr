@@ -9,12 +9,39 @@ namespace Lingarr.Server.Services.Translation;
 /// </summary>
 public sealed class TranslationChainEntry
 {
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+
     [JsonPropertyName("provider")]
     public string Provider { get; set; } = SettingKeys.Translation.DefaultServiceType;
 
     /// <summary>Optional model id for multi-model AI providers. Null/empty for NMT scrapers.</summary>
     [JsonPropertyName("model")]
     public string? Model { get; set; }
+
+    [JsonPropertyName("systemPromptProfileId")]
+    public int? SystemPromptProfileId { get; set; }
+
+    [JsonPropertyName("contextPromptProfileId")]
+    public int? ContextPromptProfileId { get; set; }
+
+    [JsonIgnore]
+    public string? ResolvedSystemPrompt { get; set; }
+
+    [JsonIgnore]
+    public string? ResolvedContextPrompt { get; set; }
+
+    [JsonIgnore]
+    public int? ResolvedSystemVersionId { get; set; }
+
+    [JsonIgnore]
+    public int? ResolvedContextVersionId { get; set; }
+
+    [JsonIgnore]
+    public string? ResolvedSystemContentHash { get; set; }
+
+    [JsonIgnore]
+    public string? ResolvedContextContentHash { get; set; }
 
     [JsonIgnore]
     public string ProviderNormalized => Provider.Trim().ToLowerInvariant();
@@ -78,10 +105,29 @@ public static class TranslationChain
                     {
                         model = m.GetString();
                     }
+                    var id = el.TryGetProperty("id", out var idElement) &&
+                             idElement.ValueKind == JsonValueKind.String
+                        ? idElement.GetString()
+                        : null;
+                    int? systemPromptProfileId = el.TryGetProperty(
+                        "systemPromptProfileId", out var systemProfile) &&
+                        systemProfile.TryGetInt32(out var parsedSystemProfile)
+                            ? parsedSystemProfile
+                            : null;
+                    int? contextPromptProfileId = el.TryGetProperty(
+                        "contextPromptProfileId", out var contextProfile) &&
+                        contextProfile.TryGetInt32(out var parsedContextProfile)
+                            ? parsedContextProfile
+                            : null;
                     list.Add(new TranslationChainEntry
                     {
+                        Id = string.IsNullOrWhiteSpace(id)
+                            ? Guid.NewGuid().ToString("N")
+                            : id!,
                         Provider = provider!,
-                        Model = string.IsNullOrWhiteSpace(model) ? null : model!.Trim()
+                        Model = string.IsNullOrWhiteSpace(model) ? null : model!.Trim(),
+                        SystemPromptProfileId = systemPromptProfileId,
+                        ContextPromptProfileId = contextPromptProfileId
                     });
                 }
             }

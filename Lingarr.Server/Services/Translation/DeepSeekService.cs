@@ -77,8 +77,9 @@ public class DeepSeekService : BaseLanguageService
             }
 
             SetLanguageReplacements(sourceLanguage, targetLanguage, settings[SettingKeys.Translation.LanguageCodeFormat]);
-            _prompt = ReplacePlaceholders(settings[SettingKeys.Translation.AiPrompt], _replacements);
-            _contextPrompt = settings[SettingKeys.Translation.AiContextPrompt];
+            _prompt = ReplacePlaceholders(
+                ResolveSystemPrompt(settings[SettingKeys.Translation.AiPrompt]), _replacements);
+            _contextPrompt = ResolveContextPrompt(settings[SettingKeys.Translation.AiContextPrompt]);
             
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");

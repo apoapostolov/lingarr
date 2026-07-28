@@ -20,7 +20,8 @@ import {
     IProviderHealth,
     IProviderProbe,
     ITranslationQualityDetail,
-    ITranslationQualitySummary
+    ITranslationQualitySummary,
+    IDashboardActivity
 } from '@/ts'
 
 export interface Services {
@@ -39,6 +40,11 @@ export interface Services {
     requestTemplate: IRequestTemplateService
     plugin: IPluginService
     providerHealth: IProviderHealthService
+    dashboard: IDashboardService
+}
+
+export interface IDashboardService {
+    activity(hours?: number): Promise<IDashboardActivity>
 }
 
 export interface IProviderHealthService {
