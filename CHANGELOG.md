@@ -7,6 +7,21 @@ to sort before or after versions published by upstream Lingarr.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-07-29 — Moar Providers
+
+### Translation providers
+
+- Added **Qwen General AI** with live model discovery, instruction profiles,
+  request templates, and region-aware Alibaba Cloud Model Studio endpoints.
+- Added **Qwen Translation**, a separate subtitle-focused option using Qwen-MT's
+  explicit source/target language controls. It intentionally does not apply
+  free-form System or Context Prompt profiles.
+- Added **xAI API** with encrypted API-key storage, Grok model discovery,
+  instruction profiles, and fallback-chain support.
+- Added an experimental **xAI SuperGrok / Premium+** option using device login
+  instead of an API key. OAuth tokens are kept encrypted on the Lingarr server,
+  refreshed automatically, and can be disconnected from Settings.
+
 ### Branding
 
 - Renamed the fork to **Lingarr Next** across the application interface,

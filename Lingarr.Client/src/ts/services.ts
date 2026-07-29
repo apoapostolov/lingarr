@@ -17,6 +17,9 @@ import {
     IPluginOptionsResponse,
     IPluginStatus,
     IPluginSummary,
+    IXaiOAuthDevice,
+    IXaiOAuthPoll,
+    IXaiOAuthStatus,
     IProviderHealth,
     IProviderProbe,
     ITranslationQualityDetail,
@@ -44,6 +47,7 @@ export interface Services {
     logs: ILogsService
     requestTemplate: IRequestTemplateService
     plugin: IPluginService
+    xaiOAuth: IXaiOAuthService
     providerHealth: IProviderHealthService
     dashboard: IDashboardService
     promptProfile: IPromptProfileService
@@ -73,6 +77,13 @@ export interface IPluginService {
     getManifest(provider: string): Promise<IPluginManifest>
     getStatus(provider: string): Promise<IPluginStatus>
     getOptions(endpoint: string): Promise<IPluginOptionsResponse>
+}
+
+export interface IXaiOAuthService {
+    status(): Promise<IXaiOAuthStatus>
+    start(): Promise<IXaiOAuthDevice>
+    poll(flowId: string): Promise<IXaiOAuthPoll>
+    disconnect(): Promise<void>
 }
 
 export interface IAuthService {

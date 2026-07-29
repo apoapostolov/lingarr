@@ -138,6 +138,38 @@ public class TranslationFactory : ITranslationServiceFactory
                 _serviceProvider.GetRequiredService<IRequestTemplateService>()
             ),
 
+            "qwen" => new QwenService(
+                _serviceProvider.GetRequiredService<ISettingService>(),
+                _serviceProvider.GetRequiredService<HttpClient>(),
+                _serviceProvider.GetRequiredService<ILogger<QwenService>>(),
+                languageCodeService,
+                _serviceProvider.GetRequiredService<IRequestTemplateService>()
+            ),
+
+            "qwen-mt" => new QwenMtService(
+                _serviceProvider.GetRequiredService<ISettingService>(),
+                _serviceProvider.GetRequiredService<HttpClient>(),
+                _serviceProvider.GetRequiredService<ILogger<QwenMtService>>(),
+                languageCodeService
+            ),
+
+            "xai" => new XaiService(
+                _serviceProvider.GetRequiredService<ISettingService>(),
+                _serviceProvider.GetRequiredService<HttpClient>(),
+                _serviceProvider.GetRequiredService<ILogger<XaiService>>(),
+                languageCodeService,
+                _serviceProvider.GetRequiredService<IRequestTemplateService>()
+            ),
+
+            "xai-oauth" => new XaiOAuthTranslationService(
+                _serviceProvider.GetRequiredService<ISettingService>(),
+                _serviceProvider.GetRequiredService<HttpClient>(),
+                _serviceProvider.GetRequiredService<ILogger<XaiOAuthTranslationService>>(),
+                languageCodeService,
+                _serviceProvider.GetRequiredService<IRequestTemplateService>(),
+                _serviceProvider.GetRequiredService<IXaiOAuthSessionService>()
+            ),
+
             // load any registered plugins
             _ => _serviceProvider.GetKeyedService<ITranslationService>(serviceType.ToLowerInvariant())
                  ?? throw new ArgumentException("Unsupported translation service type", nameof(serviceType))

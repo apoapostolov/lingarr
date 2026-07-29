@@ -208,7 +208,11 @@ const MODEL_PROVIDERS = new Set([
     'localai',
     'openrouter',
     'zai',
-    'opencode-go'
+    'opencode-go',
+    'qwen',
+    'qwen-mt',
+    'xai',
+    'xai-oauth'
 ])
 
 /** Providers that use an encrypted API key setting. */
@@ -220,6 +224,9 @@ const API_KEY_BY_PROVIDER: Record<string, keyof IEncryptedSettings> = {
     openrouter: ENCRYPTED_SETTINGS.OPENROUTER_API_KEY as keyof IEncryptedSettings,
     zai: ENCRYPTED_SETTINGS.ZAI_API_KEY as keyof IEncryptedSettings,
     'opencode-go': ENCRYPTED_SETTINGS.OPENCODE_GO_API_KEY as keyof IEncryptedSettings,
+    qwen: ENCRYPTED_SETTINGS.QWEN_API_KEY as keyof IEncryptedSettings,
+    'qwen-mt': ENCRYPTED_SETTINGS.QWEN_API_KEY as keyof IEncryptedSettings,
+    xai: ENCRYPTED_SETTINGS.XAI_API_KEY as keyof IEncryptedSettings,
     deepl: ENCRYPTED_SETTINGS.DEEPL_API_KEY as keyof IEncryptedSettings,
     libretranslate: ENCRYPTED_SETTINGS.LIBRETRANSLATE_API_KEY as keyof IEncryptedSettings,
     localai: ENCRYPTED_SETTINGS.LOCAL_AI_API_KEY as keyof IEncryptedSettings
@@ -367,7 +374,11 @@ function modelSettingKey(provider: string): string | null {
         localai: SETTINGS.LOCAL_AI_MODEL,
         openrouter: (SETTINGS as any).OPENROUTER_MODEL,
         zai: (SETTINGS as any).ZAI_MODEL,
-        'opencode-go': (SETTINGS as any).OPENCODE_GO_MODEL
+        'opencode-go': (SETTINGS as any).OPENCODE_GO_MODEL,
+        qwen: (SETTINGS as any).QWEN_MODEL,
+        'qwen-mt': (SETTINGS as any).QWEN_MT_MODEL,
+        xai: (SETTINGS as any).XAI_MODEL,
+        'xai-oauth': (SETTINGS as any).XAI_OAUTH_MODEL
     }
     return map[provider.toLowerCase()] ?? null
 }

@@ -88,13 +88,18 @@ Read the complete [1.0.0 changelog](CHANGELOG.md).
 | --- | --- |
 | Free / web translators | Microsoft Translate, Google Translate, Bing Translate, Yandex Translate |
 | Hosted translation APIs | DeepL, LibreTranslate |
-| AI providers | OpenRouter, OpenAI, Anthropic, DeepSeek, Google Gemini, Z.ai Coding Plan, OpenCode Go |
+| AI providers | OpenRouter, OpenAI, Anthropic, DeepSeek, Google Gemini, Qwen General AI, Qwen Translation, Z.ai Coding Plan, OpenCode Go, xAI API, xAI SuperGrok / Premium+ |
 | Self-hosted AI | LocalAI, Ollama, and compatible OpenAI-style endpoints |
 
 AI services expose model selectors where supported. A translation chain may use
 the same provider more than once with different models. OpenRouter keeps
 `openrouter/free` first as the Lingarr Next default for inexpensive bulk work, with
 `openrouter/auto` second and the remaining catalogue after it.
+
+Qwen is offered in two forms: general Qwen models support Lingarr instruction
+profiles, while Qwen Translation uses Qwen-MT's purpose-built language controls.
+xAI is likewise offered as the conventional developer API and as an experimental
+device-login connection for SuperGrok / Premium+ accounts.
 
 ### Instruction profiles
 

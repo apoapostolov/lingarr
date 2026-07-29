@@ -1,15 +1,16 @@
 # Proposal: AI providers, model picker, and provider+model fallback chain
 
 **Status:** Implemented on the Lingarr Next fork (iterate in-branch)
-**Branch:** `feat/ai-providers-model-fallback-chain`  
-**Deploy:** build `lingarr-bedroom` from this branch / `next` after merge
+**Branch:** `next`
+**Deploy:** build `lingarr-bedroom` from `next`
 **Official reference (import only):** https://github.com/lingarr-translate/lingarr  
 **Lingarr Next fork:** https://github.com/apoapostolov/lingarr
 **Agent guide:** [`AGENTS.md`](../AGENTS.md) — keep this proposal and AGENTS.md updated together
 
 ## Goals
 
-1. Full first-class providers: **OpenRouter**, **Z.ai (GLM)**, **DeepSeek** (polish), **OpenCode Go**
+1. Full first-class providers: **OpenRouter**, **Z.ai (GLM)**, **DeepSeek**,
+   **OpenCode Go**, **Qwen**, and **xAI**
 2. **Cached model lists** with refresh
 3. **Model dropdown** between provider selector and API key fields
 4. **Fallback chain** as ordered **provider + model** rows (+ add, − remove, reorder), not provider-only
@@ -69,6 +70,10 @@ defaults. Non-AI rows ignore and do not expose these fields.
 | `openrouter` | OpenAI-compat; **dropdown order: free → auto → rest**; seed model `openrouter/free` |
 | `zai` | **GLM Coding Plan** only — `https://api.z.ai/api/coding/paas/v4`; models `glm-5.2` / `glm-5-turbo` / `glm-4.7` (not general `paas/v4`) |
 | `opencode-go` | OpenAI-compat; implement even if Bedroom subscription is inactive |
+| `qwen` | General Alibaba Cloud Model Studio chat models; live catalogue, request templates, and instruction profiles |
+| `qwen-mt` | Purpose-built Qwen-MT translation; explicit source/target language codes and no free-form prompt profiles |
+| `xai` | Official xAI developer API using an encrypted API key |
+| `xai-oauth` | Experimental SuperGrok / Premium+ device login; encrypted server-side access/refresh tokens |
 
 ## OpenRouter model UX (locked)
 
@@ -108,6 +113,7 @@ Fallback chain
 | P3 | Z.ai + OpenCode Go | Done (OpenCode Go untested if unsubscribed) |
 | P4 | Polish empty states, automation warnings, docs/AGENTS | In progress |
 | P5 | Provider-specific request timeout settings; Microsoft 15-minute default | Done |
+| P6 | Qwen general + Qwen-MT, xAI API key + SuperGrok/Premium+ OAuth | Done |
 
 ## Out of scope
 
@@ -122,6 +128,13 @@ Fallback chain
 - After ship: `build-bedroom-image.sh` + recreate container; re-check plain/env `SERVICE_TYPE` migration
 - Setting keys must be seeded (empty row) before encrypted set works
 - Timeout setting keys are seeded by migration 15; do not rely on `SetSetting` to create them
+- Qwen API keys and API hosts are region-specific. `qwen` and `qwen-mt` share
+  those credentials, but retain separate model selections and timeouts.
+- xAI OAuth uses a short-lived server-side device-flow record. Access and
+  refresh tokens are persisted only through Lingarr's encrypted settings.
+- xAI consumer OAuth availability and subscription entitlements are controlled
+  by xAI; keep the conventional `xai` API-key provider available as the stable
+  alternative.
 
 ## Related files
 

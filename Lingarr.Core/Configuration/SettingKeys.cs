@@ -94,6 +94,40 @@ public static class SettingKeys
             public const string Endpoint = "opencode_go_endpoint";
             public const string RequestTemplate = "opencode_go_request_template";
         }
+
+        public static class Qwen
+        {
+            public const string Model = "qwen_model";
+            public const string ApiKey = "qwen_api_key";
+            public const string Endpoint = "qwen_endpoint";
+            public const string RequestTemplate = "qwen_request_template";
+        }
+
+        public static class QwenMt
+        {
+            public const string Model = "qwen_mt_model";
+            public const string ApiKey = "qwen_api_key";
+            public const string Endpoint = "qwen_endpoint";
+        }
+
+        public static class Xai
+        {
+            public const string Model = "xai_model";
+            public const string ApiKey = "xai_api_key";
+            public const string Endpoint = "xai_endpoint";
+            public const string RequestTemplate = "xai_request_template";
+        }
+
+        public static class XaiOAuth
+        {
+            public const string Model = "xai_oauth_model";
+            public const string Endpoint = "xai_endpoint";
+            public const string Connection = "xai_oauth_connection";
+            public const string AccessToken = "xai_oauth_access_token";
+            public const string RefreshToken = "xai_oauth_refresh_token";
+            public const string ExpiresAt = "xai_oauth_expires_at";
+        }
+
         public static class LibreTranslate
         {
             public const string Url = "libretranslate_url";

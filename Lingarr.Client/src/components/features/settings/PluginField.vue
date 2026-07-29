@@ -1,6 +1,9 @@
 <template>
     <div>
-        <template v-if="field.type === PLUGIN_SETTING_TYPE.REMOTE_DROPDOWN">
+        <XaiOAuthConnection
+            v-if="field.type === PLUGIN_SETTING_TYPE.OAUTH"
+            @save="emit('save')" />
+        <template v-else-if="field.type === PLUGIN_SETTING_TYPE.REMOTE_DROPDOWN">
             <label class="mb-1 block text-sm font-semibold" :for="field.key">
                 {{ field.label }}
                 <span v-if="field.required" class="text-red-500" aria-hidden="true">*</span>
@@ -50,6 +53,7 @@ import services from '@/services'
 import { useSettingStore } from '@/store/setting'
 import InputComponent from '@/components/common/InputComponent.vue'
 import SelectComponent from '@/components/common/SelectComponent.vue'
+import XaiOAuthConnection from '@/components/features/settings/XaiOAuthConnection.vue'
 
 const props = defineProps<{
     field: IPluginSettingField

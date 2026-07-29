@@ -197,6 +197,10 @@ public static class ServiceCollectionExtensions
         builder.Services.AddSingleton<IPluginManifest, OpenRouterPluginManifest>();
         builder.Services.AddSingleton<IPluginManifest, ZaiPluginManifest>();
         builder.Services.AddSingleton<IPluginManifest, OpenCodeGoPluginManifest>();
+        builder.Services.AddSingleton<IPluginManifest, QwenPluginManifest>();
+        builder.Services.AddSingleton<IPluginManifest, QwenMtPluginManifest>();
+        builder.Services.AddSingleton<IPluginManifest, XaiPluginManifest>();
+        builder.Services.AddSingleton<IPluginManifest, XaiOAuthPluginManifest>();
         builder.Services.AddSingleton<IModelCatalogService, ModelCatalogService>();
 
         // Plugin discovery and the read settings
@@ -220,6 +224,7 @@ public static class ServiceCollectionExtensions
         builder.Services.AddScoped<IProviderHealthService, ProviderHealthService>();
         builder.Services.AddScoped<IDashboardActivityService, DashboardActivityService>();
         builder.Services.AddScoped<ITranslationPromptProfileService, TranslationPromptProfileService>();
+        builder.Services.AddScoped<IXaiOAuthSessionService, XaiOAuthSessionService>();
 
         // Add Sync services
         builder.Services.AddScoped<IShowSyncService, ShowSyncService>();

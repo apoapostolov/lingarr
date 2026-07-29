@@ -30,6 +30,13 @@ export const SETTINGS = {
     ZAI_ENDPOINT: 'zai_endpoint',
     OPENCODE_GO_MODEL: 'opencode_go_model',
     OPENCODE_GO_ENDPOINT: 'opencode_go_endpoint',
+    QWEN_MODEL: 'qwen_model',
+    QWEN_MT_MODEL: 'qwen_mt_model',
+    QWEN_ENDPOINT: 'qwen_endpoint',
+    XAI_MODEL: 'xai_model',
+    XAI_OAUTH_MODEL: 'xai_oauth_model',
+    XAI_ENDPOINT: 'xai_endpoint',
+    XAI_OAUTH_CONNECTION: 'xai_oauth_connection',
     AI_PROMPT: 'ai_prompt',
     THEME: 'theme',
     LOCALE: 'locale',
@@ -73,6 +80,10 @@ export const SETTINGS = {
     OPENROUTER_REQUEST_TIMEOUT: 'openrouter_request_timeout',
     ZAI_REQUEST_TIMEOUT: 'zai_request_timeout',
     OPENCODE_GO_REQUEST_TIMEOUT: 'opencode_go_request_timeout',
+    QWEN_REQUEST_TIMEOUT: 'qwen_request_timeout',
+    QWEN_MT_REQUEST_TIMEOUT: 'qwen_mt_request_timeout',
+    XAI_REQUEST_TIMEOUT: 'xai_request_timeout',
+    XAI_OAUTH_REQUEST_TIMEOUT: 'xai_oauth_request_timeout',
     MAX_RETRIES: 'max_retries',
     RETRY_DELAY: 'retry_delay',
     RETRY_DELAY_MULTIPLIER: 'retry_delay_multiplier',
@@ -84,6 +95,8 @@ export const SETTINGS = {
     LOCAL_AI_CHAT_REQUEST_TEMPLATE: 'local_ai_chat_request_template',
     LOCAL_AI_GENERATE_REQUEST_TEMPLATE: 'local_ai_generate_request_template',
     DEEPSEEK_REQUEST_TEMPLATE: 'deepseek_request_template',
+    QWEN_REQUEST_TEMPLATE: 'qwen_request_template',
+    XAI_REQUEST_TEMPLATE: 'xai_request_template',
     GEMINI_REQUEST_TEMPLATE: 'gemini_request_template',
     LANGUAGE_CODE_FORMAT: 'language_code_format',
     RADARR_DEFAULT_INCLUDE: 'radarr_default_include',
@@ -113,6 +126,21 @@ export interface ISettings {
     local_ai_model: string
     gemini_model: string
     deepseek_model: string
+    openrouter_model: string
+    openrouter_endpoint: string
+    openrouter_temperature: string
+    openrouter_max_tokens: string
+    zai_model: string
+    zai_endpoint: string
+    opencode_go_model: string
+    opencode_go_endpoint: string
+    qwen_model: string
+    qwen_mt_model: string
+    qwen_endpoint: string
+    xai_model: string
+    xai_oauth_model: string
+    xai_endpoint: string
+    xai_oauth_connection: string
     ai_prompt: string
     movie_age_threshold: string
     show_age_threshold: string
@@ -155,6 +183,10 @@ export interface ISettings {
     openrouter_request_timeout: string
     zai_request_timeout: string
     opencode_go_request_timeout: string
+    qwen_request_timeout: string
+    qwen_mt_request_timeout: string
+    xai_request_timeout: string
+    xai_oauth_request_timeout: string
     max_retries: string
     retry_delay: string
     retry_delay_multiplier: string
@@ -166,6 +198,8 @@ export interface ISettings {
     local_ai_chat_request_template: string
     local_ai_generate_request_template: string
     deepseek_request_template: string
+    qwen_request_template: string
+    xai_request_template: string
     gemini_request_template: string
     language_code_format: string
     radarr_default_include: string
@@ -185,6 +219,8 @@ export const ENCRYPTED_SETTINGS = {
     OPENROUTER_API_KEY: 'openrouter_api_key',
     ZAI_API_KEY: 'zai_api_key',
     OPENCODE_GO_API_KEY: 'opencode_go_api_key',
+    QWEN_API_KEY: 'qwen_api_key',
+    XAI_API_KEY: 'xai_api_key',
     DEEPL_API_KEY: 'deepl_api_key',
     LIBRETRANSLATE_API_KEY: 'libretranslate_api_key',
     LOCAL_AI_API_KEY: 'local_ai_api_key'
@@ -201,6 +237,8 @@ export interface IEncryptedSettings {
     openrouter_api_key: string
     zai_api_key: string
     opencode_go_api_key: string
+    qwen_api_key: string
+    xai_api_key: string
     deepl_api_key: string
     libretranslate_api_key: string
     local_ai_api_key: string
@@ -217,6 +255,10 @@ export const SERVICE_TYPE = {
     OPENROUTER: 'openrouter',
     ZAI: 'zai',
     OPENCODE_GO: 'opencode-go',
+    QWEN: 'qwen',
+    QWEN_MT: 'qwen-mt',
+    XAI: 'xai',
+    XAI_OAUTH: 'xai-oauth',
     GOOGLE: 'google',
     BING: 'bing',
     MICROSOFT: 'microsoft',
