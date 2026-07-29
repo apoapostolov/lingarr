@@ -81,6 +81,11 @@ public class DashboardActivityServiceTests
         Assert.Equal(1, result.FallbackRecoveries);
         Assert.Equal("Microsoft", Assert.Single(result.TopProviders).Name);
         Assert.Contains(result.Narrative, sentence => sentence.Contains("last 48 hours"));
+        Assert.Contains(result.Narrative, sentence =>
+            sentence == "Microsoft completed 1 subtitle file.");
+        Assert.DoesNotContain(result.Narrative, sentence => sentence.Contains("dialogue lines"));
+        Assert.DoesNotContain(result.Narrative, sentence => sentence.Contains("translated lines"));
+        Assert.DoesNotContain(result.Narrative, sentence => sentence.Contains("busiest language pair"));
     }
 
     [Fact]
@@ -93,6 +98,44 @@ public class DashboardActivityServiceTests
         Assert.Equal(0, result.CompletedFiles);
         Assert.Contains(result.Narrative, sentence =>
             sentence == "No subtitle files completed in the last 24 hours.");
+    }
+
+    [Fact]
+    public async Task GetAsync_MeteredLlmUsage_AddsTokensAndEstimatedCost()
+    {
+        await using var database = CreateDatabase();
+        var now = DateTime.UtcNow;
+        var request = new TranslationRequest
+        {
+            Title = "Metered dashboard test",
+            SourceLanguage = "en",
+            TargetLanguage = "bg",
+            MediaType = MediaType.Movie,
+            Status = TranslationStatus.Completed,
+            CompletedAt = now.AddMinutes(-5)
+        };
+        database.TranslationRequests.Add(request);
+        await database.SaveChangesAsync();
+        database.ProviderOperationalEvents.Add(new ProviderOperationalEvent
+        {
+            Provider = "openai",
+            Model = "gpt-4o-mini",
+            Operation = "batch",
+            Outcome = "success",
+            TranslationRequestId = request.Id,
+            InputTokens = 40_558,
+            OutputTokens = 56_484,
+            EstimatedCostUsd = 4.48m,
+            OccurredAt = now.AddMinutes(-6)
+        });
+        await database.SaveChangesAsync();
+
+        var result = await CreateService(database).GetAsync(48);
+
+        Assert.Contains(result.Narrative, sentence =>
+            sentence.Contains("40,558 input tokens") &&
+            sentence.Contains("56,484 output tokens") &&
+            sentence.Contains("$4.48"));
     }
 
     private static DashboardActivityService CreateService(LingarrDbContext database)

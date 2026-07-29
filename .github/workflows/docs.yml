@@ -2,12 +2,12 @@ name: Docs
 
 on:
   push:
-    branches: [ main ]
+    branches: [ bedroom ]
     paths:
       - 'Lingarr.Docs/**'
       - '.github/workflows/docs.yml'
   pull_request:
-    branches: [ main ]
+    branches: [ bedroom ]
     paths:
       - 'Lingarr.Docs/**'
       - '.github/workflows/docs.yml'

@@ -41,13 +41,17 @@
         <div class="w-full px-4">
             <div class="hidden border-b border-accent font-bold md:grid md:grid-cols-12">
                 <div class="col-span-4 px-4 py-2">Title</div>
-                <div class="col-span-1 px-4 py-2">Source</div>
-                <div class="col-span-1 px-4 py-2">Target</div>
-                <div class="col-span-1 px-4 py-2">Status</div>
-                <div class="px-4 py-2" :class="isSelectMode ? 'col-span-2' : 'col-span-3'">
+                <div class="col-span-1 px-4 py-2 text-center">Source</div>
+                <div class="col-span-1 px-4 py-2 text-center">Target</div>
+                <div class="col-span-1 px-4 py-2 text-center">Status</div>
+                <div
+                    class="px-4 py-2 text-center"
+                    :class="isSelectMode ? 'col-span-2' : 'col-span-3'">
                     Progress
                 </div>
-                <div class="col-span-1 px-4 py-2">Completed</div>
+                <div class="col-span-1 flex items-center justify-center px-4 py-2 text-center">
+                    Completed
+                </div>
                 <div class="col-span-1"></div>
                 <div
                     v-if="isSelectMode"
@@ -62,22 +66,21 @@
                 :key="item.id"
                 class="border-accent hover:bg-accent/5 flex flex-wrap items-center gap-x-3 gap-y-2 border-b py-3 transition-colors md:grid md:grid-cols-12 md:gap-0 md:py-0">
                 <div class="flex w-full items-center gap-2 md:col-span-4 md:w-auto md:px-4 md:py-2">
-                    <span
+                    <div
                         v-if="item.mediaType === MEDIA_TYPE.EPISODE"
-                        v-show-title
-                        class="block min-w-0 flex-1 cursor-help md:flex-none"
+                        class="min-w-0 flex-1 cursor-help"
                         :title="item.title">
-                        {{ item.title }}
-                    </span>
+                        <span class="block truncate">
+                            {{ episodeTitleParts(item.title).primary }}
+                        </span>
+                        <span
+                            v-if="episodeTitleParts(item.title).secondary"
+                            class="mt-0.5 block truncate text-xs text-primary-content/50">
+                            {{ episodeTitleParts(item.title).secondary }}
+                        </span>
+                    </div>
                     <span v-else class="min-w-0 flex-1 md:flex-none">
                         {{ item.title }}
-                    </span>
-                    <span
-                        v-if="item.qualityScore !== null && item.qualityScore !== undefined"
-                        class="shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold"
-                        :class="qualityBadgeClasses(item.qualityScore)"
-                        :title="`Subtitle quality: ${item.qualityGrade ?? 'Checked'}`">
-                        {{ item.qualityScore }}
                     </span>
                     <span class="ml-auto flex flex-none items-center gap-2 md:hidden">
                         <TranslationAction
@@ -93,19 +96,40 @@
                             @change="translationRequestStore.toggleSelect(item)" />
                     </span>
                 </div>
-                <div class="flex items-center md:col-span-1 md:px-4 md:py-2">
-                    <BadgeComponent classes="text-primary-content border-accent bg-secondary">
+                <div
+                    class="flex items-center md:col-span-1 md:justify-center md:px-4 md:py-2">
+                    <BadgeComponent
+                        shape="square"
+                        classes="text-primary-content border-accent bg-secondary">
                         {{ item.sourceLanguage.toUpperCase() }}
                     </BadgeComponent>
                 </div>
-                <div class="flex items-center gap-2 md:col-span-1 md:px-4 md:py-2">
+                <div
+                    class="flex items-center gap-2 md:col-span-1 md:justify-center md:px-4 md:py-2">
                     <span class="text-primary-content/50 md:hidden">→</span>
-                    <BadgeComponent classes="text-primary-content border-accent bg-secondary">
+                    <BadgeComponent
+                        shape="square"
+                        classes="text-primary-content border-accent bg-secondary">
                         {{ item.targetLanguage.toUpperCase() }}
                     </BadgeComponent>
                 </div>
-                <div class="flex items-center md:col-span-1 md:px-4 md:py-2">
+                <div
+                    class="flex flex-col items-start gap-0.5 md:col-span-1 md:items-center md:justify-center md:px-2 md:py-2 md:text-center">
                     <TranslationStatus :translation-status="item.status" />
+                    <span
+                        v-if="
+                            item.status === TRANSLATION_STATUS.COMPLETED &&
+                            item.qualityScore !== null &&
+                            item.qualityScore !== undefined
+                        "
+                        class="whitespace-nowrap text-xs text-primary-content/55"
+                        :title="`Subtitle quality: ${item.qualityScore}/100 · ${item.qualityGrade ?? 'Checked'}`"
+                        :aria-label="`Subtitle quality score ${item.qualityScore} out of 100, ${item.qualityGrade ?? 'checked'}`">
+                        Quality:
+                        <span class="font-semibold text-primary-content/75">
+                            {{ item.qualityScore }}%
+                        </span>
+                    </span>
                 </div>
                 <div
                     class="items-center md:flex md:px-4 md:py-2"
@@ -248,10 +272,15 @@ const handleDelete = async () => {
     translationRequestStore.fetch()
 }
 
-const qualityBadgeClasses = (score: number) => {
-    if (score >= 85) return 'border-green-500/50 bg-green-500/10 text-green-200'
-    if (score >= 70) return 'border-yellow-500/50 bg-yellow-500/10 text-yellow-200'
-    if (score >= 50) return 'border-orange-500/50 bg-orange-500/10 text-orange-200'
-    return 'border-red-500/50 bg-red-500/10 text-red-200'
+const episodeTitleParts = (title: string) => {
+    const [showName, episodeNumber, ...episodeTitle] = title.split(' - ')
+    if (!showName || !episodeNumber || episodeTitle.length === 0) {
+        return { primary: title, secondary: '' }
+    }
+
+    return {
+        primary: `${showName} - ${episodeNumber}`,
+        secondary: episodeTitle.join(' - ')
+    }
 }
 </script>

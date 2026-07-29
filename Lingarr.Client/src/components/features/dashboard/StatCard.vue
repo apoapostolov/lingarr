@@ -10,7 +10,7 @@
                 </p>
             </div>
             <div class="text-right">
-                <h3 class="text-primary-content/70 text-sm font-medium">Translated</h3>
+                <h3 class="text-primary-content/70 text-sm font-medium">{{ valueLabel }}</h3>
                 <p class="mt-2 text-xl font-bold text-accent">
                     {{ formatNumber(translated) }}
                 </p>
@@ -29,11 +29,13 @@ interface Props {
     title: string
     total: number
     translated: number
+    valueLabel?: string
 }
 
 withDefaults(defineProps<Props>(), {
     total: 0,
-    translated: 0
+    translated: 0,
+    valueLabel: 'Translated'
 })
 
 const formatNumber = (num: number): string => {

@@ -7,6 +7,7 @@ export interface Statistics {
     totalSubtitles: number
     translationsByMediaType: Record<string, number>
     translationsByService: Record<string, number>
+    subtitlesByLanguage: Record<string, number>
 }
 
 export interface DailyStatistic {

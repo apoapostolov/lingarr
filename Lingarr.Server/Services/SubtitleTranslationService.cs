@@ -473,6 +473,10 @@ public class SubtitleTranslationService
 
         try
         {
+            var usage = outcome == "success" &&
+                        entry.Service is IMeteredTranslationService metered
+                ? metered.ConsumeUsage()
+                : null;
             await _providerHealth.RecordAsync(new ProviderOperationalResult
             {
                 Provider = entry.Name,
@@ -482,7 +486,10 @@ public class SubtitleTranslationService
                 ErrorFamily = errorFamily,
                 IsTransient = isTransient,
                 DurationMs = durationMs,
-                TranslationRequestId = translationRequestId
+                TranslationRequestId = translationRequestId,
+                InputTokens = usage?.InputTokens,
+                OutputTokens = usage?.OutputTokens,
+                EstimatedCostUsd = usage?.EstimatedCostUsd
             });
         }
         catch (Exception exception)

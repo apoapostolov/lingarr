@@ -14,7 +14,7 @@ namespace Lingarr.Server.Services.Translation;
 /// OpenRouter translation service.
 /// Provides access to 100+ models through a unified OpenAI-compatible API.
 /// </summary>
-public class OpenRouterService : BaseLanguageService
+public class OpenRouterService : BaseMeteredLanguageService
 {
     private string? _endpoint = "https://openrouter.ai/api/v1/";
     private readonly HttpClient _httpClient;
@@ -37,7 +37,7 @@ public class OpenRouterService : BaseLanguageService
         ILogger<OpenRouterService> logger,
         LanguageCodeService languageCodeService,
         IRequestTemplateService requestTemplateService)
-        : base(settings, logger, languageCodeService)
+        : base(settings, logger, languageCodeService, "openrouter")
     {
         _httpClient = httpClient;
         _requestTemplateService = requestTemplateService;
@@ -223,6 +223,7 @@ public class OpenRouterService : BaseLanguageService
 
         var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
         using var doc = JsonDocument.Parse(responseJson);
+        RecordUsage(doc.RootElement);
 
         var translatedText = doc.RootElement
             .GetProperty("choices")[0]
@@ -353,5 +354,39 @@ public class OpenRouterService : BaseLanguageService
         }
 
         return -1m;
+    }
+
+    private void RecordUsage(JsonElement response)
+    {
+        if (!response.TryGetProperty("usage", out var usage))
+        {
+            return;
+        }
+
+        var inputTokens = usage.TryGetProperty("prompt_tokens", out var input)
+            ? input.GetInt64()
+            : 0;
+        var outputTokens = usage.TryGetProperty("completion_tokens", out var output)
+            ? output.GetInt64()
+            : 0;
+        decimal? reportedCost = null;
+        if (usage.TryGetProperty("cost", out var cost))
+        {
+            if (cost.ValueKind == JsonValueKind.Number)
+            {
+                reportedCost = cost.GetDecimal();
+            }
+            else if (cost.ValueKind == JsonValueKind.String &&
+                     decimal.TryParse(
+                         cost.GetString(),
+                         System.Globalization.NumberStyles.Any,
+                         System.Globalization.CultureInfo.InvariantCulture,
+                         out var parsed))
+            {
+                reportedCost = parsed;
+            }
+        }
+
+        RecordUsage(_model, inputTokens, outputTokens, reportedCost);
     }
 }

@@ -30,10 +30,6 @@ public class M0015_SeedProviderRequestTimeouts : Migration
 
     private void Seed(string key, string value)
     {
-        Execute.Sql($"""
-INSERT INTO settings (key, value)
-SELECT '{key}', '{value}'
-WHERE NOT EXISTS (SELECT 1 FROM settings WHERE key = '{key}');
-""");
+        Insert.IntoTable("settings").Row(new { key, value });
     }
 }

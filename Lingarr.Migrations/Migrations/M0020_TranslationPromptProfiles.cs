@@ -76,36 +76,16 @@ public class M0020_TranslationPromptProfiles : Migration
         Insert.IntoTable("settings")
             .Row(new { key = "active_context_prompt_profile_id", value = "" });
 
-        Execute.Sql("""
-            INSERT INTO translation_prompt_profiles
-                (type, name, description, draft_content, current_published_version_id, is_archived, created_at, updated_at)
-            SELECT
-                'system',
-                'Default translation instructions',
-                'Imported from the original System Prompt setting.',
-                value,
-                NULL,
-                FALSE,
-                CURRENT_TIMESTAMP,
-                CURRENT_TIMESTAMP
-            FROM settings
-            WHERE key = 'ai_prompt';
-            """);
-        Execute.Sql("""
-            INSERT INTO translation_prompt_profiles
-                (type, name, description, draft_content, current_published_version_id, is_archived, created_at, updated_at)
-            SELECT
-                'context',
-                'Default surrounding context',
-                'Imported from the original Context Prompt setting.',
-                value,
-                NULL,
-                FALSE,
-                CURRENT_TIMESTAMP,
-                CURRENT_TIMESTAMP
-            FROM settings
-            WHERE key = 'ai_context_prompt';
-            """);
+        ImportLegacyProfile(
+            "system",
+            "Default translation instructions",
+            "Imported from the original System Prompt setting.",
+            "ai_prompt");
+        ImportLegacyProfile(
+            "context",
+            "Default surrounding context",
+            "Imported from the original Context Prompt setting.",
+            "ai_context_prompt");
         Execute.Sql("""
             INSERT INTO translation_prompt_profile_versions
                 (profile_id, version_number, content, change_note, content_hash, created_at, updated_at)
@@ -127,6 +107,32 @@ public class M0020_TranslationPromptProfiles : Migration
                 WHERE v.profile_id = translation_prompt_profiles.id
             );
             """);
+
+        void ImportLegacyProfile(
+            string type,
+            string name,
+            string description,
+            string settingKey)
+        {
+            string BuildSql(string quotedKey) => $"""
+                INSERT INTO translation_prompt_profiles
+                    (type, name, description, draft_content, current_published_version_id, is_archived, created_at, updated_at)
+                SELECT
+                    '{type}',
+                    '{name}',
+                    '{description}',
+                    value,
+                    NULL,
+                    FALSE,
+                    CURRENT_TIMESTAMP,
+                    CURRENT_TIMESTAMP
+                FROM settings
+                WHERE {quotedKey} = '{settingKey}';
+                """;
+
+            IfDatabase("mysql").Execute.Sql(BuildSql("`key`"));
+            IfDatabase("sqlite", "postgres").Execute.Sql(BuildSql("\"key\""));
+        }
     }
 
     public override void Down()

@@ -13,7 +13,7 @@ using Lingarr.Server.Services.Translation.Base;
 
 namespace Lingarr.Server.Services.Translation;
 
-public class OpenAiService : BaseLanguageService, ITranslationService, IBatchTranslationService
+public class OpenAiService : BaseMeteredLanguageService, ITranslationService, IBatchTranslationService
 {
     private readonly string? _endpoint = "https://api.openai.com/v1/";
     private string? _prompt;
@@ -39,7 +39,7 @@ public class OpenAiService : BaseLanguageService, ITranslationService, IBatchTra
         LanguageCodeService languageCodeService,
         IRequestTemplateService requestTemplateService,
         HttpClient? httpClient = null)
-        : base(settings, logger, languageCodeService)
+        : base(settings, logger, languageCodeService, "openai")
     {
         _httpClient = httpClient ?? new HttpClient();
         _requestTemplateService = requestTemplateService;
@@ -176,6 +176,13 @@ public class OpenAiService : BaseLanguageService, ITranslationService, IBatchTra
                     throw new TranslationException("No completion choices returned from OpenAI");
                 }
 
+                if (completionResponse.Usage is not null)
+                {
+                    RecordUsage(
+                        completionResponse.Model ?? _model,
+                        completionResponse.Usage.PromptTokens,
+                        completionResponse.Usage.CompletionTokens);
+                }
                 return completionResponse.Choices[0].Message.Content;
             }
             catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.TooManyRequests or HttpStatusCode.ServiceUnavailable)
@@ -348,6 +355,14 @@ public class OpenAiService : BaseLanguageService, ITranslationService, IBatchTra
         if (completionResponse?.Choices == null || completionResponse.Choices.Count == 0)
         {
             throw new TranslationException("No completion choices returned from OpenAI");
+        }
+
+        if (completionResponse.Usage is not null)
+        {
+            RecordUsage(
+                completionResponse.Model ?? _model,
+                completionResponse.Usage.PromptTokens,
+                completionResponse.Usage.CompletionTokens);
         }
         
         var translatedJson = completionResponse.Choices[0].Message.Content;

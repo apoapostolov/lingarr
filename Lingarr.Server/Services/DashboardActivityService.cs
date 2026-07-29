@@ -87,6 +87,23 @@ public class DashboardActivityService : IDashboardActivityService
             .ThenBy(item => item.Name)
             .Take(5)
             .ToList();
+        var dominantProvidersByFile = recentLines
+            .Where(line => !string.IsNullOrWhiteSpace(line.Service))
+            .GroupBy(line => line.TranslationRequestId)
+            .Select(file => file
+                .GroupBy(line => line.Service!, StringComparer.OrdinalIgnoreCase)
+                .OrderByDescending(provider => provider.Count())
+                .ThenBy(provider => provider.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(provider => provider.Key)
+                .First())
+            .ToList();
+        var topProviderByFiles = dominantProvidersByFile
+            .GroupBy(provider => provider, StringComparer.OrdinalIgnoreCase)
+            .Select(group => new DashboardNamedCount(
+                DisplayName(group.Key), group.Count()))
+            .OrderByDescending(item => item.Count)
+            .ThenBy(item => item.Name)
+            .FirstOrDefault();
 
         var languagePairs = completed
             .GroupBy(request =>
@@ -141,7 +158,10 @@ public class DashboardActivityService : IDashboardActivityService
             {
                 item.TranslationRequestId,
                 item.Provider,
-                item.Outcome
+                item.Outcome,
+                item.InputTokens,
+                item.OutputTokens,
+                item.EstimatedCostUsd
             })
             .ToListAsync(cancellationToken);
         var fallbackRecoveries = providerEvents
@@ -153,6 +173,21 @@ public class DashboardActivityService : IDashboardActivityService
                 return firstFailure >= 0 &&
                        events.Skip(firstFailure + 1).Any(item => item.Outcome == "success");
             });
+        var meteredProviders = new HashSet<string>(
+            ["openrouter", "openai", "deepseek", "anthropic"],
+            StringComparer.OrdinalIgnoreCase);
+        var meteredUsage = providerEvents
+            .Where(item =>
+                item.Outcome == "success" &&
+                meteredProviders.Contains(item.Provider) &&
+                (item.InputTokens.HasValue || item.OutputTokens.HasValue))
+            .ToList();
+        var inputTokens = meteredUsage.Sum(item => item.InputTokens ?? 0);
+        var outputTokens = meteredUsage.Sum(item => item.OutputTokens ?? 0);
+        decimal? estimatedCost = meteredUsage.Count > 0 &&
+                                 meteredUsage.All(item => item.EstimatedCostUsd.HasValue)
+            ? meteredUsage.Sum(item => item.EstimatedCostUsd!.Value)
+            : null;
 
         var health = await _providerHealth.GetAllAsync(cancellationToken);
         var unavailable = health.Count(provider =>
@@ -169,7 +204,6 @@ public class DashboardActivityService : IDashboardActivityService
         var narrative = BuildNarrative(
             hours,
             completed.Count,
-            recentLines.Count,
             active,
             failed,
             checkedRequests.Count,
@@ -177,8 +211,10 @@ public class DashboardActivityService : IDashboardActivityService
             needsReview,
             fallbackRecoveries,
             unavailable,
-            topProviders.FirstOrDefault(),
-            languagePairs.FirstOrDefault());
+            topProviderByFiles,
+            inputTokens,
+            outputTokens,
+            estimatedCost);
         var headline = active > 0
             ? "Lingarr is translating now."
             : completed.Count > 0
@@ -211,7 +247,6 @@ public class DashboardActivityService : IDashboardActivityService
     private static List<string> BuildNarrative(
         int hours,
         int files,
-        int lines,
         int active,
         int failed,
         int checkedFiles,
@@ -220,22 +255,28 @@ public class DashboardActivityService : IDashboardActivityService
         int fallbacks,
         int unavailableProviders,
         DashboardNamedCount? topProvider,
-        DashboardNamedCount? topLanguagePair)
+        long inputTokens,
+        long outputTokens,
+        decimal? estimatedCostUsd)
     {
         var result = new List<string>
         {
             files == 0
                 ? $"No subtitle files completed in the last {hours} hours."
-                : $"In the last {hours} hours, Lingarr completed {files} subtitle {Plural(files, "file", "files")} and translated {lines:N0} dialogue {Plural(lines, "line", "lines")}."
+                : $"In the last {hours} hours, Lingarr completed {files} subtitle {Plural(files, "file", "files")}."
         };
         if (checkedFiles > 0)
             result.Add($"{passed} {Plural(passed, "file passed", "files passed")} quality checks; {needsReview} {Plural(needsReview, "needs", "need")} review.");
         else if (files > 0)
             result.Add("Recent files do not have quality results yet.");
         if (topProvider != null)
-            result.Add($"{topProvider.Name} handled most translated lines ({topProvider.Count:N0}).");
-        if (topLanguagePair != null)
-            result.Add($"The busiest language pair was {topLanguagePair.Name} ({topLanguagePair.Count} {Plural(topLanguagePair.Count, "file", "files")}).");
+            result.Add($"{topProvider.Name} completed {topProvider.Count:N0} subtitle {Plural(topProvider.Count, "file", "files")}.");
+        if (inputTokens > 0 || outputTokens > 0)
+        {
+            result.Add(estimatedCostUsd.HasValue
+                ? $"Metered LLM work used {inputTokens:N0} input tokens and returned {outputTokens:N0} output tokens, with an estimated cost of {FormatCost(estimatedCostUsd.Value)}."
+                : $"Metered LLM work used {inputTokens:N0} input tokens and returned {outputTokens:N0} output tokens. Pricing was unavailable for one or more models, so the total cost could not be estimated.");
+        }
         if (fallbacks > 0)
             result.Add($"{fallbacks} {Plural(fallbacks, "translation recovered", "translations recovered")} after a provider failure.");
         if (active > 0)
@@ -250,6 +291,11 @@ public class DashboardActivityService : IDashboardActivityService
 
     private static string Plural(int count, string singular, string plural) =>
         count == 1 ? singular : plural;
+
+    private static string FormatCost(decimal cost) =>
+        cost > 0m && cost < 0.01m
+            ? $"${cost:0.0000}"
+            : $"${cost:0.00}";
 
     private static string DisplayName(string provider) =>
         string.Join(' ', provider

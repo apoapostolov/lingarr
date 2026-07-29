@@ -42,6 +42,30 @@ public class ProviderHealthServiceTests
     }
 
     [Fact]
+    public async Task RecordAsync_MeteredUsage_PersistsUsageOnOperationalEvent()
+    {
+        await using var database = CreateDatabase();
+        var service = CreateService(database);
+
+        await service.RecordAsync(new ProviderOperationalResult
+        {
+            Provider = "openai",
+            Model = "gpt-4o-mini",
+            Operation = "batch",
+            Outcome = "success",
+            DurationMs = 125,
+            InputTokens = 1_200,
+            OutputTokens = 800,
+            EstimatedCostUsd = 0.00066m
+        });
+
+        var operationalEvent = Assert.Single(database.ProviderOperationalEvents);
+        Assert.Equal(1_200, operationalEvent.InputTokens);
+        Assert.Equal(800, operationalEvent.OutputTokens);
+        Assert.Equal(0.00066m, operationalEvent.EstimatedCostUsd);
+    }
+
+    [Fact]
     public async Task RecordAsync_ThreeTransientFailuresAfterSuccess_MarksRecentlyUnavailable()
     {
         await using var database = CreateDatabase();

@@ -55,7 +55,11 @@
                     <div
                         v-if="expandedProvider === provider.provider"
                         class="border-accent/15 space-y-3 border-t px-3 py-3">
-                        <p class="text-secondary-content text-sm">{{ provider.reason }}</p>
+                        <p
+                            v-if="provider.state !== 'healthy'"
+                            class="text-secondary-content text-sm">
+                            {{ provider.reason }}
+                        </p>
 
                         <dl class="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
                             <div>

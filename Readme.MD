@@ -1,242 +1,257 @@
-﻿# Lingarr: Subtitle Translation Made Easy
+# Lingarr@Bedroom
 
-[![Version](https://img.shields.io/github/v/release/lingarr-translate/lingarr)](https://github.com/lingarr-translate/lingarr/releases)
-[![Docker Pulls](https://img.shields.io/docker/pulls/lingarr/lingarr.svg)](https://hub.docker.com/r/lingarr/lingarr)
+[![Version](https://img.shields.io/github/v/release/apoapostolov/lingarr?label=release)](https://github.com/apoapostolov/lingarr/releases)
+[![Container](https://img.shields.io/badge/container-ghcr.io%2Fapoapostolov%2Flingarr-2496ED?logo=docker&logoColor=white)](https://github.com/apoapostolov/lingarr/pkgs/container/lingarr)
+[![CI](https://github.com/apoapostolov/lingarr/actions/workflows/ci.yml/badge.svg?branch=bedroom)](https://github.com/apoapostolov/lingarr/actions/workflows/ci.yml)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-green.svg)](LICENSE)
-[![Discord](https://img.shields.io/discord/1293119073739210885?label=discord&logo=discord)](https://discord.gg/HkubmH2rcR)
+[![Status](https://img.shields.io/badge/status-active-brightgreen)](https://github.com/apoapostolov/lingarr)
 
-Lingarr is an application that leverages translation technologies to automatically translate subtitle files to your desired target language. 
-With support for multiple translation services including LibreTranslate, DeepL, and various AI providers, Lingarr offers a flexible solution for all your subtitle translation needs.
+Lingarr@Bedroom is a self-hosted subtitle translation manager for movie and TV
+libraries. It discovers subtitles through Sonarr and Radarr, translates them
+with local, free, or paid providers, and makes the result understandable through
+provider health, subtitle quality scores, fallback reporting, and recent-work
+statistics.
 
-https://github.com/user-attachments/assets/be753d77-ca53-4867-adea-363145613d2b
+<p align="center">
+  <img src="docs/images/dashboard-overview.png" alt="Lingarr@Bedroom Dashboard showing language coverage, provider health, and recent translation activity" width="100%" />
+</p>
 
-### 🌟 Multiple Translation Service Support
-Lingarr now offers multiple services for automated translation:
+> **About this fork:** Lingarr@Bedroom is a separate fork of
+> [Lingarr](https://github.com/lingarr-translate/lingarr), maintained by
+> **Apostol Apostolov**. It exists to speed up development independently from
+> upstream's strict no-AI development rules. AI-assisted development is welcome
+> here, but every change remains subject to human review, testing, and maintainer
+> accountability.
 
-- **[LibreTranslate](https://libretranslate.com)**
-- **Local AI (with Ollama, or any other OpenAPI compatible model/router)**
-- **[DeepL](https://www.deepl.com/)**  (without pt-BR)
-- **[Anthropic](https://www.anthropic.com/)**
-- **[OpenAI](https://openai.com/)**
-- **[DeepSeek](https://deepseek.com)**
-- **[Gemini](https://gemini.google.com/)**
-- **[Google](https://translate.google.com/)** 
-- **[Bing](https://www.bing.com/translator)**
-- **[Yandex](https://translate.yandex.com/)**
-- **[Azure](https://www.microsoft.com/en-us/translator/business/translator-api/)**
+> **Self-hosted:** This repository does not provide a public translation
+> service. You run Lingarr@Bedroom and connect your own media libraries and
+> translation providers.
 
-Choose the service that best fits your needs.
+## What's new in 1.0.0
 
-## Usage
+Version 1.0.0 establishes the independent Lingarr@Bedroom release line. It
+combines the Bedroom work to date into one supported baseline:
 
-### Docker Image Tags
-Lingarr provides multi-architecture Docker images that automatically select the correct platform:
+- A redesigned Dashboard explains subtitle coverage, provider health, recent
+  progress, quality results, fallbacks, and metered LLM usage.
+- Translation services can be arranged as an ordered provider-and-model
+  fallback chain.
+- OpenRouter, Z.ai Coding Plan, OpenCode Go, and improved DeepSeek support join
+  the existing translation providers.
+- Every completed subtitle receives an observe-only quality score with
+  inspectable findings.
+- System and Context prompts are now reusable, versioned instruction profiles
+  that can be assigned to individual AI translators.
+- Settings are organized into clear local tabs, anonymous telemetry is removed,
+  and update checks point to this fork.
+- Subtitle scanning, scheduled automation, Microsoft translation, and Hangfire
+  SQLite maintenance are substantially more resilient.
 
-| Tag | Description | Architectures |
-|-----|-------------|---------------|
-| `latest` | Latest stable release | `amd64` `arm64` |
-| `1.2.3` | Specific version | `amd64` `arm64` |
-| `main` | ⚠️ Development build from main branch | `amd64` `arm64` |
+Read the complete [1.0.0 changelog](CHANGELOG.md).
 
-**Note:** As of 1.0.3 all images support both AMD64 (Intel/AMD) and ARM64 (Raspberry Pi, Apple Silicon) architectures. Docker will automatically pull the correct architecture for your system.
+## Features
 
-### Available Registries
+### Operational Dashboard
 
-Lingarr Docker images are available from multiple registries:
+- **Language coverage** shows the share of movies and TV episodes that already
+  have subtitles in your chosen primary language. The selection is remembered.
+- **Provider Health** lists every translator as Healthy, Not checked, Needs
+  attention, Recently unavailable, Unavailable, or Not configured, with
+  expandable diagnostics and safe provider tests.
+- **Recent Activity** retains the readable historical graph while adding
+  completed-file counts, quality results, active work, fallback recoveries, and
+  a configurable time window.
+- **Human-readable progress** summarizes completed subtitle files and the
+  provider responsible for them without exposing subtitle text.
+- **Metered LLM usage** reports input tokens, output tokens, and an approximate
+  cost when OpenRouter, OpenAI, DeepSeek, or Anthropic handled translations.
 
-| Registry | Image |
-|----------|-------|
-| GitHub Container Registry | `ghcr.io/lingarr-translate/lingarr:latest` |
-| Docker Hub | `docker.io/lingarr/lingarr:latest` |
+### Translation workflow and quality
 
-## Setting up Lingarr
+- Automatic discovery and translation for connected Sonarr and Radarr
+  libraries.
+- Manual and API-triggered subtitle translation with optional explicit subtitle
+  paths.
+- Ordered provider fallbacks keep work moving when an earlier translator fails.
+- Completed subtitles receive a deterministic score from 0 to 100.
+- Quality findings detect suspicious output, damaged markup, missing content,
+  script mismatches, poor readability, and other translation risks.
+- Quality is currently **observe-only**: it helps you review translations but
+  does not silently reject or delete a completed file.
+- The Translations list shows source, target, status, quality, progress, episode
+  details, and compact relative completion times.
 
-By default, Lingarr uses `MySQL` however, `PostgreSQL` and `SQLite` are also supported. Note that Lingarr starts quickly, if migrations fail, using a `healthcheck` combined with 
-`depends_on` is recommended.
+### Translation providers
+
+| Category | Providers |
+| --- | --- |
+| Free / web translators | Microsoft Translate, Google Translate, Bing Translate, Yandex Translate |
+| Hosted translation APIs | DeepL, LibreTranslate |
+| AI providers | OpenRouter, OpenAI, Anthropic, DeepSeek, Google Gemini, Z.ai Coding Plan, OpenCode Go |
+| Self-hosted AI | LocalAI, Ollama, and compatible OpenAI-style endpoints |
+
+AI services expose model selectors where supported. A translation chain may use
+the same provider more than once with different models. OpenRouter keeps
+`openrouter/free` first as the Bedroom default for inexpensive bulk work, with
+`openrouter/auto` second and the remaining catalogue after it.
+
+### Instruction profiles
+
+- Separate **System Prompt** and **Context Prompt** libraries.
+- Create, rename, duplicate, version, activate, and delete profiles.
+- Assign profiles to individual AI provider rows or inherit the active default.
+- Built-in examples include translation role, tone, profanity, names, glossary,
+  captions, readability, ambiguity, and final-output rules.
+- Existing prompt placeholders remain available, including source/target
+  language and dialogue-context tags.
+
+### Settings and operator experience
+
+- Settings are grouped into **Connections**, **Translation**, **Automation**,
+  **System**, and **Plugins**.
+- Translation has local **Setup**, **Subtitles**, **Prompts**, and **Advanced**
+  tabs.
+- Translation Services are placed before Languages and retain the familiar
+  Lingarr card and field vocabulary.
+- Save notifications use a visible theme-aligned toast with restrained spring
+  motion and rate limiting.
+- Anonymous telemetry and its onboarding step are completely removed.
+- Update checks use the Apostol Apostolov fork rather than the upstream
+  repository.
+
+<p align="center">
+  <img src="docs/images/translation-settings.png" alt="Lingarr@Bedroom Translation settings with local tabs, provider fallback chain, language selection, and provider health" width="100%" />
+</p>
+
+### Reliability
+
+- Subtitle discovery avoids unbounded recursive scans, ignores trailer folders,
+  and still finds conventional subtitle directories.
+- Scheduled automation pages through large libraries and retains a durable
+  cursor instead of repeatedly starting from the beginning.
+- Hangfire SQLite receives startup recovery and periodic WAL checkpoint
+  maintenance.
+- Microsoft/GTranslate requests use longer provider-specific timeouts and
+  transient retry with jitter.
+- Invalid Sonarr/Radarr identifiers are rejected early and routine skip messages
+  no longer dominate logs.
+- API keys remain encrypted settings; provider-health and usage records never
+  store subtitle text, prompts, credentials, or media paths.
+
+## Quick start with Docker Compose
+
+The simplest installation uses SQLite and the published multi-architecture
+container:
 
 ```yaml
 services:
   lingarr:
-    image: ghcr.io/lingarr-translate/lingarr:latest # or lingarr/lingarr:latest
+    image: ghcr.io/apoapostolov/lingarr:1.0.0
     container_name: lingarr
     restart: unless-stopped
-    environment:
-      - ASPNETCORE_URLS=http://+:9876
-      - DB_CONNECTION=mysql
-      - DB_HOST=lingarr-db
-      - DB_PORT=3306
-      - DB_DATABASE=lingarr
-      - DB_USERNAME=lingarr
-      - DB_PASSWORD=your-password # provide a password
     ports:
       - "9876:9876"
+    environment:
+      ASPNETCORE_URLS: http://+:9876
+      DB_CONNECTION: sqlite
+      SERVICE_TYPE: microsoft
+      MAX_CONCURRENT_JOBS: 1
     volumes:
+      - ./config:/app/config
       - /path/to/media/movies:/movies
       - /path/to/media/tv:/tv
-      - /path/to/config:/app/config
-    networks:
-      - lingarr
-    depends_on:
-      lingarr-db:
-        condition: service_healthy
-
-  lingarr-db:
-    image: mariadb:latest
-    container_name: lingarr-db
-    restart: unless-stopped
-    environment:
-      - MYSQL_DATABASE=lingarr
-      - MYSQL_USER=lingarr
-      - MYSQL_PASSWORD=your-password # provide a password
-      - MYSQL_ROOT_PASSWORD=your-password # provide a root password
-    volumes:
-      - /path/to/db:/var/lib/mysql # define a volume to persist the database
-    networks:
-      - lingarr
-    healthcheck:
-      test: "mariadb $$MYSQL_DATABASE -u$$MYSQL_USER -p$$MYSQL_PASSWORD -e 'SELECT 1;'"
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-networks:
-  lingarr:
-    external: true
 ```
 
-### Setting up Lingarr using Docker CLI
-Follow the following steps to set up Lingarr via Docker CLI
+Start the service:
 
 ```bash
-# Create the network
-docker network create lingarr
-
-# Start MariaDB
-docker run -d \
-  --name lingarr-db \
-  --restart unless-stopped \
-  -e MYSQL_DATABASE=lingarr \
-  -e MYSQL_USER=lingarr \
-  -e MYSQL_PASSWORD=your-password \
-  -e MYSQL_ROOT_PASSWORD=your-root-password \
-  -v /path/to/db:/var/lib/mysql \
-  --network lingarr \
-  mariadb:latest
-
-# Start Lingarr
-docker run -d \
-  --name lingarr \
-  --restart unless-stopped \
-  -p 9876:9876 \
-  -e ASPNETCORE_URLS=http://+:9876 \
-  -e DB_CONNECTION=mysql \
-  -e DB_HOST=lingarr-db \
-  -e DB_PORT=3306 \
-  -e DB_DATABASE=lingarr \
-  -e DB_USERNAME=lingarr \
-  -e DB_PASSWORD=your-password \ # provide a password
-  -v /path/to/media/movies:/movies \
-  -v /path/to/media/tv:/tv \
-  -v /path/to/config:/app/config \
-  --network lingarr \
-  ghcr.io/lingarr-translate/lingarr:latest # or use: lingarr/lingarr:latest
+docker compose up -d
 ```
 
-### Lingarr environment variables
-These variables can be used
+Open `http://localhost:9876`, connect Sonarr and/or Radarr under
+**Settings → Connections**, configure paths, then choose translation providers
+under **Settings → Translation → Setup**.
 
-| **Environment Variable**                          | **Description**                                                                         |
-|---------------------------------------------------|-----------------------------------------------------------------------------------------|
-| `ASPNETCORE_URLS=http://+:9876`                   | The internal port that Lingarr will listen on inside the container.                     |
-| `MAX_CONCURRENT_JOBS=1`                           | Sets the amount of jobs that can run concurrently, defaults to 1.                       |
-| `DB_CONNECTION=mysql`                             | Specifies the database connection type. Options are `mysql`, `postgresql` or `sqlite`.  |
-| `DB_HOST=Lingarr.Mysql`                           | The hostname for the MySQL database (required when using `mysql` or `postgresql`).      |
-| `DB_PORT=3306`                                    | The port for the MySQL database (required when using `mysql` or `postgresql`).          |
-| `DB_DATABASE=Lingarr`                             | The name of the database (required when using `mysql` or `postgresql`).                 |
-| `DB_USERNAME=Lingarr`                             | The username for the database (required when using `mysql` or `postgresql`).            |
-| `DB_PASSWORD=Secret1234`                          | The password for the database (required when using `mysql` or `postgresql`).            |
-| `DB_HANGFIRE_SQLITE_PATH=/app/config/Hangfire.db` | The path of the sqlite database file for Hangfire, when sqlite connection is used       |
+MySQL and PostgreSQL remain supported for larger or existing installations.
+Docker secrets can be supplied by using the `_FILE` form of supported
+environment variables.
 
-Additional [settings](Settings.MD) can be found here that can be set as environment variables to persist settings for each reinstall
+## Updating and migration
 
-## Setting up LibreTranslate
-This step is optional if you are using a translation service other than LibreTranslate.
+Lingarr@Bedroom begins its own version line at **1.0.0**. That number is
+independent from upstream Lingarr versions and should not be compared
+numerically with an upstream `1.x` tag.
 
-```yaml
-  LibreTranslate:
-    container_name: LibreTranslate
-    image: libretranslate/libretranslate:latest
-    restart: unless-stopped
-    environment:
-      - LT_LOAD_ONLY=en,nl  # Important, replace with your preferred languages
-    ports:
-      - 5000:5000
-    volumes:
-      - /path/to/config:/home/libretranslate/.local/share/argos-translate
-    networks:
-      - lingarr
-    healthcheck:
-      test: ["CMD-SHELL", "./venv/bin/python scripts/healthcheck.py"]
-```
+Before changing from upstream Lingarr or an older Bedroom build:
 
-### Setting up LibreTranslate using Docker CLI
+1. Back up `/app/config` and your application database.
+2. Review [CHANGELOG.md](CHANGELOG.md), especially migrations and provider
+   configuration.
+3. Change the image to `ghcr.io/apoapostolov/lingarr:1.0.0`.
+4. Start the container and allow the automatic database migrations to finish.
+5. Confirm the translation chain, paths, prompt profiles, and provider health
+   before starting a large automated run.
 
-Create necessary directories and set permissions:
-```bash
-mkdir -p /apps/libretranslate/{local,db}
-chmod -R 777 /apps/libretranslate
-```
-Run LibreTranslate Docker container:
-```bash
-docker run -d \
-  --name LibreTranslate \
-  -p 5000:5000 \
-  -v /path/to/libretranslate/db:/app/db \[Settings.MD](Settings.MD)
-  -v /path/to/libretranslate/local:/home/libretranslate/.local \
-  libretranslate/libretranslate \
-  --disable-web-ui \
-  --load-only=en,nl     # Important, replace with your preferred languages
-```
+Legacy plain-string and string-array `SERVICE_TYPE` values remain accepted and
+are normalized into the richer provider/model chain format.
 
-### LibreTranslate environment variables
-| Parameter                      | Function                                                                        |
-|--------------------------------|---------------------------------------------------------------------------------|
-| `LT_LOAD_ONLY`                  | Allows you to add source languages by their [iso code](https://libretranslate.com/languages)                    |
-| `LT_DISABLE_WEB_UI`              | Enables or disables a Google translate like web ui                            |
+## Configuration
 
-### Running Lingarr as non-root
-When running Docker containers, you can optionally specify which user should run the container process using the `user` flag. This is useful for:
-- **Security**: Running containers as non-root users
-- **Permissions**: Ensuring files created by the container have the correct ownership on your host system
+Common environment variables:
 
-**Docker Compose syntax:**
-```yaml
-user: "1000:1000"  # UID:GID
-```
+| Variable | Purpose |
+| --- | --- |
+| `ASPNETCORE_URLS` | Internal listen URL; normally `http://+:9876` |
+| `DB_CONNECTION` | `sqlite`, `mysql`, or `postgresql` |
+| `SQLITE_DB_PATH` | Optional application SQLite path |
+| `DB_HANGFIRE_SQLITE_PATH` | Optional Hangfire SQLite path |
+| `MAX_CONCURRENT_JOBS` | Number of translation workers |
+| `SERVICE_TYPE` | One provider or an ordered JSON provider/model chain |
+| `SOURCE_LANGUAGES` | Minified JSON list of allowed source languages |
+| `TARGET_LANGUAGES` | Minified JSON list of target languages |
+| `RADARR_URL` / `RADARR_API_KEY` | Radarr connection |
+| `SONARR_URL` / `SONARR_API_KEY` | Sonarr connection |
+| `AUTH_ENABLED` | Enable Lingarr authentication |
+| `BASE_PATH` | Optional reverse-proxy path prefix |
 
-**Docker CLI syntax:**
-```bash
---user 1000:1000  # UID:GID
-```
+See [Settings.MD](Settings.MD) for the full environment-variable reference.
 
-## API Integration
-Lingarr provides a RESTful API that allows you to integrate subtitle translation capabilities into your applications. You can find the complete API documentation, including a Swagger definition of all available endpoints at the 
-[Lingarr API Documentation](https://lingarr.com/docs/api/)
+## Documentation
 
-### 🤝 Contributing:
-We welcome contributions to Lingarr! Whether it's bug reports,
-feature requests, or code contributions, please feel free to help out.
+- [Documentation index](docs/README.md)
+- [Architecture and request flows](docs/architecture.md)
+- [Testing and live smoke checks](docs/testing.md)
+- [AI providers, model selection, and fallback chains](docs/ai-providers-model-fallback-chain.md)
+- [Provider health, subtitle quality, Dashboard, and instruction profiles](docs/proposals/translation-confidence-and-instruction-profiles.md)
+- [Settings information architecture](docs/proposals/settings-page-ia-and-qol.md)
+- [Bedroom reliability work](docs/bedroom-reliability-development-plan.md)
+- [API documentation sources](Lingarr.Docs/)
 
-Please read our [Contributing Guidelines](CONTRIBUTING.md) for development setup, coding standards, and requirements for submit pull requests.
+## Development and contributing
 
-### 🙏 Credits:
-Icons: [Lucide](https://lucide.dev/icons)  
-Subtitle Parsing: [AlexPoint](https://github.com/AlexPoint/SubtitlesParser)    
-Translation Services: [libretranslate](https://libretranslate.com)  
-GTranslate: [GTranslate](https://github.com/d4n3436/GTranslate)
+Contributions, bug reports, and carefully reviewed AI-assisted work are welcome.
+Contributors must understand and be able to explain submitted changes; low-effort
+generated output is not accepted merely because AI use is allowed.
 
-### 🙏 Special thanks:
-For supporting open source:  
-[selfh.st by Ethan](https://selfh.st/?ref=lingarr)  
-[r/selfhosted](https://www.reddit.com/r/selfhosted/)  
-[FrankieBBBB](https://github.com/FrankieBBBB)  
+Start with [CONTRIBUTING.md](CONTRIBUTING.md), [AGENTS.md](AGENTS.md), and the
+[testing guide](docs/testing.md).
+
+## Upstream and credits
+
+Lingarr@Bedroom is built on the work of the
+[Lingarr project](https://github.com/lingarr-translate/lingarr) and its
+contributors. Upstream remains a source for selective, reviewed imports; this
+fork has its own roadmap, releases, container images, update checks, and support
+expectations.
+
+Additional project credits:
+
+- Icons: [Lucide](https://lucide.dev/icons)
+- Subtitle parsing: [SubtitlesParser](https://github.com/AlexPoint/SubtitlesParser)
+- Translation support: LibreTranslate, GTranslate, and the provider projects
+  listed above
+
+## License
+
+GNU Affero General Public License v3.0. See [LICENSE](LICENSE).

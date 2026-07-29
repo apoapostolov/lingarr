@@ -121,6 +121,9 @@ public sealed class ProviderHealthService : IProviderHealthService
             DurationMs = result.DurationMs,
             RetryCount = result.RetryCount,
             TranslationRequestId = result.TranslationRequestId,
+            InputTokens = result.InputTokens,
+            OutputTokens = result.OutputTokens,
+            EstimatedCostUsd = result.EstimatedCostUsd,
             OccurredAt = DateTime.UtcNow,
             PolicyVersion = PolicyVersion
         });

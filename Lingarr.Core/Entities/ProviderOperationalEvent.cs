@@ -11,6 +11,9 @@ public class ProviderOperationalEvent : BaseEntity
     public long DurationMs { get; set; }
     public int RetryCount { get; set; }
     public int? TranslationRequestId { get; set; }
+    public long? InputTokens { get; set; }
+    public long? OutputTokens { get; set; }
+    public decimal? EstimatedCostUsd { get; set; }
     public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
     public int PolicyVersion { get; set; } = 1;
 }

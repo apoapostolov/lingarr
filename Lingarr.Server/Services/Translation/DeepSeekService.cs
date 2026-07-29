@@ -10,7 +10,7 @@ using Lingarr.Server.Services.Translation.Base;
 
 namespace Lingarr.Server.Services.Translation;
 
-public class DeepSeekService : BaseLanguageService
+public class DeepSeekService : BaseMeteredLanguageService
 {
     private string? _endpoint = "https://api.deepseek.com";
     private readonly HttpClient _httpClient;
@@ -31,7 +31,7 @@ public class DeepSeekService : BaseLanguageService
         ILogger<DeepSeekService> logger,
         LanguageCodeService languageCodeService,
         IRequestTemplateService requestTemplateService)
-        : base(settings, logger, languageCodeService)
+        : base(settings, logger, languageCodeService, "deepseek")
     {
         _httpClient = httpClient;
         _requestTemplateService = requestTemplateService;
@@ -150,6 +150,13 @@ public class DeepSeekService : BaseLanguageService
             throw new TranslationException("Invalid or empty response from DeepSeek API.");
         }
 
+        if (chatResponse.Usage is not null)
+        {
+            RecordUsage(
+                chatResponse.Model ?? _model,
+                chatResponse.Usage.PromptTokens,
+                chatResponse.Usage.CompletionTokens);
+        }
         return chatResponse.Choices[0].Message.Content.Trim();
     }
 

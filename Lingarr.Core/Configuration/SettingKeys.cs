@@ -5,6 +5,7 @@ public static class SettingKeys
     public static class Dashboard
     {
         public const string ActivityWindowHours = "dashboard_activity_window_hours";
+        public const string PrimaryLanguage = "dashboard_primary_language";
     }
 
     public static class Integration

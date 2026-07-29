@@ -7,14 +7,10 @@ public class M0014_SeedNewAiProviders : Migration
 {
     public override void Up()
     {
-        // Idempotent seeds for new AI provider settings
+        // FluentMigrator quotes the reserved "key" column correctly for every database.
         void Seed(string key, string value)
         {
-            Execute.Sql($@"
-INSERT INTO settings (key, value)
-SELECT '{key}', '{value}'
-WHERE NOT EXISTS (SELECT 1 FROM settings WHERE key = '{key}');
-");
+            Insert.IntoTable("settings").Row(new { key, value });
         }
 
         Seed("openrouter_api_key", "");

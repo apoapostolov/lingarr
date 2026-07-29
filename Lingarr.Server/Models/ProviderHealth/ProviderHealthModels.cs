@@ -70,4 +70,7 @@ public sealed class ProviderOperationalResult
     public long DurationMs { get; init; }
     public int RetryCount { get; init; }
     public int? TranslationRequestId { get; init; }
+    public long? InputTokens { get; init; }
+    public long? OutputTokens { get; init; }
+    public decimal? EstimatedCostUsd { get; init; }
 }

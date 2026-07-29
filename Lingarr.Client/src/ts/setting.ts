@@ -88,7 +88,8 @@ export const SETTINGS = {
     LANGUAGE_CODE_FORMAT: 'language_code_format',
     RADARR_DEFAULT_INCLUDE: 'radarr_default_include',
     SONARR_DEFAULT_INCLUDE: 'sonarr_default_include',
-    DASHBOARD_ACTIVITY_WINDOW_HOURS: 'dashboard_activity_window_hours'
+    DASHBOARD_ACTIVITY_WINDOW_HOURS: 'dashboard_activity_window_hours',
+    DASHBOARD_PRIMARY_LANGUAGE: 'dashboard_primary_language'
 } as const
 
 export interface ISettings {
@@ -170,6 +171,7 @@ export interface ISettings {
     radarr_default_include: string
     sonarr_default_include: string
     dashboard_activity_window_hours: string
+    dashboard_primary_language: string
 }
 
 export const ENCRYPTED_SETTINGS = {

@@ -1,4 +1,4 @@
-# Lingarr documentation (Bedroom fork)
+# Lingarr@Bedroom documentation
 
 | Doc | Description |
 |-----|-------------|

@@ -11,7 +11,7 @@ using Lingarr.Server.Services.Translation.Base;
 
 namespace Lingarr.Server.Services.Translation;
 
-public class AnthropicService : BaseLanguageService, ITranslationService, IBatchTranslationService
+public class AnthropicService : BaseMeteredLanguageService, ITranslationService, IBatchTranslationService
 {
     private readonly string? _endpoint = "https://api.anthropic.com/v1";
     private readonly HttpClient _httpClient;
@@ -37,7 +37,7 @@ public class AnthropicService : BaseLanguageService, ITranslationService, IBatch
         ILogger<AnthropicService> logger,
         LanguageCodeService languageCodeService,
         IRequestTemplateService requestTemplateService)
-        : base(settings, logger, languageCodeService)
+        : base(settings, logger, languageCodeService, "anthropic")
     {
         _httpClient = httpClient;
         _requestTemplateService = requestTemplateService;
@@ -174,6 +174,7 @@ public class AnthropicService : BaseLanguageService, ITranslationService, IBatch
 
                 var responseBody = await response.Content.ReadAsStringAsync(linked.Token);
                 var jsonResponse = JsonSerializer.Deserialize<JsonElement>(responseBody);
+                RecordUsage(jsonResponse);
 
                 var stopReason = jsonResponse.TryGetProperty("stop_reason", out var stopReasonProperty)
                     ? stopReasonProperty.GetString()
@@ -378,6 +379,7 @@ public class AnthropicService : BaseLanguageService, ITranslationService, IBatch
 
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
         var jsonResponse = JsonSerializer.Deserialize<JsonElement>(responseBody);
+        RecordUsage(jsonResponse);
 
         var stopReason = jsonResponse.TryGetProperty("stop_reason", out var stopReasonProperty)
             ? stopReasonProperty.GetString()
@@ -503,5 +505,21 @@ public class AnthropicService : BaseLanguageService, ITranslationService, IBatch
                 Message = "Error fetching models from Anthropic API: " + ex.Message
             };
         }
+    }
+
+    private void RecordUsage(JsonElement response)
+    {
+        if (!response.TryGetProperty("usage", out var usage))
+        {
+            return;
+        }
+
+        var inputTokens = usage.TryGetProperty("input_tokens", out var input)
+            ? input.GetInt64()
+            : 0;
+        var outputTokens = usage.TryGetProperty("output_tokens", out var output)
+            ? output.GetInt64()
+            : 0;
+        RecordUsage(_model, inputTokens, outputTokens);
     }
 }

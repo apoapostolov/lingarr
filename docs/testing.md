@@ -34,6 +34,7 @@ docker run --rm --network=host \
 | `Services/Translation/ZaiServiceTests.cs` | Coding Plan endpoint constants + rewrite of general API URLs |
 | `Services/Translation/ModelCatalogServiceTests.cs` | Model list cache hit, refresh bypass, stale on failure |
 | `Services/Translation/OpenRouterModelOrderingTests.cs` | **`openrouter/free` always first**; inject if catalogue omits |
+| `Services/Translation/LlmPricingCatalogTests.cs` | Known public per-token rates and unknown-model no-guess behaviour |
 | `Services/Translation/TranslationFallbackChainTests.cs` | Subtitle line falls through providers on failure |
 | `Services/TranslationPromptProfileServiceTests.cs` | Immutable prompt versions, AI-only resolution, exact usage history, and protected defaults |
 | `Services/TranslationQualityServiceTests.cs` | Observe-only quality rules, penalties, caps, and scoring |

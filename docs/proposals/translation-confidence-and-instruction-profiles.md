@@ -145,6 +145,11 @@ Expanded inline detail contains:
 - **Test provider** action
 - Link to the relevant Translation Setup row
 
+Healthy rows do not repeat a generic success sentence in their expanded detail.
+When a provider needs attention or is unavailable, the same position instead
+shows a plain-language description of the warning or error family and the
+recovery action.
+
 The test action sends a small, fixed Lingarr-owned diagnostic request for the currently selected source and target languages. It never changes the provider chain or saved credentials. The result remains in the row. (`rule/inline-before-modal`, `rule/error-states-recovery`)
 
 ### 4.2 Health states
@@ -479,7 +484,7 @@ On Translation Detail:
 
 On Translations list:
 
-- Show a compact quality badge for completed requests.
+- Show `Quality: XX%` as quiet secondary text below Completed status.
 - `Quality unavailable` is neutral, not green.
 - `Needs review` is distinct from translation failure.
 
@@ -498,7 +503,7 @@ On Translations list:
 observe-only ruleset. Each completed file receives a versioned assessment, weighted
 low-tail score, plain-language grade, and safe per-line findings. Translation Detail
 provides severity/category filters, re-evaluation, and click-to-focus line review;
-the Translations list shows a compact score badge. Findings store bounded metadata,
+the Translations list shows the score as secondary Completed-status text. Findings store bounded metadata,
 not subtitle text. Checks that require timestamp/duration data remain inactive until
 that data is retained with translated lines, rather than guessing from incomplete
 records.
@@ -522,17 +527,29 @@ The current all-time counters remain available as secondary information, but the
 
 ```text
 ┌────────────────────────────────────────────────────────────┐
-│ Media Overview                                             │
+│ Media Overview + plain-language recent progress            │
 ├─────────────────────────────┬──────────────────────────────┤
 │ Provider Health             │ Recent Activity              │
-├─────────────────────────────┼──────────────────────────────┤
-│ Subtitle Quality            │ Progress Summary             │
+│                             │ + 30-day translation chart   │
+│                             │ + Subtitle Quality           │
 ├─────────────────────────────┴──────────────────────────────┤
-│ Language Activity / trend                                  │
+│ All-time totals                                            │
 └────────────────────────────────────────────────────────────┘
 ```
 
 Use the existing cards, metric cards, chart language, spacing, and theme tokens. This is an information redesign, not a new visual system.
+
+Recent Activity reuses Lingarr's established daily translation chart: daily bars
+with a seven-day moving-average line, labelled axes, dates, legend, and tooltips.
+The chart keeps its 30-day historical scope while the surrounding operational
+metrics and quality results use the configurable recent-hours window.
+
+Media Overview measures current subtitle coverage, not the number of translations
+performed by Lingarr. A borderless primary-language selector sits in the card's
+upper-right corner and persists globally, defaulting to the first configured target
+language. The Movies and TV Episodes counters and bars show distinct media items
+that currently have at least one subtitle in that language. The scheduled
+Statistics job refreshes these filesystem-derived coverage counts.
 
 ### 6.3 Configurable activity window
 
@@ -558,25 +575,41 @@ Replace opaque labels with scoped, outcome-oriented metrics:
 | Lines | **4,382 dialogue lines translated** |
 | Fallbacks | **27 lines used a fallback provider** |
 | Quality | **Average quality score: 92 (Good)** |
-| Provider share | **Microsoft translated 78% of successful lines** |
+| Provider share | **Microsoft completed 11 subtitle files** |
 
 Do not show characters translated as a primary success metric. It remains available in all-time detail because it is technically measurable but not especially meaningful to a user.
 
-### 6.5 Progress Summary panel
+### 6.5 Integrated progress narrative
 
 Add a plain-language summary generated deterministically from structured data, not by an LLM.
 
 Example:
 
-> In the last 48 hours, Lingarr completed 14 subtitle files and translated 4,382 dialogue lines. Twelve files passed quality checks; two need review, mainly because of unusually long lines and untranslated fragments. Microsoft handled most translations. OpenRouter completed 27 lines after fallback. One translation is still running, and no providers are currently unavailable.
+> In the last 48 hours, Lingarr completed 14 subtitle files. Twelve files passed quality checks; two need review. OpenRouter completed 11 subtitle files. Metered LLM work used 40,558 input tokens and returned 56,484 output tokens, with an estimated cost of $4.48. One translation is still running, and no providers are currently unavailable.
+
+Render this as one larger, readable paragraph inside **Media Overview**, below
+the Movies and TV Episodes blocks. Important numerical values, the leading
+provider, token use, and estimated cost use typographic emphasis. Do not add a
+separate headline or Progress Summary card. Dialogue-line totals and the
+busiest language pair remain available in Recent Activity but are intentionally
+omitted from this prose because they do not improve the summary.
+
+The token sentence appears only when the period contains successful metered
+work from OpenRouter, OpenAI, DeepSeek, or Anthropic. Lingarr records the
+provider-reported input/output token counts on the matching operational event.
+OpenRouter's provider-reported cost is preferred. Other supported models use a
+versioned public-price estimate; if a model price is unknown, Lingarr reports
+the token counts without inventing a total cost. Usage tracking begins when the
+supporting release is installed and is not reconstructed from old logs.
 
 The summary follows a stable order:
 
 1. Completed volume
 2. Quality outcome
 3. Provider/fallback behaviour
-4. Active or failed work
-5. Provider health callout
+4. Metered LLM token use and estimated cost, when present
+5. Active or failed work
+6. Provider health callout
 
 Rules:
 
@@ -618,7 +651,7 @@ Index live request queries by status and time. Never scan all translation lines 
 
 ### 6.7 Existing statistics and reset
 
-- Keep Media Overview and language trend.
+- Keep Media Overview and the established 30-day translation trend inside Recent Activity.
 - Rename lifetime metrics to **All-time totals** and visually demote them.
 - Move **Reset statistics** out of the main Dashboard into a future System/Maintenance surface.
 - Resetting historical statistics must not delete translation requests, quality findings, instructions, or provider-health evidence without separate, explicitly named actions. (`rule/name-object-scope-consequence`, `rule/destructive-proportional`)
@@ -1048,8 +1081,8 @@ It never returns provider response bodies, request bodies, credentials, or instr
 
 - Add hourly activity rollups and configurable window.
 - Replace Translation Activity with recent human-readable metrics.
-- Add deterministic Progress Summary.
-- Integrate Provider Health and Subtitle Quality summaries.
+- Add the deterministic progress narrative to Media Overview.
+- Integrate Provider Health and Subtitle Quality into the operational dashboard layout.
 
 ### Phase 4 — Instruction profiles
 

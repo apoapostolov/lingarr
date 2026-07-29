@@ -36,6 +36,7 @@ public class StatisticsJob
         var movieSubtitles = 0;
         var episodeSubtitles = 0;
         var byLanguage = new Dictionary<string, int>();
+        var coverageByLanguageAndMediaType = new Dictionary<string, int>();
         var processedPaths = new HashSet<string>();
         await _scheduleService.UpdateJobState(jobName, JobStatus.Processing.GetDisplayName());
         
@@ -48,7 +49,9 @@ public class StatisticsJob
                 {
                     continue;
                 }
-                var subtitles = await _subtitleService.GetAllSubtitles(movie.Path);
+                var subtitles = string.IsNullOrWhiteSpace(movie.FileName)
+                    ? await _subtitleService.GetAllSubtitles(movie.Path)
+                    : await _subtitleService.GetSubtitles(movie.Path, movie.FileName);
                 movieSubtitles += subtitles.Count;
                 
                 // Group by language for language counts
@@ -59,6 +62,16 @@ public class StatisticsJob
                         byLanguage[subtitle.Language] = 0;
                     }
                     byLanguage[subtitle.Language]++;
+                }
+
+                foreach (var language in subtitles
+                             .Select(subtitle => subtitle.Language.ToLowerInvariant())
+                             .Where(language => !string.IsNullOrWhiteSpace(language))
+                             .Distinct())
+                {
+                    Increment(
+                        coverageByLanguageAndMediaType,
+                        CoverageKey("Movie", language));
                 }
             }
             catch (DirectoryNotFoundException)
@@ -71,6 +84,7 @@ public class StatisticsJob
 
         var shows = await _dbContext.Shows
             .Include(s => s.Seasons)
+            .ThenInclude(season => season.Episodes)
             .ToListAsync();
 
         foreach (var show in shows)
@@ -99,6 +113,33 @@ public class StatisticsJob
                         }
                         byLanguage[subtitle.Language]++;
                     }
+
+                    foreach (var episode in season.Episodes)
+                    {
+                        if (string.IsNullOrWhiteSpace(episode.FileName))
+                        {
+                            continue;
+                        }
+
+                        var episodeLanguages = subtitles
+                            .Where(subtitle =>
+                                subtitle.FileName.Equals(
+                                    episode.FileName,
+                                    StringComparison.OrdinalIgnoreCase) ||
+                                subtitle.FileName.StartsWith(
+                                    episode.FileName + ".",
+                                    StringComparison.OrdinalIgnoreCase))
+                            .Select(subtitle => subtitle.Language.ToLowerInvariant())
+                            .Where(language => !string.IsNullOrWhiteSpace(language))
+                            .Distinct();
+
+                        foreach (var language in episodeLanguages)
+                        {
+                            Increment(
+                                coverageByLanguageAndMediaType,
+                                CoverageKey("Episode", language));
+                        }
+                    }
                 }
                 catch (DirectoryNotFoundException)
                 {
@@ -118,8 +159,20 @@ public class StatisticsJob
         stats.TotalEpisodes = await _dbContext.Episodes.CountAsync();
         stats.TotalMovies = movies.Count;
         stats.TotalSubtitles = movieSubtitles + episodeSubtitles;
+        foreach (var (key, count) in coverageByLanguageAndMediaType)
+        {
+            byLanguage[key] = count;
+        }
         stats.SubtitlesByLanguage = byLanguage;
         await _dbContext.SaveChangesAsync();
         await _scheduleService.UpdateJobState(jobName, JobStatus.Succeeded.GetDisplayName());
+    }
+
+    private static string CoverageKey(string mediaType, string language) =>
+        $"coverage:{mediaType}:{language.ToLowerInvariant()}";
+
+    private static void Increment(Dictionary<string, int> counts, string key)
+    {
+        counts[key] = counts.GetValueOrDefault(key) + 1;
     }
 }
