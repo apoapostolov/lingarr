@@ -46,6 +46,26 @@ msbuild.wrn
 /SQL
 deployment/
 
+# Local secrets and credentials
+.env
+.env.*
+!.env.example
+**/secrets/
+**/credentials/
+*.secret
+*.secrets
+*.pem
+*.key
+*.pfx
+*.p12
+
+# Runtime database state and SQLite sidecars
+*.db-shm
+*.db-wal
+*.db-journal
+Hangfire.db*
+local.db
+
 # Logs
 nas_logs.txt
 nas_logs_window.txt
@@ -58,4 +78,3 @@ local_nas.db
 # Ansible
 ansible_env/
 .nuget-packages/
-

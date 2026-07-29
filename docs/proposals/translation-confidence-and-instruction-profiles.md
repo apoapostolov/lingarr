@@ -1,6 +1,6 @@
 # Proposal: Translation confidence, provider health, dashboard narrative, and AI instruction profiles
 
-**Status:** In implementation — Provider Health complete; remaining workstreams in progress
+**Status:** Implemented through Phase 4; Phase 5 evidence-based hardening remains proposed
 
 **Scope:** Bedroom fork provider observability, post-translation quality assessment, Dashboard redesign, and versioned AI instruction profiles
 

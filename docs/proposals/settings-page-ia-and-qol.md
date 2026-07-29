@@ -4,7 +4,7 @@
 
 **Scope:** Bedroom fork settings navigation, organization, validation, and a small set of operator controls
 
-**Related:** [ai-providers-model-fallback-chain.md](../ai-providers-model-fallback-chain.md), [architecture.md](../architecture.md), [bedroom-reliability-development-plan.md](../bedroom-reliability-development-plan.md)
+**Related:** [ai-providers-model-fallback-chain.md](../ai-providers-model-fallback-chain.md), [architecture.md](../architecture.md)
 
 **Audience:** Product, UI, and backend contributors to Lingarr Next settings
 

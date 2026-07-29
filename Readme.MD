@@ -230,7 +230,7 @@ See [Settings.MD](Settings.MD) for the full environment-variable reference.
 - [AI providers, model selection, and fallback chains](docs/ai-providers-model-fallback-chain.md)
 - [Provider health, subtitle quality, Dashboard, and instruction profiles](docs/proposals/translation-confidence-and-instruction-profiles.md)
 - [Settings information architecture](docs/proposals/settings-page-ia-and-qol.md)
-- [Bedroom reliability work](docs/bedroom-reliability-development-plan.md)
+- [Current AI-assisted development plan](DEVELOPMENT_PLAN.md)
 - [API documentation sources](Lingarr.Docs/)
 
 ## Development and contributing

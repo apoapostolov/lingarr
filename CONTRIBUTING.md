@@ -80,8 +80,7 @@ The project is organized into several key components:
 - `Lingarr.Server/`: Backend application
 - `Lingarr.Core/`: Core domain models and interfaces
 - `Lingarr.Client/`: Vue.js frontend application
-- `Lingarr.Migrations.SQLite/`: SQLite database migrations
-- `Lingarr.Migrations.MySQL/`: MySQL database migrations
+- `Lingarr.Migrations/`: shared database migrations for SQLite, MySQL, and PostgreSQL
 
 ## Building and Testing
 
