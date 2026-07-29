@@ -15,6 +15,8 @@ to sort before or after versions published by upstream Lingarr.
 - Retained compatibility-sensitive technical identifiers such as namespaces,
   encrypted-setting scope, authentication cookie, and `lingarr-bedroom` image
   name.
+- Renamed the primary branch from `bedroom` to `next`; successful `next` builds
+  now publish both the `next` and `latest` container tags.
 
 ## [1.0.0] - 2026-07-29
 
