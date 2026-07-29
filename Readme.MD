@@ -2,7 +2,7 @@
 
 [![Version](https://img.shields.io/github/v/release/apoapostolov/lingarr?label=release)](https://github.com/apoapostolov/lingarr/releases)
 [![Container](https://img.shields.io/badge/container-ghcr.io%2Fapoapostolov%2Flingarr-2496ED?logo=docker&logoColor=white)](https://github.com/apoapostolov/lingarr/pkgs/container/lingarr)
-[![CI](https://github.com/apoapostolov/lingarr/actions/workflows/ci.yml/badge.svg?branch=bedroom)](https://github.com/apoapostolov/lingarr/actions/workflows/ci.yml)
+[![CI](https://github.com/apoapostolov/lingarr/actions/workflows/ci.yml/badge.svg?branch=next)](https://github.com/apoapostolov/lingarr/actions/workflows/ci.yml)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-active-brightgreen)](https://github.com/apoapostolov/lingarr)
@@ -147,7 +147,7 @@ container:
 ```yaml
 services:
   lingarr:
-    image: ghcr.io/apoapostolov/lingarr:1.0.0
+    image: ghcr.io/apoapostolov/lingarr:latest
     container_name: lingarr
     restart: unless-stopped
     ports:
@@ -188,7 +188,7 @@ Before changing from upstream Lingarr or an older fork build:
 1. Back up `/app/config` and your application database.
 2. Review [CHANGELOG.md](CHANGELOG.md), especially migrations and provider
    configuration.
-3. Change the image to `ghcr.io/apoapostolov/lingarr:1.0.0`.
+3. Change the image to `ghcr.io/apoapostolov/lingarr:latest`.
 4. Start the container and allow the automatic database migrations to finish.
 5. Confirm the translation chain, paths, prompt profiles, and provider health
    before starting a large automated run.
