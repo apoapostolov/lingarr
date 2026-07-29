@@ -210,8 +210,8 @@ public class OpenRouterService : BaseMeteredLanguageService
         };
 
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-        request.Headers.Add("HTTP-Referer", "https://github.com/lingarr-translate/lingarr");
-        request.Headers.Add("X-Title", "Lingarr");
+        request.Headers.Add("HTTP-Referer", "https://github.com/apoapostolov/lingarr");
+        request.Headers.Add("X-Title", "Lingarr Next");
 
         var response = await _httpClient.SendAsync(request, cancellationToken);
 
@@ -246,8 +246,8 @@ public class OpenRouterService : BaseMeteredLanguageService
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
             }
-            _httpClient.DefaultRequestHeaders.Add("HTTP-Referer", "https://github.com/lingarr-translate/lingarr");
-            _httpClient.DefaultRequestHeaders.Add("X-Title", "Lingarr");
+            _httpClient.DefaultRequestHeaders.Add("HTTP-Referer", "https://github.com/apoapostolov/lingarr");
+            _httpClient.DefaultRequestHeaders.Add("X-Title", "Lingarr Next");
 
             var response = await _httpClient.GetAsync("https://openrouter.ai/api/v1/models");
 

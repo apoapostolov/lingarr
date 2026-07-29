@@ -30,7 +30,7 @@ public class LingarrApiService : ILingarrApiService
         // Check cache first
         if (_cache.TryGetValue(CacheKeyLatestVersion, out string? cachedVersion))
         {
-            _logger.LogDebug("Returning cached version information from Lingarr API");
+            _logger.LogDebug("Returning cached version information from Lingarr Next API");
             return cachedVersion;
         }
 

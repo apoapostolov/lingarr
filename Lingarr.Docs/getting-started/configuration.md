@@ -1,13 +1,13 @@
 # Configuration
 
-Lingarr is primarily configured through its web interface. However, every setting can also be provided as an environment variable.
+Lingarr Next is primarily configured through its web interface. However, every setting can also be provided as an environment variable.
 
 ## General
 
 | **Environment Variable** | **Description** |
 |--------------------------|-----------------|
-| `ASPNETCORE_URLS=http://+:9876` | The internal port that Lingarr will listen on inside the container. |
-| `BASE_PATH` | Optional URL prefix to host Lingarr under a sub-path (e.g., behind a reverse proxy). Example: `/lingarr`. Leave unset to serve from the root. |
+| `ASPNETCORE_URLS=http://+:9876` | The internal port that Lingarr Next will listen on inside the container. |
+| `BASE_PATH` | Optional URL prefix to host Lingarr Next under a sub-path (e.g., behind a reverse proxy). Example: `/lingarr`. Leave unset to serve from the root. |
 | `MAX_CONCURRENT_JOBS=1` | Sets the amount of jobs that can run concurrently, defaults to 1. |
 
 ## Database

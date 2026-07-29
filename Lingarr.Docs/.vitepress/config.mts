@@ -8,8 +8,8 @@ export default defineConfig({
             }
         }
     },
-    title: 'Lingarr',
-    description: 'Documentation for Lingarr, the subtitle translation service.',
+    title: 'Lingarr Next',
+    description: 'Documentation for Lingarr Next, the subtitle translation service.',
     themeConfig: {
         outline: { level: [2, 3] },
         nav: [

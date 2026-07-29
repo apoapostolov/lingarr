@@ -1,4 +1,4 @@
-# Testing Lingarr (Bedroom fork)
+# Testing Lingarr Next
 
 ## Test pyramid
 
@@ -47,7 +47,7 @@ Media include flags, subtitle processors (SSA/ASS), language codes, Gemini servi
 
 ## API smoke (live)
 
-Requires a running Lingarr (Bedroom default `http://127.0.0.1:9876`).
+Requires a running Lingarr Next instance (Bedroom default `http://127.0.0.1:9876`).
 
 ```bash
 # Required free-path checks (microsoft translate + plugin shapes)
@@ -89,7 +89,7 @@ LINGARR_URL=http://192.168.1.10:9876 python3 tests/smoke/smoke_api.py
 1. Open Dashboard in a fresh tab without visiting Movies, TV Shows, or Path mapping.
 2. Deploy a client build with different asset hashes.
 3. In the still-open tab, open one of those lazy-loaded pages.
-4. Lingarr should refresh once and arrive on the requested page without a blank
+4. Lingarr Next should refresh once and arrive on the requested page without a blank
    view or repeated refresh.
 5. A removed `/assets/<old-hash>.js` URL must return 404, while `/` returns
    `Cache-Control: no-cache, no-store, must-revalidate`.

@@ -1,4 +1,4 @@
-# Bedroom Lingarr reliability — development plan
+# Lingarr Next Bedroom reliability — development plan
 
 **Date:** 2026-07-26  
 **Source:** Docker audit of container `lingarr` (`lingarr-bedroom:latest`) + fork `/mnt/c/git-ext/lingarr`  

@@ -1,5 +1,5 @@
 name: Bug Report
-description: Create a report to help us improve Lingarr@Bedroom
+description: Create a report to help us improve Lingarr Next
 title: '[BUG] Provide a descriptive title'
 labels: 
   - bug
@@ -13,7 +13,7 @@ body:
     id: version
     attributes:
       label: Lingarr version
-      description: Which version are you running? Check the footer of the Lingarr UI or your Docker image tag. Use a released Lingarr@Bedroom version.
+      description: Which version are you running? Check the footer of the Lingarr Next UI or your Docker image tag. Use a released Lingarr Next version.
       placeholder: 1.0.0
     validations:
       required: true

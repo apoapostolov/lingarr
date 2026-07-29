@@ -1,4 +1,4 @@
-# Lingarr@Bedroom documentation
+# Lingarr Next documentation
 
 | Doc | Description |
 |-----|-------------|

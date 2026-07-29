@@ -1,7 +1,7 @@
 <template>
     <CardComponent title="Radarr">
         <template #description>
-            Connect Lingarr to Radarr and choose whether new movie imports are included.
+            Connect Lingarr Next to Radarr and choose whether new movie imports are included.
         </template>
         <template #content>
             <SaveNotification ref="radarrSaveNotification" />
@@ -32,7 +32,7 @@
 
     <CardComponent title="Sonarr">
         <template #description>
-            Connect Lingarr to Sonarr and choose whether new TV imports are included.
+            Connect Lingarr Next to Sonarr and choose whether new TV imports are included.
         </template>
         <template #content>
             <SaveNotification ref="sonarrSaveNotification" />

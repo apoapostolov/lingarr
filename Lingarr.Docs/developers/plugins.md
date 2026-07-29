@@ -1,6 +1,6 @@
-# Lingarr plugin API
+# Lingarr Next plugin API
 
-Lingarr can be extended with your own translation services (like LLM providers or other services) without changing the main Lingarr code.
+Lingarr Next can be extended with your own translation services (such as LLM providers or other services) without changing the main application code.
 You create a plugin as a .NET 10 class library (a DLL file) that references the `Lingarr.Contracts` package. 
 
 ## What you can extend
@@ -8,7 +8,7 @@ You create a plugin as a .NET 10 class library (a DLL file) that references the 
 | Interface | Used for                                                                                                     |
 |-----------|--------------------------------------------------------------------------------------------------------------|
 | `ITranslationService` | Any translation service (AI, API-based, or rule-based). This is the main interface for adding a new service. |
-| `IPluginManifest` | Describes your provider's settings so they appear nicely in the Lingarr UI.                                                      |
+| `IPluginManifest` | Describes your provider's settings so they appear nicely in the Lingarr Next UI.                                                 |
 
 A single plugin can include one or both of these.
 
@@ -24,14 +24,14 @@ Every plugin must also declare the plugin API version:
 ```csharp
 [assembly: LingarrPluginApiVersion(1, 0)]
 ```
-This version is based on `Lingarr.Contracts`, not the main Lingarr version.
+This version is based on `Lingarr.Contracts`, not the main Lingarr Next version.
 
 ## How plugins are loaded
 
-Lingarr scans a folder specified by the `PLUGINS_PATH` environment variable at startup.
+Lingarr Next scans a folder specified by the `PLUGINS_PATH` environment variable at startup.
 
 - If the env var `PLUGINS_PATH` is not set, plugins are disabled.
-- If the folder doesn’t exist, Lingarr logs a warning and continues.
+- If the folder doesn’t exist, Lingarr Next logs a warning and continues.
 - Failed or incompatible plugins are skipped (they shouldn't crash the application).
 
 ## Reserved identifiers
@@ -49,7 +49,7 @@ Do not use these plugin identifiers (they are used by built-in providers):
 - Plugins can only read settings, they cannot write them.
 
 ## HTTP and retry
-Get Lingarr's shared HTTP settings from:
+Get Lingarr Next's shared HTTP settings from:
 ```csharp
 var httpSettings = await settingsAccess.GetHttpSettingsAsync();
 ```
@@ -59,7 +59,7 @@ See the sample plugin for a full example of HTTP handling and retries.
 ## Important Rules
 
 - Only depend on `Lingarr.Contracts`, this is the only stable API.
-- Plugins share the same process. Use dependency versions compatible with Lingarr to avoid conflicts.
+- Plugins share the same process. Use dependency versions compatible with Lingarr Next to avoid conflicts.
 - Plugins run with full permissions (no sandbox). Only add DLLs you trust.
 
 ## Reference plugin

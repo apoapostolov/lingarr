@@ -1,17 +1,17 @@
 # AI services
 
-How to set up an AI translation service in Lingarr.
+How to set up an AI translation service in Lingarr Next.
 
 All AI services follow the same pattern: select the service, provide an API key, and choose a model.
 
 ## How to set up
 
-1. In the Lingarr web interface, go to **Settings > Services**.
+1. In the Lingarr Next web interface, go to **Settings > Services**.
 2. Select your AI service in the primary service dropdown, or click **Add fallback service** to use it as a fallback.
 3. Click the gear icon on the service row to configure its credentials.
 4. Enter the API key and choose a model. Self-hosted services such as [LocalAI](#localai) also ask for an endpoint.
 
-    When a service asks for an endpoint, enter the full URL that Lingarr sends requests to, including the path. A base URL such as `http://localhost:8080` will not work.
+    When a service asks for an endpoint, enter the full URL that Lingarr Next sends requests to, including the path. A base URL such as `http://localhost:8080` will not work.
     
     The path also determines which protocol is used:
     

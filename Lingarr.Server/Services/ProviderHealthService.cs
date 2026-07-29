@@ -214,7 +214,7 @@ public sealed class ProviderHealthService : IProviderHealthService
             }
 
             _ = await service.TranslateAsync(
-                "Lingarr health check.",
+                "Lingarr Next health check.",
                 pair.Source,
                 pair.Target,
                 null,
@@ -561,7 +561,7 @@ public sealed class ProviderHealthService : IProviderHealthService
         "quota" => "The provider quota or account balance is unavailable.",
         "rate_limit" => "The provider is rate limiting requests. Wait and try again.",
         "timeout" => "The provider did not respond before the timeout.",
-        "network" => "Lingarr could not reach the provider.",
+        "network" => "Lingarr Next could not reach the provider.",
         "provider_unavailable" => "The provider is temporarily unavailable.",
         _ => "The provider test failed. Open Logs for technical details."
     };

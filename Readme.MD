@@ -1,4 +1,4 @@
-# Lingarr@Bedroom
+# Lingarr Next
 
 [![Version](https://img.shields.io/github/v/release/apoapostolov/lingarr?label=release)](https://github.com/apoapostolov/lingarr/releases)
 [![Container](https://img.shields.io/badge/container-ghcr.io%2Fapoapostolov%2Flingarr-2496ED?logo=docker&logoColor=white)](https://github.com/apoapostolov/lingarr/pkgs/container/lingarr)
@@ -7,17 +7,17 @@
 [![License](https://img.shields.io/badge/license-AGPL--3.0-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-active-brightgreen)](https://github.com/apoapostolov/lingarr)
 
-Lingarr@Bedroom is a self-hosted subtitle translation manager for movie and TV
+Lingarr Next is a self-hosted subtitle translation manager for movie and TV
 libraries. It discovers subtitles through Sonarr and Radarr, translates them
 with local, free, or paid providers, and makes the result understandable through
 provider health, subtitle quality scores, fallback reporting, and recent-work
 statistics.
 
 <p align="center">
-  <img src="docs/images/dashboard-overview.png" alt="Lingarr@Bedroom Dashboard showing language coverage, provider health, and recent translation activity" width="100%" />
+  <img src="docs/images/dashboard-overview.png" alt="Lingarr Next Dashboard showing language coverage, provider health, and recent translation activity" width="100%" />
 </p>
 
-> **About this fork:** Lingarr@Bedroom is a separate fork of
+> **About this fork:** Lingarr Next is a separate fork of
 > [Lingarr](https://github.com/lingarr-translate/lingarr), maintained by
 > **Apostol Apostolov**. It exists to speed up development independently from
 > upstream's strict no-AI development rules. AI-assisted development is welcome
@@ -25,12 +25,12 @@ statistics.
 > accountability.
 
 > **Self-hosted:** This repository does not provide a public translation
-> service. You run Lingarr@Bedroom and connect your own media libraries and
+> service. You run Lingarr Next and connect your own media libraries and
 > translation providers.
 
 ## What's new in 1.0.0
 
-Version 1.0.0 establishes the independent Lingarr@Bedroom release line. It
+Version 1.0.0 establishes the independent Lingarr Next release line. It
 combines the Bedroom work to date into one supported baseline:
 
 - A redesigned Dashboard explains subtitle coverage, provider health, recent
@@ -93,7 +93,7 @@ Read the complete [1.0.0 changelog](CHANGELOG.md).
 
 AI services expose model selectors where supported. A translation chain may use
 the same provider more than once with different models. OpenRouter keeps
-`openrouter/free` first as the Bedroom default for inexpensive bulk work, with
+`openrouter/free` first as the Lingarr Next default for inexpensive bulk work, with
 `openrouter/auto` second and the remaining catalogue after it.
 
 ### Instruction profiles
@@ -113,7 +113,7 @@ the same provider more than once with different models. OpenRouter keeps
 - Translation has local **Setup**, **Subtitles**, **Prompts**, and **Advanced**
   tabs.
 - Translation Services are placed before Languages and retain the familiar
-  Lingarr card and field vocabulary.
+  Lingarr Next card and field vocabulary.
 - Save notifications use a visible theme-aligned toast with restrained spring
   motion and rate limiting.
 - Anonymous telemetry and its onboarding step are completely removed.
@@ -121,7 +121,7 @@ the same provider more than once with different models. OpenRouter keeps
   repository.
 
 <p align="center">
-  <img src="docs/images/translation-settings.png" alt="Lingarr@Bedroom Translation settings with local tabs, provider fallback chain, language selection, and provider health" width="100%" />
+  <img src="docs/images/translation-settings.png" alt="Lingarr Next Translation settings with local tabs, provider fallback chain, language selection, and provider health" width="100%" />
 </p>
 
 ### Reliability
@@ -179,11 +179,11 @@ environment variables.
 
 ## Updating and migration
 
-Lingarr@Bedroom begins its own version line at **1.0.0**. That number is
+Lingarr Next begins its own version line at **1.0.0**. That number is
 independent from upstream Lingarr versions and should not be compared
 numerically with an upstream `1.x` tag.
 
-Before changing from upstream Lingarr or an older Bedroom build:
+Before changing from upstream Lingarr or an older fork build:
 
 1. Back up `/app/config` and your application database.
 2. Review [CHANGELOG.md](CHANGELOG.md), especially migrations and provider
@@ -212,7 +212,7 @@ Common environment variables:
 | `TARGET_LANGUAGES` | Minified JSON list of target languages |
 | `RADARR_URL` / `RADARR_API_KEY` | Radarr connection |
 | `SONARR_URL` / `SONARR_API_KEY` | Sonarr connection |
-| `AUTH_ENABLED` | Enable Lingarr authentication |
+| `AUTH_ENABLED` | Enable Lingarr Next authentication |
 | `BASE_PATH` | Optional reverse-proxy path prefix |
 
 See [Settings.MD](Settings.MD) for the full environment-variable reference.
@@ -239,7 +239,7 @@ Start with [CONTRIBUTING.md](CONTRIBUTING.md), [AGENTS.md](AGENTS.md), and the
 
 ## Upstream and credits
 
-Lingarr@Bedroom is built on the work of the
+Lingarr Next is built on the work of the
 [Lingarr project](https://github.com/lingarr-translate/lingarr) and its
 contributors. Upstream remains a source for selective, reviewed imports; this
 fork has its own roadmap, releases, container images, update checks, and support

@@ -1,5 +1,5 @@
 <template>
-    <CardComponent title="Lingarr Roadmap" description="">
+    <CardComponent title="Lingarr Next Roadmap" description="">
         <template #description>Improvements, both completed and planned.</template>
         <template #content>
             <div v-for="(item, index) in roadmapItems" :key="index" class="flex justify-center">

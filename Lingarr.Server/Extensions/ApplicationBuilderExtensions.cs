@@ -33,7 +33,7 @@ public static class ApplicationBuilderExtensions
             app.UseSwaggerUI(options =>
             {
                 options.SwaggerEndpoint($"/swagger/{LingarrVersion.Number}/swagger.json",
-                    $"Lingarr HTTP API {LingarrVersion.Number}");
+                    $"Lingarr Next HTTP API {LingarrVersion.Number}");
                 options.EnableTryItOutByDefault();
             });
         }

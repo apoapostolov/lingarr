@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Lingarr Bedroom API smoke / regression checks.
+Lingarr Next API smoke / regression checks.
 
 Default target: http://127.0.0.1:9876 (running lingarr-bedroom container).
 Does not require AI credits for the free scraper path; optional AI checks if keys are set.

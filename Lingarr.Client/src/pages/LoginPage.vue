@@ -1,7 +1,7 @@
 <template>
     <div class="flex min-h-screen items-center justify-center px-4">
         <div class="w-full max-w-sm">
-            <CardComponent title="Sign in to Lingarr">
+            <CardComponent title="Sign in to Lingarr Next">
                 <template #content>
                     <div
                         v-if="error"

@@ -2,9 +2,9 @@
 layout: home
 
 hero:
-    name: Lingarr@Bedroom
+    name: Lingarr Next
     text: Automated subtitle translation
-    tagline: Documentation for the Lingarr@Bedroom subtitle translation fork
+    tagline: Documentation for the Lingarr Next subtitle translation fork
     actions:
         - theme: brand
           text: Getting Started

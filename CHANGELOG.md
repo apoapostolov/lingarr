@@ -1,20 +1,31 @@
 # Changelog
 
-All notable changes to Lingarr@Bedroom are documented here.
+All notable changes to Lingarr Next are documented here.
 
-Lingarr@Bedroom uses an independent version line. Its versions are not intended
+Lingarr Next uses an independent version line. Its versions are not intended
 to sort before or after versions published by upstream Lingarr.
+
+## [Unreleased]
+
+### Branding
+
+- Renamed the fork to **Lingarr Next** across the application interface,
+  generated Dashboard language, documentation, contributor material, support
+  forms, API metadata, subtitle metadata, and provider-facing identity.
+- Retained compatibility-sensitive technical identifiers such as namespaces,
+  encrypted-setting scope, authentication cookie, and `lingarr-bedroom` image
+  name.
 
 ## [1.0.0] - 2026-07-29
 
-This is the first consolidated release of **Lingarr@Bedroom**, the separate fork
+This is the first consolidated release of **Lingarr Next**, the separate fork
 maintained by Apostol Apostolov.
 
 ### Dashboard and translation confidence
 
 - Added a redesigned operational Dashboard centered on useful, recent
   information instead of lifetime-only totals.
-- Restored Lingarr's readable historical translation graph inside Recent
+- Restored Lingarr Next's readable historical translation graph inside Recent
   Activity.
 - Added a configurable recent-activity window, normally 48 hours.
 - Added a natural-language summary of completed subtitle files, quality results,
@@ -68,7 +79,7 @@ maintained by Apostol Apostolov.
 ### Settings and interface
 
 - Reorganized Settings into Connections, Translation, Automation, System, and
-  Plugins while preserving Lingarr's existing cards and control vocabulary.
+  Plugins while preserving Lingarr Next's existing cards and control vocabulary.
 - Added local Translation tabs for Setup, Subtitles, Prompts, and Advanced.
 - Placed Translation Services before Languages and clarified ordered fallback
   editing.
@@ -92,7 +103,7 @@ maintained by Apostol Apostolov.
 - Replaced strict completed dates with compact relative times such as `30 m` and
   `7 d`.
 - Refined card, badge, and progress colors to remain compatible with every
-  Lingarr theme.
+  Lingarr Next theme.
 - Added optional subtitle paths to content-translation API requests and made
   content titles optional.
 - Hardened cross-platform basename handling in the Translations list.

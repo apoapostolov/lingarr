@@ -1,10 +1,10 @@
-# Contributing to Lingarr
+# Contributing to Lingarr Next
 
-Thank you for your interest in contributing to Lingarr!   
+Thank you for your interest in contributing to Lingarr Next!
 This document provides guidelines and instructions for contributing to the project.
 
 ### General Guidelines
-- Lingarr welcomes suggestions for improving these standards. Please provide feedback through issues or discussions.
+- Lingarr Next welcomes suggestions for improving these standards. Please provide feedback through issues or discussions.
 - **AI assisted** coding is welcome, however:
   - Contributors must understand and be able to explain all submitted code
   - Low-effort, unreviewed, or fully generated changes ("AI slop") will be rejected
@@ -108,7 +108,7 @@ The frontend supports hot reload while the backend needs to be rebuilt each time
 
 | Service    | URL                                           |
 |------------|-----------------------------------------------|
-| Lingarr    | http://localhost:9876                         |
+| Lingarr Next | http://localhost:9876                       |
 | Swagger    | http://localhost:9877/swagger/index.html      |
 | Hangfire   | http://localhost:9877/hangfire                |
 | phpmyadmin | http://localhost:9878                         |
@@ -117,7 +117,7 @@ The frontend supports hot reload while the backend needs to be rebuilt each time
 
 ## Database Migrations
 
-Lingarr uses [FluentMigrator](https://fluentmigrator.github.io/) with a single shared migration project (`Lingarr.Migrations`) that supports SQLite, MySQL, and PostgreSQL.
+Lingarr Next uses [FluentMigrator](https://fluentmigrator.github.io/) with a single shared migration project (`Lingarr.Migrations`) that supports SQLite, MySQL, and PostgreSQL.
 
 ### Creating New Migrations
 Add a new file to `Lingarr.Migrations/Migrations/` following the naming convention:
@@ -157,4 +157,4 @@ Migrations are automatically applied when the application starts.
 
 ## License
 
-By contributing to Lingarr, you agree that your contributions will be licensed under the project's GNU Affero General Public License v3.0.
+By contributing to Lingarr Next, you agree that your contributions will be licensed under the project's GNU Affero General Public License v3.0.

@@ -1,7 +1,7 @@
 <template>
     <div class="flex min-h-screen items-center justify-center px-4">
         <div class="w-full max-w-3xl">
-            <CardComponent title="Welcome to Lingarr">
+            <CardComponent title="Welcome to Lingarr Next">
                 <template #description>Let's set up your authentication preferences</template>
                 <template #content>
                     <div

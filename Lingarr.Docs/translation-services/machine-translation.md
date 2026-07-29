@@ -1,10 +1,10 @@
 # Machine translation
 
-How to set up a machine translation service in Lingarr.
+How to set up a machine translation service in Lingarr Next.
 
 ## LibreTranslate
 
-LibreTranslate is a free, self-hosted translation service. Run it alongside Lingarr with Docker Compose:
+LibreTranslate is a free, self-hosted translation service. Run it alongside Lingarr Next with Docker Compose:
 
 ```yaml
   LibreTranslate:
@@ -52,7 +52,7 @@ LibreTranslate container variables:
 
 Note that LibreTranslate's configuration can change over time. Refer to the [LibreTranslate project](https://github.com/LibreTranslate/LibreTranslate/) for the current options.
 
-Lingarr variables for LibreTranslate:
+Lingarr Next variables for LibreTranslate:
 
 | **Environment Variable** | **Description** |
 |--------------------------|-----------------|

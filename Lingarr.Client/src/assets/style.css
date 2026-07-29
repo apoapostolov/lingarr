@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 @config '../../tailwind.config.mjs';
 
-/* Default Lingarr theme */
+/* Default Lingarr Next theme */
 @layer base {
     :root {
         --primary: #1a202c;

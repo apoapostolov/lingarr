@@ -70,13 +70,13 @@ public static class ServiceCollectionExtensions
         {
             options.SwaggerDoc(LingarrVersion.Number, new OpenApiInfo
             {
-                Title = "Lingarr HTTP API",
+                Title = "Lingarr Next HTTP API",
                 Version = LingarrVersion.Number,
-                Description = "Lingarr HTTP API definition",
+                Description = "Lingarr Next HTTP API definition",
                 License = new OpenApiLicense
                 {
                     Name = "GNU Affero General Public License v3.0",
-                    Url = new Uri("https://github.com/lingarr-translate/lingarr/blob/main/LICENSE")
+                    Url = new Uri("https://github.com/apoapostolov/lingarr/blob/bedroom/LICENSE")
                 }
             });
             

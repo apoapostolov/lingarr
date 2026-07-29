@@ -34,7 +34,7 @@ jobs:
               owner,
               repo,
               issue_number: issueNumber,
-              body: 'Closing this issue because the submitted version does not match a published Lingarr@Bedroom release. Please update to or select a released version and submit the report again.',
+              body: 'Closing this issue because the submitted version does not match a published Lingarr Next release. Please update to or select a released version and submit the report again.',
             });
 
             await github.rest.issues.addLabels({

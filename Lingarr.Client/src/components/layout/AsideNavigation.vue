@@ -13,7 +13,7 @@
                 class="absolute top-1 right-1 block h-6 w-6 cursor-pointer md:hidden"
                 @click="isOpen = false" />
             <div class="flex h-16 items-center justify-center">
-                <h1 class="text-xl font-bold">Lingarr@Bedroom</h1>
+                <h1 class="text-xl font-bold">Lingarr Next</h1>
             </div>
             <!-- Navigation -->
             <nav class="grow overflow-y-auto p-6">

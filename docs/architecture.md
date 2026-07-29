@@ -1,10 +1,10 @@
-# Lingarr architecture (Bedroom fork)
+# Lingarr Next architecture
 
 This document describes the **apoapostolov/lingarr** fork as deployed on Bedroom (`lingarr-bedroom` image). Upstream conceptual design is the same; Bedroom-specific behaviour is called out explicitly.
 
-## 1. What Lingarr is
+## 1. What Lingarr Next is
 
-Lingarr is a self-hosted **subtitle translation** application. It:
+Lingarr Next is a self-hosted **subtitle translation** application. It:
 
 1. Syncs media metadata from **Sonarr** / **Radarr** (optional path mapping).
 2. Discovers subtitle files next to media.
@@ -189,7 +189,7 @@ The Bedroom settings rail has five stable destinations:
 Connections, Translation, and System use route-backed local tabs. Legacy settings paths redirect to
 the equivalent new route so saved links continue to work.
 
-Most valid setting fields retain Lingarr's immediate-save behavior. Compound Path mapping edits keep
+Most valid setting fields retain Lingarr Next's immediate-save behavior. Compound Path mapping edits keep
 their explicit save action.
 
 ### 6.2 Translation Setup

@@ -1,4 +1,4 @@
-# AGENTS.md — Bedroom Lingarr fork
+# AGENTS.md — Lingarr Next fork
 
 Guidance for humans and coding agents working in **this** repo (`apoapostolov/lingarr`), not upstream.
 

@@ -1,7 +1,7 @@
 ﻿<template>
     <CardComponent title="Indexing">
         <template #description>
-            The media indexing schedule controls the iteration with which Lingarr should sync with
+            The media indexing schedule controls the iteration with which Lingarr Next should sync with
             Sonarr and Radarr.
         </template>
         <template #content>

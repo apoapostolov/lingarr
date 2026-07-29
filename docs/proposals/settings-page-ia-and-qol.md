@@ -6,16 +6,16 @@
 
 **Related:** [ai-providers-model-fallback-chain.md](../ai-providers-model-fallback-chain.md), [architecture.md](../architecture.md), [bedroom-reliability-development-plan.md](../bedroom-reliability-development-plan.md)
 
-**Audience:** Product, UI, and backend contributors to Lingarr settings
+**Audience:** Product, UI, and backend contributors to Lingarr Next settings
 
 ---
 
 ## 1. Decision summary
 
-Reorganize the existing settings without replacing Lingarr's interaction model.
+Reorganize the existing settings without replacing Lingarr Next's interaction model.
 
 1. Reduce the settings rail to five stable destinations: **Connections**, **Translation**, **Automation**, **System**, and **Plugins**.
-2. Keep Lingarr's existing responsive card grid, compact navigation, theme tokens, and immediate save behavior.
+2. Keep Lingarr Next's existing responsive card grid, compact navigation, theme tokens, and immediate save behavior.
 3. Use route-backed tabs only where a destination contains distinct tasks. Do not add an in-page table of contents, accordion hierarchy, or a second permanent sidebar.
 4. Add explicit **saving**, **saved**, **validation error**, and **save failed** feedback instead of a sticky Save bar and unsaved-change guard.
 5. Promote Path mapping into Connections, but preserve its specialized editor and explicit save action.
@@ -30,22 +30,22 @@ This is an information-architecture correction, not a visual redesign or a vehic
 
 | Item | Decision |
 |------|----------|
-| **User** | A self-hosting operator who understands their media stack but should not need to know Lingarr's internal setting keys. |
+| **User** | A self-hosting operator who understands their media stack but should not need to know Lingarr Next's internal setting keys. |
 | **Job** | Find and safely change translation, connection, automation, or system behavior without hunting through unrelated pages. |
 | **Current behavior** | Nine flat settings links mix configuration pages with operational workspaces. Path mapping is routed but absent from the rail. Most fields save immediately, while Path mapping uses an explicit save action. |
 | **Desired outcome** | Each setting has one predictable home; existing save semantics remain honest and visible; advanced tasks stay reachable without crowding the common path. |
 | **Success signal** | A returning operator can predict where a setting lives, reach Path mapping from the UI, and tell whether a change is saved or failed. |
-| **Non-goals** | Restyling Lingarr, changing Movies/Shows/Translations, exposing every environment variable, or building a universal administration console. |
+| **Non-goals** | Restyling Lingarr Next, changing Movies/Shows/Translations, exposing every environment variable, or building a universal administration console. |
 | **Objects** | Settings, provider-chain rows, path mappings, automation cursors, and operational job/log views. |
 | **Actions and consequence** | Most valid field changes persist immediately. Path mapping changes persist only when saved. Resetting a cursor changes where automation resumes; destructive history actions, if later approved, permanently remove records. |
-| **Permissions** | Existing Lingarr authentication rules apply. No new role model is introduced. |
+| **Permissions** | Existing Lingarr Next authentication rules apply. No new role model is introduced. |
 | **Open decisions** | Whether System uses four route-backed tabs or keeps Tasks and Logs as directly addressable child views; whether later usage evidence justifies cross-settings search. |
 
 ---
 
 ## 3. Current product language
 
-The implementation establishes a recognizable Lingarr settings language:
+The implementation establishes a recognizable Lingarr Next settings language:
 
 - A compact left settings rail: icons at narrow widths, icon plus label from `md` upward.
 - Route-level pages composed from a responsive grid of `CardComponent` surfaces.
@@ -246,7 +246,7 @@ Core settings and plugin settings may reuse visual components, but they should n
 
 ### 6.1 Immediate-save fields
 
-Most Lingarr setting fields continue to save after a valid change. The shared feedback state is:
+Most Lingarr Next setting fields continue to save after a valid change. The shared feedback state is:
 
 ```text
 idle → editing → saving → saved
@@ -427,7 +427,7 @@ Presets are actions over multiple settings, not a stored field type.
 - A disabled control must explain why the action is unavailable.
 - Focus moves to inline validation summaries only when the error is not already adjacent to the field.
 
-Keyboard shortcuts such as `/` for search or `S` for save are not part of the first implementation. Lingarr currently has no settings-shortcut vocabulary, and most settings do not use an explicit Save action.
+Keyboard shortcuts such as `/` for search or `S` for save are not part of the first implementation. Lingarr Next currently has no settings-shortcut vocabulary, and most settings do not use an explicit Save action.
 
 ---
 
@@ -561,7 +561,7 @@ Qualitative target: operators can describe the structure as “Connections, Tran
 | Consolidation creates very long pages | Use route-backed tabs for distinct tasks; keep cards concise |
 | Auto-save failures become more visible | Treat that visibility as correctness; provide retry and retain input |
 | Route changes break bookmarks | Permanent redirects and route-level tests |
-| Generic field rendering changes visual language | Pilot it on one page and require shared Lingarr components |
+| Generic field rendering changes visual language | Pilot it on one page and require shared Lingarr Next components |
 | System becomes a dumping ground | Admit only existing administration/diagnostic tasks; require a separate proposal for new operational behavior |
 | New controls expose unsafe internals | Prefer read-only status plus named actions over editable raw values |
 
@@ -579,7 +579,7 @@ Qualitative target: operators can describe the structure as “Connections, Tran
 
 ## 17. Recommendation
 
-Approve **Phase 1** as the near-term product change. It fixes the orphan route and mental-model mismatch while preserving Lingarr's visual and interaction language.
+Approve **Phase 1** as the near-term product change. It fixes the orphan route and mental-model mismatch while preserving Lingarr Next's visual and interaction language.
 
 Follow with **Phase 2** before adding broad new settings. Honest persistence and failure feedback are more valuable than a larger control catalog.
 

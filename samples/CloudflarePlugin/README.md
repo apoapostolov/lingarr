@@ -1,16 +1,16 @@
-# Lingarr Cloudflare Workers AI plugin
+# Lingarr Next Cloudflare Workers AI plugin
 
-This sample plugin lets Lingarr translate subtitles using **[Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/)**.
+This sample plugin lets Lingarr Next translate subtitles using **[Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/)**.
 It uses translation models such as `@cf/meta/m2m100-1.2b` and serves as an **example** for anyone who wants to create their own translation service plugin.
 
 ## Main parts of the plugin
 
 - `CloudflareTranslator`
-The actual translator. It implements `ITranslationService`, calls Cloudflare’s AI endpoint, and handles errors similarly like Lingarr.
+The actual translator. It implements `ITranslationService`, calls Cloudflare’s AI endpoint, and handles errors similarly to Lingarr Next.
 - `CloudflarePluginManifest` 
-Tells Lingarr what settings to show in the UI (Account ID, API Token, Model).
+Tells Lingarr Next what settings to show in the UI (Account ID, API Token, Model).
 - `AssemblyInfo.cs`
-Contains the required version declaration so Lingarr can load the plugin.
+Contains the required version declaration so Lingarr Next can load the plugin.
 
 ## Prerequisites
 
@@ -30,7 +30,7 @@ This creates `Lingarr.Plugin.Cloudflare.dll`. You must also copy `Lingarr.Contra
 
 ## Deploy
 
-Lingarr looks for plugins in the folder defined by the `PLUGINS_PATH` environment variable
+Lingarr Next looks for plugins in the folder defined by the `PLUGINS_PATH` environment variable
 
 Docker-compose example:
 
@@ -44,7 +44,7 @@ services:
       - ./plugins:/app/plugins
 ```
 1. Copy both DLL files into your `./plugins` folder.
-2. Restart Lingarr.
+2. Restart Lingarr Next.
 3. Look for a log message like:
 `Loaded plugin /app/plugins/Lingarr.Plugin.Cloudflare.dll (1 manifest(s))`
 
@@ -82,4 +82,4 @@ Do not use these plugin identifiers (they are used by built-in providers):
 
 ## Security
 
-Plugins run with full permissions inside Lingarr. There is no sandbox. Only use DLLs you trust.
+Plugins run with full permissions inside Lingarr Next. There is no sandbox. Only use DLLs you trust.

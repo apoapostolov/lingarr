@@ -1,9 +1,9 @@
 <template>
     <div class="space-y-6">
         <div>
-            <h2 class="mb-4 text-xl font-semibold text-white">Secure your Lingarr instance</h2>
+            <h2 class="mb-4 text-xl font-semibold text-white">Secure your Lingarr Next instance</h2>
             <p class="mb-6 text-sm text-gray-400">
-                Enable authentication to protect your Lingarr instance with both session-based login
+                Enable authentication to protect your Lingarr Next instance with both session-based login
                 and API key access, or continue without authentication.
             </p>
         </div>
@@ -29,7 +29,7 @@
 
         <div class="rounded-md border border-yellow-700/50 bg-yellow-900/20 p-4">
             <p class="text-sm text-yellow-400">
-                Without authentication, anyone with access to your network can use Lingarr. This is
+                Without authentication, anyone with access to your network can use Lingarr Next. This is
                 only recommended for private, trusted networks.
             </p>
         </div>

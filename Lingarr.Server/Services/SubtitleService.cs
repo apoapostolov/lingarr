@@ -472,7 +472,7 @@ public class SubtitleService : ISubtitleService
             }
         }
 
-        var introText = $"# Translated with Lingarr using {serviceName} translator #";
+        var introText = $"# Translated with Lingarr Next using {serviceName} translator #";
         var introDuration = 5.0; // Default duration in seconds
 
         // Check if there are existing subtitles and if the first one starts before our intro ends

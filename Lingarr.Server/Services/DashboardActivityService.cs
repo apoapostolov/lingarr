@@ -216,10 +216,10 @@ public class DashboardActivityService : IDashboardActivityService
             outputTokens,
             estimatedCost);
         var headline = active > 0
-            ? "Lingarr is translating now."
+            ? "Lingarr Next is translating now."
             : completed.Count > 0
-                ? "Lingarr completed work recently."
-                : "Lingarr has been quiet in this period.";
+                ? "Lingarr Next completed work recently."
+                : "Lingarr Next has been quiet in this period.";
 
         return new DashboardActivityResponse(
             hours,
@@ -263,7 +263,7 @@ public class DashboardActivityService : IDashboardActivityService
         {
             files == 0
                 ? $"No subtitle files completed in the last {hours} hours."
-                : $"In the last {hours} hours, Lingarr completed {files} subtitle {Plural(files, "file", "files")}."
+                : $"In the last {hours} hours, Lingarr Next completed {files} subtitle {Plural(files, "file", "files")}."
         };
         if (checkedFiles > 0)
             result.Add($"{passed} {Plural(passed, "file passed", "files passed")} quality checks; {needsReview} {Plural(needsReview, "needs", "need")} review.");

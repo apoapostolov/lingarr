@@ -212,7 +212,7 @@ const recoverFromStaleAsset = (error: unknown, targetHref = pendingNavigationHre
 
 router.onError((error, to) => {
     const targetHref = to ? router.resolve(to).href : pendingNavigationHref
-    if (!recoverFromStaleAsset(error, targetHref)) console.error('[Lingarr router]', error)
+    if (!recoverFromStaleAsset(error, targetHref)) console.error('[Lingarr Next router]', error)
 })
 
 window.addEventListener('vite:preloadError', (event) => {

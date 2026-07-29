@@ -1,10 +1,10 @@
 # Installation
 
-Lingarr runs as a Docker container. This page covers the available images and how to set up Lingarr with Docker Compose or the Docker CLI.
+Lingarr Next runs as a Docker container. This page covers the available images and how to set up Lingarr Next with Docker Compose or the Docker CLI.
 
 ## Docker images
 
-Lingarr provides multi-architecture Docker images that automatically select the correct platform:
+Lingarr Next provides multi-architecture Docker images that automatically select the correct platform:
 
 | Tag | Description | Architectures |
 |-----|-------------|---------------|
@@ -14,7 +14,7 @@ Lingarr provides multi-architecture Docker images that automatically select the 
 
 Note: As of 1.0.3 all images support both AMD64 (Intel/AMD) and ARM64 (Raspberry Pi, Apple Silicon) architectures. Docker will automatically pull the correct architecture for your system.
 
-Lingarr Docker images are available from multiple registries:
+Lingarr Next Docker images are available from multiple registries:
 
 | Registry | Image |
 |----------|-------|
@@ -23,7 +23,7 @@ Lingarr Docker images are available from multiple registries:
 
 ## Docker Compose
 
-By default, Lingarr uses `MySQL`, however, `PostgreSQL` and `SQLite` are also supported. Note that Lingarr can quickly, if migrations fail, using a `healthcheck` combined with `depends_on` is recommended.
+By default, Lingarr Next uses `MySQL`; `PostgreSQL` and `SQLite` are also supported. If migrations fail because the database is not ready, use a `healthcheck` combined with `depends_on`.
 
 ```yaml
 services:
@@ -77,7 +77,7 @@ networks:
 
 ## Docker CLI
 
-Follow these steps to set up Lingarr via the Docker CLI:
+Follow these steps to set up Lingarr Next via the Docker CLI:
 
 ```bash
 # Create the network
@@ -95,7 +95,7 @@ docker run -d \
   --network lingarr \
   mariadb:latest
 
-# Start Lingarr
+# Start Lingarr Next
 docker run -d \
   --name lingarr \
   --restart unless-stopped \

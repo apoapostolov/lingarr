@@ -16,7 +16,7 @@
             <div v-else-if="plugins.length === 0" class="text-sm opacity-60">
                 No plugins loaded. Add plugin DLLs to the folder set by
                 <CodeSnippet>PLUGINS_PATH</CodeSnippet>
-                and restart Lingarr.
+                and restart Lingarr Next.
             </div>
             <ul v-else class="space-y-2">
                 <li

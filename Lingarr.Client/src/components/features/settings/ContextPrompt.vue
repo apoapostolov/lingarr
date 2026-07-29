@@ -71,7 +71,7 @@ const settingsStore = useSettingStore()
 const saveNotification = ref<InstanceType<typeof SaveNotification> | null>(null)
 const isValid = reactive({ contextBefore: true, contextAfter: true })
 const help =
-    'The Context Prompt is a wrapper for one target line and its neighbours. Keep {lineToTranslate}; otherwise Lingarr cannot place the line to translate. The recommended tagged format clearly separates earlier context, the target, and later context so the model does not translate or repeat neighbouring lines.'
+    'The Context Prompt is a wrapper for one target line and its neighbours. Keep {lineToTranslate}; otherwise Lingarr Next cannot place the line to translate. The recommended tagged format clearly separates earlier context, the target, and later context so the model does not translate or repeat neighbouring lines.'
 
 const useBatchTranslation = computed(
     () => settingsStore.getSetting(SETTINGS.USE_BATCH_TRANSLATION) as string
