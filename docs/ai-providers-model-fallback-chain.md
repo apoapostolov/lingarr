@@ -1,10 +1,10 @@
 # Proposal: AI providers, model picker, and provider+model fallback chain
 
-**Status:** Implemented on bedroom fork (iterate in-branch)  
+**Status:** Implemented on the Lingarr Next fork (iterate in-branch)
 **Branch:** `feat/ai-providers-model-fallback-chain`  
-**Deploy:** build `lingarr-bedroom` from this branch / `bedroom` after merge  
+**Deploy:** build `lingarr-bedroom` from this branch / `next` after merge
 **Official reference (import only):** https://github.com/lingarr-translate/lingarr  
-**Bedroom fork:** https://github.com/apoapostolov/lingarr  
+**Lingarr Next fork:** https://github.com/apoapostolov/lingarr
 **Agent guide:** [`AGENTS.md`](../AGENTS.md) — keep this proposal and AGENTS.md updated together
 
 ## Goals

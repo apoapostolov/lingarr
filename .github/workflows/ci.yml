@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ bedroom, main ]
+    branches: [ next, main ]
   pull_request:
-    branches: [ bedroom, main ]
+    branches: [ next, main ]
 
 jobs:
   test-backend:

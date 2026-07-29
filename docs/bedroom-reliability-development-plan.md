@@ -121,7 +121,7 @@ Deploy image: fork-built `lingarr-bedroom:*` only (never official GHCR). Config:
 ## Deploy checklist (Bedroom)
 
 ```bash
-# After merge to bedroom/main:
+# After merge to next/main:
 bash ~/.hermes/skills/devops/lingarr-local/scripts/build-bedroom-image.sh
 COMPOSE=/mnt/c/git/lifestyle/linux/dockhand/stacks/Bedroom/media/compose.yaml
 docker compose -p media -f "$COMPOSE" stop lingarr
