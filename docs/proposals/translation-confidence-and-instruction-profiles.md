@@ -38,7 +38,7 @@ This is a confidence and control layer around Lingarr Next's existing translatio
 ## 2. Product brief
 
 | Item | Decision |
-|------|----------|
+| ------ | ---------- |
 | **User** | A self-hosting operator who can configure media and translation services but should not need to interpret stack traces or database counters. |
 | **Job** | Understand whether translation services are usable, whether completed subtitles look mechanically trustworthy, what Lingarr Next has accomplished recently, and which instructions each AI translator follows. |
 | **Current behavior** | Provider configuration is visible, but operational health exists mainly in transient logs. Dashboard activity is dominated by lifetime counters. Completed lines are stored without quality findings. One global `ai_prompt` controls every AI provider. |
@@ -157,7 +157,7 @@ The test action sends a small, fixed Lingarr Next-owned diagnostic request for t
 The requested five operational colours are retained, with one necessary neutral state added so Lingarr Next never labels an untested provider as working.
 
 | State | Dot | Meaning | Default decision rule |
-|-------|-----|---------|-----------------------|
+| ------- | ----- | --------- | ----------------------- |
 | **Not configured** | Dark grey, filled | One or more required manifest fields are empty. | Provider manifest status reports missing required fields. |
 | **Not checked** | Grey, hollow | Required fields exist, but Lingarr Next has no successful or failed probe/translation observation yet. | Configured with zero qualifying events. |
 | **Healthy** | Green | Configured and recently succeeded without material instability. | At least one success in the last 48 hours; recent failure rate below 5%; no unresolved systemic error. |
@@ -195,7 +195,7 @@ Real translation outcomes carry more weight than catalogue operations. One faile
 Add a bounded `ProviderOperationalEvent` entity:
 
 | Field | Purpose |
-|-------|---------|
+| ------- | --------- |
 | `Id` | Event identity |
 | `Provider` | Stable provider id |
 | `Model` | Model id when applicable |
@@ -290,7 +290,7 @@ Each rule creates a finding with:
 Default penalties:
 
 | Severity | Line penalty | Meaning |
-|----------|--------------|---------|
+| ---------- | -------------- | --------- |
 | **Info** | 0 | Useful context, no score impact |
 | **Warning** | 5 | Suspicious but commonly recoverable |
 | **Error** | 20 | Strong indication of damaged or incomplete output |
@@ -315,7 +315,7 @@ Additional caps:
 Default grades:
 
 | Score | Grade | Default treatment |
-|-------|-------|-------------------|
+| ------- | ------- | ------------------- |
 | 95–100 | **Excellent** | Passed |
 | 85–94 | **Good** | Passed with minor findings |
 | 70–84 | **Review suggested** | Visible review marker |
@@ -329,7 +329,7 @@ Rules compare the parsed source item, translated item, neighbouring items, and f
 #### A. Output integrity
 
 | Rule id | Default severity | Suspicious result |
-|---------|------------------|-------------------|
+| --------- | ------------------ | ------------------- |
 | `integrity.target_missing` | Critical | Source entry exists but no target entry was produced. |
 | `integrity.target_empty` | Critical | Non-empty source produced empty or whitespace-only target text. |
 | `integrity.position_missing` | Critical | Expected subtitle position is absent. |
@@ -344,7 +344,7 @@ Rules compare the parsed source item, translated item, neighbouring items, and f
 #### B. Suspicious provider or model output
 
 | Rule id | Default severity | Suspicious result |
-|---------|------------------|-------------------|
+| --------- | ------------------ | ------------------- |
 | `model.refusal` | Critical | Output resembles a refusal or policy response. |
 | `model.apology` | Error | Output begins with an unsolicited apology or inability statement. |
 | `model.meta_commentary` | Error | Output explains the translation instead of containing only translated dialogue. |
@@ -359,7 +359,7 @@ Rules compare the parsed source item, translated item, neighbouring items, and f
 #### C. Content preservation
 
 | Rule id | Default severity | Suspicious result |
-|---------|------------------|-------------------|
+| --------- | ------------------ | ------------------- |
 | `content.unchanged` | Warning/Error | Source and target are effectively identical despite different languages; severity rises with line length. |
 | `content.near_copy` | Warning | Most source tokens remain unchanged outside names, codes, or glossary exceptions. |
 | `content.severe_truncation` | Error | Target length is implausibly short relative to a meaningful source line. |
@@ -380,7 +380,7 @@ Rules compare the parsed source item, translated item, neighbouring items, and f
 #### D. Language and script
 
 | Rule id | Default severity | Suspicious result |
-|---------|------------------|-------------------|
+| --------- | ------------------ | ------------------- |
 | `language.wrong_target` | Error | Reliable language detection disagrees with the requested target. |
 | `language.source_still_dominant` | Warning | Source language remains dominant in a sufficiently long target. |
 | `language.script_mismatch` | Error | Target uses a script incompatible with the configured target language. |
@@ -393,7 +393,7 @@ Language rules do not fire as errors on very short utterances, names, interjecti
 #### E. Formatting and subtitle syntax
 
 | Rule id | Default severity | Suspicious result |
-|---------|------------------|-------------------|
+| --------- | ------------------ | ------------------- |
 | `format.tag_unbalanced` | Critical | HTML/SSA/ASS formatting tags are unbalanced or malformed. |
 | `format.required_tag_removed` | Error | A source formatting tag that should survive is absent. |
 | `format.tag_invented` | Warning | New formatting markup appears without source basis. |
@@ -407,7 +407,7 @@ Language rules do not fire as errors on very short utterances, names, interjecti
 #### F. Readability
 
 | Rule id | Default severity | Suspicious result |
-|---------|------------------|-------------------|
+| --------- | ------------------ | ------------------- |
 | `readability.characters_per_second` | Warning/Error | Reading speed exceeds configured warning/error thresholds. |
 | `readability.line_too_long` | Warning | A rendered line exceeds the configured character limit. |
 | `readability.too_many_lines` | Warning | A subtitle uses more rendered lines than allowed. |
@@ -421,7 +421,7 @@ Language rules do not fire as errors on very short utterances, names, interjecti
 #### G. Consistency and instruction compliance
 
 | Rule id | Default severity | Suspicious result |
-|---------|------------------|-------------------|
+| --------- | ------------------ | ------------------- |
 | `consistency.glossary_violation` | Error | A mandatory glossary term does not use its approved target form. |
 | `consistency.protected_term_changed` | Error | A protected name/code was translated or altered. |
 | `consistency.repeated_phrase_variant` | Warning | The same meaningful source phrase receives inconsistent target forms in one file. |
@@ -567,7 +567,7 @@ Changing the window refreshes the related cards and narrative together. The sele
 Replace opaque labels with scoped, outcome-oriented metrics:
 
 | Metric | Example label |
-|--------|---------------|
+| -------- | --------------- |
 | Completed files | **14 subtitles completed** |
 | Active work | **1 translation in progress** |
 | Failed work | **2 translations failed** |
@@ -694,7 +694,7 @@ lifetime scan while preserving accurate pre-rollup history.
 Lingarr Next currently exposes concepts that can be confused:
 
 | Object | Purpose |
-|--------|---------|
+| -------- | --------- |
 | **System Prompt profile** | User-authored translation behaviour: tone, glossary, persona, censorship, names, and style. |
 | **Context Prompt profile** | Tagged runtime framing for the target line and its neighbouring subtitle lines. |
 | **Request template** | Provider-specific HTTP/JSON transport structure. |
@@ -1162,7 +1162,7 @@ Do not point Bedroom compose at official GHCR.
 ## 11. Risks and mitigations
 
 | Risk | Mitigation |
-|------|------------|
+| ------ | ------------ |
 | Provider colour overstates certainty | Add Not checked state, text labels, timestamps, and transparent thresholds. |
 | Raw logs produce false health transitions | Use typed operational events; logs are supporting detail only. |
 | Quality score looks like a promise of linguistic correctness | Name it mechanical confidence, expose every finding, and avoid AI judging by default. |
@@ -1180,7 +1180,7 @@ Do not point Bedroom compose at official GHCR.
 ## 12. Product-design rule coverage
 
 | Decision area | Governing rules |
-|---------------|-----------------|
+| --------------- | ----------------- |
 | Statuses and quality states cover loading, empty, stale, partial, and error conditions | `rule/cover-reachable-states`, `rule/error-states-recovery`, `rule/empty-state-action` |
 | Colour is not the only provider-health signal | `rule/accessible-name-required` |
 | Provider details expand in place | `rule/inline-before-modal` |

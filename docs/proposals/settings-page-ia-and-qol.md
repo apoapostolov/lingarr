@@ -29,7 +29,7 @@ This is an information-architecture correction, not a visual redesign or a vehic
 ## 2. Product brief
 
 | Item | Decision |
-|------|----------|
+| ------ | ---------- |
 | **User** | A self-hosting operator who understands their media stack but should not need to know Lingarr Next's internal setting keys. |
 | **Job** | Find and safely change translation, connection, automation, or system behavior without hunting through unrelated pages. |
 | **Current behavior** | Nine flat settings links mix configuration pages with operational workspaces. Path mapping is routed but absent from the rail. Most fields save immediately, while Path mapping uses an explicit save action. |
@@ -141,7 +141,7 @@ Rules:
 #### Media servers
 
 | Card | Contents |
-|------|----------|
+| ------ | ---------- |
 | **Radarr** | Address, API key, include new imports by default, Test connection, last successful check |
 | **Sonarr** | Address, API key, include new imports by default, Test connection, last successful check |
 | **Webhooks** | Existing webhook instructions and copyable endpoint |
@@ -182,7 +182,7 @@ The provider chain remains the primary workhorse:
 #### Subtitles
 
 | Card | Contents |
-|------|----------|
+| ------ | ---------- |
 | **Output** | Subtitle tag, language tag, translator information, captions |
 | **Formatting** | Overlap fix, strip formatting, preserve line breaks |
 | **Validation** | Existing validation switch and thresholds |
@@ -192,7 +192,7 @@ Use “Subtitles” for the destination task and short noun headings for cards. 
 #### Advanced
 
 | Card | Contents |
-|------|----------|
+| ------ | ---------- |
 | **Translation requests** | Batch mode, batch size, timeout, retries, retry delay, multiplier |
 | **AI prompts** | System and context prompt controls |
 | **Request templates** | Link to the existing provider-specific template workspace |
@@ -204,7 +204,7 @@ Dependent fields reveal inline. For example, Max batch size is visible only whil
 At two-column widths, **Indexing** is the left card and **Automation** is the right card.
 
 | Card | Contents |
-|------|----------|
+| ------ | ---------- |
 | **Library sync** | Movie and TV-show indexing schedules |
 | **Automated translation** | Master switch, translation schedule, maximum translations per run |
 | **File age** | Movie and TV-show age thresholds with units in the labels |
@@ -225,7 +225,7 @@ Design requirements:
 System groups administration and diagnostics, but it does not flatten operational workspaces into cards.
 
 | Tab | Contents |
-|-----|----------|
+| ----- | ---------- |
 | **Access** | Existing authentication toggle, API key, and user management |
 | **Tasks** | Existing recurring-jobs workspace |
 | **Logs** | Existing streaming log viewer |
@@ -278,7 +278,7 @@ These surfaces may use a sticky local action row on small screens only when the 
 Do not model actions as setting fields.
 
 | Action impact | Confirmation |
-|---------------|--------------|
+| --------------- | -------------- |
 | Reset automation cursor | Plain confirmation that names the media type and consequence |
 | Clear only the current in-memory log view | No confirmation; the source log stream is not deleted |
 | Permanently delete translation history | Dedicated future flow with object count, retention consequence, and explicit **Delete translation history** action |
@@ -294,7 +294,7 @@ Typed confirmation is reserved for high-impact irreversible actions. A checkbox 
 Use a small vocabulary backed by real settings:
 
 | Type | Control | Examples |
-|------|---------|----------|
+| ------ | --------- | ---------- |
 | `text` | Existing text input | Subtitle tag |
 | `secret` | Existing password input | API keys |
 | `url` | Text input plus separate Test action | Radarr/Sonarr address |
@@ -357,7 +357,7 @@ Do not add `GET /api/setting/catalog` in the first phase. Server-driven layout w
 This proposal approves only additions that are already backed by current product behavior or a verified hard-coded policy.
 
 | Addition | Surface | Behavior |
-|----------|---------|----------|
+| ---------- | --------- | ---------- |
 | Test Radarr connection | Connections / Radarr | Read-only connection check; no setting key |
 | Test Sonarr connection | Connections / Sonarr | Read-only connection check; no setting key |
 | Movie automation cursor | Automation / Cycle progress | Read-only status plus **Reset movie cycle** |
@@ -543,7 +543,7 @@ Mobile and accessibility verification happen in every phase, not as a final poli
 ## 14. Success measures
 
 | Measure | Target |
-|---------|--------|
+| --------- | -------- |
 | Find Path mapping from Settings | Under 10 seconds for a returning operator |
 | Predict destination for provider, subtitle, automation, and log controls | At least 4 of 5 moderated attempts without hints |
 | Save-state comprehension | Operator can distinguish saved, invalid, saving, and failed |
@@ -557,7 +557,7 @@ Qualitative target: operators can describe the structure as “Connections, Tran
 ## 15. Risks and mitigations
 
 | Risk | Mitigation |
-|------|------------|
+| ------ | ------------ |
 | Consolidation creates very long pages | Use route-backed tabs for distinct tasks; keep cards concise |
 | Auto-save failures become more visible | Treat that visibility as correctness; provide retry and retain input |
 | Route changes break bookmarks | Permanent redirects and route-level tests |
@@ -590,7 +590,7 @@ Approve **Phase 3** only for cursor status/reset and retention backed by impleme
 ## 18. Documentation maintenance
 
 | When | Update |
-|------|--------|
+| ------ | -------- |
 | Product behavior changes | This proposal and the affected active proposal in the same commit |
 | Navigation changes | Router, `SettingPage.vue`, `docs/architecture.md`, and this route map |
 | Setting key added | `SettingKeys.cs`, client types, migration seed, tests, and the relevant user-facing documentation |
