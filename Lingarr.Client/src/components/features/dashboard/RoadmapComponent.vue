@@ -111,17 +111,17 @@ const roadmapItems = shallowRef([
         icon: StatisticsIcon,
         title: 'Dashboard improvements',
         description: 'Statistics and dashboard improvements',
-        date: '2024',
-        status: 'In Progress',
-        fade: false
+        date: '2026',
+        status: 'Completed',
+        fade: true
     },
     {
         icon: HomeIcon,
         title: 'Version 1.0 release',
         description: 'Production version released with a reduced number of breaking changes.',
-        date: '2024 - 2025',
-        status: 'Planned',
-        fade: false
+        date: '2026',
+        status: 'Completed',
+        fade: true
     }
 ])
 </script>
