@@ -5,23 +5,28 @@
                 Current subtitle coverage in your connected libraries for the selected language.
             </template>
             <template #actions>
-                <label class="flex items-center gap-2">
-                    <span class="sr-only">Primary subtitle language</span>
-                    <select
-                        v-model="primaryLanguage"
-                        aria-label="Primary subtitle language"
-                        class="cursor-pointer rounded-md border-0 bg-transparent px-2 py-1 text-right text-sm font-semibold text-primary-content outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                        :disabled="languagesLoading"
-                        @change="changePrimaryLanguage">
-                        <option
-                            v-for="language in languages"
-                            :key="language.code"
-                            :value="language.code"
-                            class="bg-primary text-primary-content">
-                            {{ language.name }}
-                        </option>
-                    </select>
-                </label>
+                <div class="flex items-center gap-3">
+                    <RefreshBadge
+                        :refreshing="statisticsRefreshing"
+                        :fetched-at="statisticsFetchedAt" />
+                    <label class="flex items-center gap-2">
+                        <span class="sr-only">Primary subtitle language</span>
+                        <select
+                            v-model="primaryLanguage"
+                            aria-label="Primary subtitle language"
+                            class="cursor-pointer rounded-md border-0 bg-transparent px-2 py-1 text-right text-sm font-semibold text-primary-content outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                            :disabled="languagesLoading"
+                            @change="changePrimaryLanguage">
+                            <option
+                                v-for="language in languages"
+                                :key="language.code"
+                                :value="language.code"
+                                class="bg-primary text-primary-content">
+                                {{ language.name }}
+                            </option>
+                        </select>
+                    </label>
+                </div>
             </template>
             <template #content>
                 <div v-if="loading" class="flex h-32 items-center justify-center">
@@ -70,9 +75,14 @@
             </template>
             <template #content>
                 <div class="mb-4 flex items-center justify-between gap-3">
-                    <span class="text-xs font-semibold tracking-wide text-primary-content/50 uppercase">
-                        Time window
-                    </span>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-semibold tracking-wide text-primary-content/50 uppercase">
+                            Time window
+                        </span>
+                        <RefreshBadge
+                            :refreshing="activityRefreshing"
+                            :fetched-at="activityFetchedAt" />
+                    </div>
                     <select
                         v-model.number="windowHours"
                         aria-label="Dashboard activity time window"
@@ -99,9 +109,14 @@
 
                     <div class="mt-5">
                         <div class="mb-2 flex items-center justify-between gap-3">
-                            <h3 class="text-sm font-semibold text-primary-content">
-                                Daily translation history
-                            </h3>
+                            <div class="flex items-center gap-3">
+                                <h3 class="text-sm font-semibold text-primary-content">
+                                    Daily translation history
+                                </h3>
+                                <RefreshBadge
+                                    :refreshing="chartRefreshing"
+                                    :fetched-at="chartFetchedAt" />
+                            </div>
                             <span class="text-xs text-primary-content/50">Last 30 days</span>
                         </div>
                         <div class="h-80">
@@ -191,11 +206,11 @@
             <template #content>
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <MetricCard
-                        title="Lines translated"
-                        :value="statistics?.totalLinesTranslated ?? 0" />
-                    <MetricCard
                         title="Files processed"
                         :value="statistics?.totalFilesTranslated ?? 0" />
+                    <MetricCard
+                        title="Lines translated"
+                        :value="statistics?.totalLinesTranslated ?? 0" />
                     <MetricCard
                         title="Characters translated"
                         :value="statistics?.totalCharactersTranslated ?? 0" />
@@ -216,20 +231,55 @@ import {
     Statistics
 } from '@/ts'
 import services from '@/services'
+import { useCachedResource } from '@/composables/useCachedResource'
 import CardComponent from '@/components/common/CardComponent.vue'
+import RefreshBadge from '@/components/common/RefreshBadge.vue'
 import LoaderCircleIcon from '@/components/icons/LoaderCircleIcon.vue'
 import ProviderHealthPanel from '@/components/features/providerHealth/ProviderHealthPanel.vue'
 import LanguageChart from './LanguageChart.vue'
 import MetricCard from './MetricCard.vue'
 import StatCard from './StatCard.vue'
 
-const loading = ref(true)
-const activityLoading = ref(true)
-const chartLoading = ref(true)
-const statistics = ref<Statistics>()
-const activity = ref<IDashboardActivity>()
-const dailyStats = ref<DailyStatistic[]>([])
+// Stale-while-revalidate: each section hydrates from localStorage on setup so
+// the dashboard renders last-known data instantly, then refreshes in the
+// background. Numbers animate when fresh data lands (see AnimatedNumber).
 const windowHours = ref(48)
+
+const statisticsResource = useCachedResource<Statistics>(
+    'dashboard:statistics',
+    () => services.statistics.getStatistics<Statistics>()
+)
+const dailyResource = useCachedResource<DailyStatistic[]>(
+    'dashboard:dailyStats',
+    () => services.statistics.getDailyStatistics<DailyStatistic[]>(30)
+)
+const activityResource = useCachedResource<IDashboardActivity>(
+    'dashboard:activity',
+    () => services.dashboard.activity(windowHours.value)
+)
+
+// Sync the activity time window from cached/payload data so the select
+// reflects what is actually being shown.
+if (activityResource.data.value) {
+    windowHours.value = activityResource.data.value.windowHours
+}
+
+const statistics = computed(() => statisticsResource.data.value)
+const activity = computed(() => activityResource.data.value)
+const dailyStats = computed(() => dailyResource.data.value ?? [])
+
+// A section is "loading" only when we have nothing to render at all — neither
+// cache nor a successful network response.
+const loading = computed(() => statisticsResource.loading.value)
+const activityLoading = computed(() => activityResource.loading.value)
+const chartLoading = computed(() => dailyResource.loading.value)
+const statisticsRefreshing = computed(() => statisticsResource.refreshing.value)
+const activityRefreshing = computed(() => activityResource.refreshing.value)
+const chartRefreshing = computed(() => dailyResource.refreshing.value)
+const statisticsFetchedAt = computed(() => statisticsResource.fetchedAt.value)
+const activityFetchedAt = computed(() => activityResource.fetchedAt.value)
+const chartFetchedAt = computed(() => dailyResource.fetchedAt.value)
+
 const languages = ref<ILanguage[]>([])
 const languagesLoading = ref(true)
 const primaryLanguage = ref('')
@@ -271,22 +321,10 @@ const narrativeFragments = computed(() => {
 })
 
 const fetchActivity = async (hours?: number) => {
-    activityLoading.value = true
-    try {
-        activity.value = await services.dashboard.activity(hours)
-        windowHours.value = activity.value.windowHours
-    } finally {
-        activityLoading.value = false
-    }
-}
-
-const fetchDailyStats = async () => {
-    chartLoading.value = true
-    try {
-        dailyStats.value = await services.statistics.getDailyStatistics<DailyStatistic[]>(30)
-    } finally {
-        chartLoading.value = false
-    }
+    if (hours !== undefined) windowHours.value = hours
+    await activityResource.refresh()
+    const payload = activityResource.data.value
+    if (payload) windowHours.value = payload.windowHours
 }
 
 const parseLanguages = (value: ILanguage[] | string): ILanguage[] => {
@@ -337,14 +375,12 @@ const changeWindow = async () => {
     await fetchActivity(windowHours.value)
 }
 
-onMounted(async () => {
-    const [stats] = await Promise.allSettled([
-        services.statistics.getStatistics<Statistics>(),
-        initializePrimaryLanguage(),
-        fetchDailyStats(),
-        fetchActivity()
-    ])
-    if (stats.status === 'fulfilled') statistics.value = stats.value
-    loading.value = false
+onMounted(() => {
+    // Kick off background refreshes. Cached data is already shown; these
+    // populate fresh values (animating the change) and update the cache.
+    void initializePrimaryLanguage()
+    void statisticsResource.refresh()
+    void dailyResource.refresh()
+    void fetchActivity()
 })
 </script>

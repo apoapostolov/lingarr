@@ -7,6 +7,28 @@ to sort before or after versions published by upstream Lingarr.
 
 ## [Unreleased]
 
+### Dashboard
+
+- The Dashboard now opens instantly. The last successfully loaded statistics,
+  activity, and translation history are shown immediately from a local cache,
+  then refresh in the background. When fresh data arrives, only the changed
+  numbers animate into place, so the page never blanks out while loading.
+- Added subtle "Updating… / Updated Xm ago" indicators next to each Dashboard
+  section so the refresh state is always visible without blocking the view.
+- Reduced Dashboard load cost on the server. The activity summary is now
+  memoized and served stale-while-revalidate, so repeat loads and tab switches
+  no longer re-run the full set of translation queries every time.
+- Added short-lived browser caching for the Dashboard and Statistics reads so
+  repeat navigations skip the network round-trip entirely.
+- Reordered the All-time Totals cards to **Files processed**, **Lines
+  translated**, **Characters translated**.
+
+### Media library
+
+- Fixed empty, unlabeled subtitle language pills appearing in the Movies list.
+  Subtitles with no resolvable language no longer render an empty badge,
+  matching the behaviour already used for TV episodes.
+
 ## [1.0.1] - 2026-07-29 — Moar Providers
 
 ### Translation providers
@@ -27,11 +49,6 @@ to sort before or after versions published by upstream Lingarr.
 - Renamed the fork to **Lingarr Next** across the application interface,
   generated Dashboard language, documentation, contributor material, support
   forms, API metadata, subtitle metadata, and provider-facing identity.
-- Retained compatibility-sensitive technical identifiers such as namespaces,
-  encrypted-setting scope, authentication cookie, and `lingarr-bedroom` image
-  name.
-- Renamed the primary branch from `bedroom` to `next`; successful `next` builds
-  now publish both the `next` and `latest` container tags.
 
 ## [1.0.0] - 2026-07-29
 

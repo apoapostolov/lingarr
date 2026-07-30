@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Lingarr.Core.Configuration;
 using Lingarr.Core.Data;
 using Lingarr.Core.Enum;
@@ -5,6 +6,8 @@ using Lingarr.Server.Interfaces.Services;
 using Lingarr.Server.Models.Dashboard;
 using Lingarr.Server.Models.ProviderHealth;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Lingarr.Server.Services;
 
@@ -13,20 +16,68 @@ public class DashboardActivityService : IDashboardActivityService
     private readonly LingarrDbContext _dbContext;
     private readonly ISettingService _settings;
     private readonly IProviderHealthService _providerHealth;
+    private readonly IMemoryCache _cache;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<DashboardActivityService> _logger;
+
+    /// <summary>How long a cached entry is considered fresh and served without refresh.</summary>
+    private static readonly TimeSpan FreshTtl = TimeSpan.FromSeconds(30);
+    /// <summary>How long a stale entry is still served (while background refresh runs).</summary>
+    private static readonly TimeSpan StaleTtl = TimeSpan.FromMinutes(10);
+    /// <summary>Per-window semaphore to avoid a cache stampede on cold or expired keys.</summary>
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> Locks = new();
 
     public DashboardActivityService(
         LingarrDbContext dbContext,
         ISettingService settings,
-        IProviderHealthService providerHealth)
+        IProviderHealthService providerHealth,
+        IMemoryCache cache,
+        IServiceScopeFactory scopeFactory,
+        ILogger<DashboardActivityService> logger)
     {
         _dbContext = dbContext;
         _settings = settings;
         _providerHealth = providerHealth;
+        _cache = cache;
+        _scopeFactory = scopeFactory;
+        _logger = logger;
     }
 
     public async Task<DashboardActivityResponse> GetAsync(
         int? requestedHours = null,
         CancellationToken cancellationToken = default)
+    {
+        var hours = await ResolveHoursAsync(requestedHours, cancellationToken);
+        var key = CacheKey(hours);
+
+        // Hot path: fresh cache hit, no DB work at all.
+        if (_cache.TryGetValue<CacheEntry>(key, out var entry) && entry is not null)
+        {
+            if (!entry.IsStale)
+            {
+                return entry.Response;
+            }
+
+            // Stale-while-revalidate: return the stale payload immediately and
+            // refresh in the background. The refresh runs in its own DI scope
+            // so it does not capture this (scoped) DbContext beyond the request.
+            TriggerBackgroundRefresh(key, hours);
+            return entry.Response;
+        }
+
+        // Cold cache: compute synchronously within this request scope, then cache.
+        await using var guard = await AcquireAsync(key, cancellationToken);
+        if (_cache.TryGetValue<CacheEntry>(key, out var refreshed) && refreshed is not null && !refreshed.IsStale)
+        {
+            return refreshed.Response;
+        }
+
+        var response = await ComputeAsync(hours, cancellationToken);
+        Store(key, response);
+        return response;
+    }
+
+    private async Task<int> ResolveHoursAsync(int? requestedHours, CancellationToken cancellationToken)
     {
         var configured = 48;
         if (!requestedHours.HasValue)
@@ -36,7 +87,76 @@ public class DashboardActivityService : IDashboardActivityService
                 configured = parsed;
         }
 
-        var hours = Math.Clamp(requestedHours ?? configured, 1, 168);
+        return Math.Clamp(requestedHours ?? configured, 1, 168);
+    }
+
+    private void TriggerBackgroundRefresh(string key, int hours)
+    {
+        // Fire-and-forget; failures are logged and never propagate. The stale
+        // entry remains served until a successful refresh replaces it or the
+        // stale TTL expires.
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await using var guard = await AcquireAsync(key, CancellationToken.None);
+                using var scope = _scopeFactory.CreateScope();
+                var service = ActivatorUtilities.CreateInstance<DashboardActivityService>(
+                    scope.ServiceProvider);
+                var fresh = await service.ComputeAsync(hours, CancellationToken.None);
+                Store(key, fresh);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Background dashboard activity refresh failed for window {Hours}h.", hours);
+            }
+        });
+    }
+
+    private static string CacheKey(int hours) => $"dashboard:activity:{hours}";
+
+    private void Store(string key, DashboardActivityResponse response)
+    {
+        var entry = new CacheEntry(response, DateTimeOffset.UtcNow);
+        _cache.Set(key, entry, new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = StaleTtl
+        });
+    }
+
+    private static async Task<SemaphoreGuard> AcquireAsync(string key, CancellationToken ct)
+    {
+        var semaphore = Locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+        await semaphore.WaitAsync(ct);
+        return new SemaphoreGuard(semaphore);
+    }
+
+    private sealed record CacheEntry(DashboardActivityResponse Response, DateTimeOffset StoredAt)
+    {
+        public bool IsStale => DateTimeOffset.UtcNow - StoredAt >= FreshTtl;
+    }
+
+    private sealed class SemaphoreGuard : IAsyncDisposable
+    {
+        private readonly SemaphoreSlim _semaphore;
+        public SemaphoreGuard(SemaphoreSlim semaphore) => _semaphore = semaphore;
+        public ValueTask DisposeAsync()
+        {
+            _semaphore.Release();
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    /// <summary>
+    /// The expensive computation: 5 DB round-trips over TranslationRequests,
+    /// TranslationRequestLines, ProviderOperationalEvents plus provider health.
+    /// Kept synchronous here so it can be reused by the request and background paths.
+    /// </summary>
+    private async Task<DashboardActivityResponse> ComputeAsync(
+        int hours,
+        CancellationToken cancellationToken = default)
+    {
         var now = DateTime.UtcNow;
         var start = now.AddHours(-hours);
 

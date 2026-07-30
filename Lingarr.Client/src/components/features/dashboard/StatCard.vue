@@ -6,13 +6,13 @@
                     {{ title }}
                 </h3>
                 <p class="mt-2 text-2xl font-bold text-primary-content">
-                    {{ formatNumber(total) }}
+                    <AnimatedNumber :value="total" />
                 </p>
             </div>
             <div class="text-right">
                 <h3 class="text-primary-content/70 text-sm font-medium">{{ valueLabel }}</h3>
                 <p class="mt-2 text-xl font-bold text-accent">
-                    {{ formatNumber(translated) }}
+                    <AnimatedNumber :value="translated" />
                 </p>
             </div>
         </div>
@@ -25,6 +25,8 @@
 </template>
 
 <script setup lang="ts">
+import AnimatedNumber from '@/components/common/AnimatedNumber.vue'
+
 interface Props {
     title: string
     total: number
@@ -37,10 +39,6 @@ withDefaults(defineProps<Props>(), {
     translated: 0,
     valueLabel: 'Translated'
 })
-
-const formatNumber = (num: number): string => {
-    return new Intl.NumberFormat().format(num)
-}
 
 const calculatePercentage = (value: number, total: number): number => {
     if (total === 0) return 0

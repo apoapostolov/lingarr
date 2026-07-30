@@ -22,6 +22,10 @@ public class DashboardController : ControllerBase
         [FromQuery] int? hours,
         CancellationToken cancellationToken)
     {
+        // Browsers/proxies may serve this from disk cache briefly. The server
+        // also memoizes the result, so this primarily helps repeat client
+        // navigations avoid a round-trip entirely.
+        Response.Headers.CacheControl = "private, max-age=30";
         return Ok(await _activity.GetAsync(hours, cancellationToken));
     }
 }

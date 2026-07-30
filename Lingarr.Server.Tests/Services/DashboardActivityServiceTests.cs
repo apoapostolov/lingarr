@@ -11,6 +11,10 @@ using Lingarr.Server.Interfaces.Services;
 using Lingarr.Server.Models.ProviderHealth;
 using Lingarr.Server.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -138,6 +142,24 @@ public class DashboardActivityServiceTests
             sentence.Contains("$4.48"));
     }
 
+    [Fact]
+    public async Task GetAsync_Cache_ServesRepeatedCallsFromCacheWithoutRecompute()
+    {
+        await using var database = CreateDatabase();
+        var service = CreateService(database);
+
+        var first = await service.GetAsync(48);
+        var firstGenerated = first.GeneratedAt;
+
+        // A second call inside the fresh window must return the identical cached
+        // payload (same GeneratedAt) without recomputing — proving the DB-heavy
+        // path is skipped on cache hits.
+        var second = await service.GetAsync(48);
+
+        Assert.Equal(firstGenerated, second.GeneratedAt);
+        Assert.Equal(first.CompletedFiles, second.CompletedFiles);
+    }
+
     private static DashboardActivityService CreateService(LingarrDbContext database)
     {
         var settings = new Mock<ISettingService>();
@@ -146,7 +168,22 @@ public class DashboardActivityServiceTests
         var health = new Mock<IProviderHealthService>();
         health.Setup(item => item.GetAllAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(Array.Empty<ProviderHealthResponse>());
-        return new DashboardActivityService(database, settings.Object, health.Object);
+
+        // Isolated per-test cache so no state leaks between tests. A real scope
+        // factory backed by an empty service provider keeps the background-refresh
+        // path resolvable without standing up the full DI graph.
+        var cache = new MemoryCache(Options.Create(
+            new MemoryCacheOptions()));
+        var scopeFactory = new ServiceCollection().BuildServiceProvider()
+            .GetRequiredService<IServiceScopeFactory>();
+        var logger = new Mock<ILogger<DashboardActivityService>>();
+        return new DashboardActivityService(
+            database,
+            settings.Object,
+            health.Object,
+            cache,
+            scopeFactory,
+            logger.Object);
     }
 
     private static LingarrDbContext CreateDatabase()

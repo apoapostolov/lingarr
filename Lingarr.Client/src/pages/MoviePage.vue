@@ -87,10 +87,10 @@
                         </span>
                     </div>
                     <div
-                        :class="item.subtitles?.length ? 'flex' : 'hidden md:flex'"
+                        :class="getSubtitles(item).length ? 'flex' : 'hidden md:flex'"
                         class="w-full flex-wrap items-center gap-2 md:col-span-4 md:w-auto md:px-4 md:py-2">
                         <ContextMenu
-                            v-for="(subtitle, index) in item.subtitles"
+                            v-for="(subtitle, index) in getSubtitles(item)"
                             :key="`${index}-${subtitle.fileName}`"
                             :subtitle="subtitle"
                             :media="item"
@@ -198,6 +198,18 @@ const navigateToDetails = computed({
 })
 
 const movies: ComputedRef<IPagedResult<IMovie>> = computed(() => movieStore.get)
+
+/**
+ * Subtitles with no resolvable language must never render a pill. Mirrors the
+ * filter already applied for episodes in EpisodeTable.getSubtitle.
+ */
+const getSubtitles = (movie: IMovie) =>
+    (movie.subtitles ?? [])
+        .filter(
+            (subtitle) => subtitle.language && subtitle.language.trim() !== ''
+        )
+        .slice()
+        .sort((a, b) => a.language.localeCompare(b.language))
 const filter: ComputedRef<IFilter> = computed({
     get: () => movieStore.getFilter,
     set: useDebounce((value: IFilter) => {

@@ -4,12 +4,14 @@
             {{ title }}
         </h3>
         <p class="mt-2 text-2xl font-bold text-primary-content">
-            {{ formatNumber(value) }}
+            <AnimatedNumber :value="value" />
         </p>
     </div>
 </template>
 
 <script setup lang="ts">
+import AnimatedNumber from '@/components/common/AnimatedNumber.vue'
+
 interface Props {
     title: string
     value: number
@@ -18,8 +20,4 @@ interface Props {
 withDefaults(defineProps<Props>(), {
     value: 0
 })
-
-const formatNumber = (num: number): string => {
-    return new Intl.NumberFormat().format(num)
-}
 </script>

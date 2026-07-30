@@ -20,13 +20,16 @@ public class StatisticsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<Statistics>> GetStatistics()
     {
+        // Brief browser caching for this heavy read-only aggregate.
+        Response.Headers.CacheControl = "private, max-age=30";
         var stats = await _statisticsService.GetStatistics();
         return Ok(stats);
     }
-    
+
     [HttpGet("daily/{days}")]
     public async Task<ActionResult<IEnumerable<DailyStatistics>>> GetDailyStats(int days = 30)
     {
+        Response.Headers.CacheControl = "private, max-age=60";
         var stats = await _statisticsService.GetDailyStatistics(days);
         return Ok(stats);
     }
