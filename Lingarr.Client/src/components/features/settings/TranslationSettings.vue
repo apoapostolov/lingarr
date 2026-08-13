@@ -6,23 +6,7 @@
         <template #content>
             <SaveNotification ref="saveNotification" />
 
-            <template
-                v-if="
-                [
-                    SERVICE_TYPE.ANTHROPIC,
-                    SERVICE_TYPE.DEEPSEEK,
-                    SERVICE_TYPE.GEMINI,
-                    SERVICE_TYPE.LOCALAI,
-                    SERVICE_TYPE.OPENAI,
-                    SERVICE_TYPE.OPENROUTER,
-                    SERVICE_TYPE.ZAI,
-                    SERVICE_TYPE.OPENCODE_GO,
-                    SERVICE_TYPE.QWEN,
-                    SERVICE_TYPE.XAI,
-                    SERVICE_TYPE.XAI_OAUTH,
-                    SERVICE_TYPE.MISTRAL
-                ].includes(activeProvider as ServiceType)
-            ">
+            <template v-if="supportsBatch">
                 <div class="flex flex-col space-x-2">
                     <span class="font-semibold">Use batch translation</span>
                     Process multiple subtitle lines together in batches to improve translation
@@ -91,7 +75,7 @@
 <script setup lang="ts">
 import { computed, ref, reactive } from 'vue'
 import { useSettingStore } from '@/store/setting'
-import { INPUT_VALIDATION_TYPE, ISettings, SERVICE_TYPE, SETTINGS, type ServiceType } from '@/ts'
+import { INPUT_VALIDATION_TYPE, ISettings, SERVICE_TYPE, SETTINGS } from '@/ts'
 import CardComponent from '@/components/common/CardComponent.vue'
 import SaveNotification from '@/components/common/SaveNotification.vue'
 import InputComponent from '@/components/common/InputComponent.vue'
@@ -123,6 +107,10 @@ const providerTimeoutKeys: Record<string, keyof ISettings> = {
     openrouter: SETTINGS.OPENROUTER_REQUEST_TIMEOUT,
     zai: SETTINGS.ZAI_REQUEST_TIMEOUT,
     'opencode-go': SETTINGS.OPENCODE_GO_REQUEST_TIMEOUT,
+    qwen: SETTINGS.QWEN_REQUEST_TIMEOUT,
+    'qwen-mt': SETTINGS.QWEN_MT_REQUEST_TIMEOUT,
+    xai: SETTINGS.XAI_REQUEST_TIMEOUT,
+    'xai-oauth': SETTINGS.XAI_OAUTH_REQUEST_TIMEOUT,
     mistral: SETTINGS.MISTRAL_REQUEST_TIMEOUT
 }
 
@@ -139,6 +127,22 @@ const activeProvider = computed((): string => {
     }
     return raw.toLowerCase()
 })
+
+const batchProviders = new Set<string>([
+    SERVICE_TYPE.ANTHROPIC,
+    SERVICE_TYPE.DEEPSEEK,
+    SERVICE_TYPE.GEMINI,
+    SERVICE_TYPE.LOCALAI,
+    SERVICE_TYPE.OPENAI,
+    SERVICE_TYPE.OPENROUTER,
+    SERVICE_TYPE.ZAI,
+    SERVICE_TYPE.OPENCODE_GO,
+    SERVICE_TYPE.QWEN,
+    SERVICE_TYPE.XAI,
+    SERVICE_TYPE.XAI_OAUTH,
+    SERVICE_TYPE.MISTRAL
+])
+const supportsBatch = computed(() => batchProviders.has(activeProvider.value))
 
 const requestTimeoutKey = computed(
     (): keyof ISettings =>
