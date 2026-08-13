@@ -2,7 +2,7 @@
 
 **Status:** Implemented on the Lingarr Next fork (iterate in-branch)
 **Branch:** `next`
-**Deploy:** build `lingarr-bedroom` from `next`
+**Deploy:** build `lingarr-next` from `next`
 **Official reference (import only):** https://github.com/lingarr-translate/lingarr  
 **Lingarr Next fork:** https://github.com/apoapostolov/lingarr
 **Agent guide:** [`AGENTS.md`](../AGENTS.md) — keep this proposal and AGENTS.md updated together
@@ -29,7 +29,7 @@
 5. **Chain row model overrides** global `*_model` setting at translate time.
 6. **Shared OpenAI-compatible base** where practical (OpenRouter / Z.ai / OpenCode Go / DeepSeek patterns).
 7. **Model catalog cache** server-side (memory), TTL ~6h, `?refresh=true` bypass.
-8. **Docker:** only fork-built `lingarr-bedroom` — never official GHCR for Bedroom.
+8. **Docker:** only fork-built `lingarr-next` — never official GHCR for Bedroom.
 9. **OpenRouter default metamodel:** `openrouter/free` is first in the model dropdown and the preferred Bedroom default for bulk / low-quality-OK subtitle work (free router). `openrouter/auto` is second. Paid catalogue models follow. Always inject `openrouter/free` if the API catalogue omits it.
 10. **Provider-specific request timeouts:** each provider reads `<provider>_request_timeout`, with the legacy global `request_timeout` retained as a fallback. Microsoft defaults to 15 minutes because its free GTranslate endpoint has repeatedly exceeded the former 5-minute limit; other built-ins default to 5 minutes.
 

@@ -1,6 +1,6 @@
 # Lingarr Next architecture
 
-This document describes the **apoapostolov/lingarr** fork as deployed on Bedroom (`lingarr-bedroom` image). Upstream conceptual design is the same; Bedroom-specific behaviour is called out explicitly.
+This document describes the **apoapostolov/lingarr** fork as deployed on Bedroom (`lingarr-next` image). Upstream conceptual design is the same; Bedroom-specific behaviour is called out explicitly.
 
 ## 1. What Lingarr Next is
 
@@ -43,14 +43,14 @@ Lingarr.slnx
 Browser → http://host:9876
             │
             ▼
-    Docker: lingarr-bedroom:latest
+    Docker: lingarr-next:latest
             │  image built from this fork (never official GHCR)
             ├── Kestrel (API + SPA wwwroot)
             ├── SQLite (default) under mounted config volume
             └── Hangfire (background translation / automation)
 ```
 
-- **Compose image:** `lingarr-bedroom:latest`, `pull_policy: never`
+- **Compose image:** `lingarr-next:latest`, `pull_policy: never`
 - **Build:** `Lingarr.Server/Dockerfile` (multi-stage: Node client → .NET publish)
 - **Fork ops:** Hermes skill `lingarr-local` + `AGENTS.md`
 - **Deployment-safe client loading:** the HTML shell is never cached, hashed

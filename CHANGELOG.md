@@ -88,7 +88,7 @@ from cache, and the portable backend fixes from upstream 1.3.0.
   `subtitle_maintenance_schedule`, `subtitle_extract_max_per_run`. Extract
   stays off in the database default; turn it on in settings or compose.
 - The server image now ships `ffmpeg` so extract can run inside the container.
-- Bedroom image line remains `lingarr-bedroom:*`. Do not point compose at
+- Bedroom image line remains `lingarr-next:*`. Do not point compose at
   official GHCR.
 
 ## [1.0.1] - 2026-07-29 — Moar Providers

@@ -6,7 +6,7 @@ Guidance for humans and coding agents working in **this** repo (`apoapostolov/li
 
 | Role | Location |
 |------|----------|
-| **Deploy / Docker image** | This fork only → image `lingarr-bedroom:*` |
+| **Deploy / Docker image** | This fork only → image `lingarr-next:*` |
 | **Official upstream (import only)** | https://github.com/lingarr-translate/lingarr |
 | **Local clone** | `/mnt/c/git-ext/lingarr` |
 | **Ops skill** | Hermes `lingarr-local` (`references/bedroom-fork-build.md`) |
@@ -91,7 +91,7 @@ When you change product behaviour covered by a proposal, **update that doc in th
 
 ```bash
 # from clone
-docker build -f Lingarr.Server/Dockerfile -t lingarr-bedroom:latest \
+docker build -f Lingarr.Server/Dockerfile -t lingarr-next:latest \
   --build-arg TARGETARCH=amd64 --network=host .
 
 docker compose -p media \

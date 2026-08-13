@@ -2,7 +2,7 @@
 """
 Lingarr Next API smoke / regression checks.
 
-Default target: http://127.0.0.1:9876 (running lingarr-bedroom container).
+Default target: http://127.0.0.1:9876 (running lingarr-next container).
 Does not require AI credits for the free scraper path; optional AI checks if keys are set.
 
 Exit 0 = all required checks passed.

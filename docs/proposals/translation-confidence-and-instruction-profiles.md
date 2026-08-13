@@ -1103,7 +1103,7 @@ It never returns provider response bodies, request bodies, credentials, or instr
 Following the Bedroom fork operating rule and the user's standing deployment preference:
 
 1. Run relevant unit, migration, client, and smoke tests.
-2. Rebuild `lingarr-bedroom:latest`.
+2. Rebuild `lingarr-next:latest`.
 3. Recreate only the Bedroom `lingarr` service.
 4. Verify healthy container state, HTTP 200, migrations, persisted settings, provider chain, and new rows/endpoints.
 5. Report deployment status and any non-blocking advisories.

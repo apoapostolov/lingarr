@@ -598,4 +598,4 @@ Approve **Phase 3** only for cursor status/reset and retention backed by impleme
 
 **Suggested branch:** `codex/settings-ia-qol`
 
-**Deploy:** merge to the Bedroom fork, rebuild `lingarr-bedroom`, and never point Bedroom compose at official GHCR.
+**Deploy:** merge to the Bedroom fork, rebuild `lingarr-next`, and never point Bedroom compose at official GHCR.
