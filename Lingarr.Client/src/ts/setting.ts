@@ -125,6 +125,10 @@ export interface ISettings {
     source_languages: string | ILanguage[]
     target_languages: string | ILanguage[]
     automation_enabled: string
+    subtitle_naming_enabled: string
+    subtitle_extract_enabled: string
+    subtitle_maintenance_schedule: string
+    subtitle_extract_max_per_run: string
     sonarr_settings_completed: string
     radarr_settings_completed: string
     openai_model: string
