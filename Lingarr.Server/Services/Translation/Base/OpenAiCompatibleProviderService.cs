@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Lingarr.Contracts.Exceptions;
 using Lingarr.Contracts.Models;
+using Lingarr.Contracts.Translation;
 using Lingarr.Core.Configuration;
 using Lingarr.Server.Interfaces.Services;
 using Lingarr.Server.Models;
@@ -13,7 +14,7 @@ namespace Lingarr.Server.Services.Translation.Base;
 /// Shared implementation for first-party providers that expose OpenAI-compatible
 /// chat-completions and model-list endpoints.
 /// </summary>
-public abstract class OpenAiCompatibleProviderService : BaseMeteredLanguageService
+public abstract class OpenAiCompatibleProviderService : BaseMeteredLanguageService, IProofreadService
 {
     private readonly HttpClient _httpClient;
     private readonly IRequestTemplateService _requestTemplateService;
@@ -125,6 +126,19 @@ public abstract class OpenAiCompatibleProviderService : BaseMeteredLanguageServi
             _initLock.Release();
         }
     }
+
+    public Task<string> ProofreadAsync(
+        string sourceText,
+        string translatedText,
+        string sourceLanguage,
+        string targetLanguage,
+        CancellationToken cancellationToken) =>
+        ProofreadViaTranslateAsync(
+            sourceText,
+            translatedText,
+            sourceLanguage,
+            targetLanguage,
+            cancellationToken);
 
     public override async Task<string> TranslateAsync(
         string text,

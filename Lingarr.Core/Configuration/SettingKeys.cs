@@ -118,6 +118,14 @@ public static class SettingKeys
             public const string RequestTemplate = "xai_request_template";
         }
 
+        public static class Mistral
+        {
+            public const string Model = "mistral_model";
+            public const string ApiKey = "mistral_api_key";
+            public const string Endpoint = "mistral_endpoint";
+            public const string RequestTemplate = "mistral_request_template";
+        }
+
         public static class XaiOAuth
         {
             public const string Model = "xai_oauth_model";
@@ -141,6 +149,8 @@ public static class SettingKeys
         public const string AiContextPrompt = "ai_context_prompt";
         public const string AiContextBefore = "ai_context_before";
         public const string AiContextAfter = "ai_context_after";
+        public const string ProofreadPrompt = "proofread_prompt";
+        public const string ProofreadUserPrompt = "proofread_user_prompt";
         public const string ActiveSystemPromptProfileId = "active_system_prompt_profile_id";
         public const string ActiveContextPromptProfileId = "active_context_prompt_profile_id";
         public const string FixOverlappingSubtitles = "fix_overlapping_subtitles";

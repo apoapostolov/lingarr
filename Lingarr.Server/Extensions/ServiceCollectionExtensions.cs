@@ -202,6 +202,7 @@ public static class ServiceCollectionExtensions
         builder.Services.AddSingleton<IPluginManifest, QwenMtPluginManifest>();
         builder.Services.AddSingleton<IPluginManifest, XaiPluginManifest>();
         builder.Services.AddSingleton<IPluginManifest, XaiOAuthPluginManifest>();
+        builder.Services.AddSingleton<IPluginManifest, MistralPluginManifest>();
         builder.Services.AddSingleton<IModelCatalogService, ModelCatalogService>();
 
         // Plugin discovery and the read settings

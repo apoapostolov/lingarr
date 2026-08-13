@@ -163,4 +163,20 @@ public class TranslationRequestController : ControllerBase
 
         return NotFound(result);
     }
+
+    /// <summary>
+    /// Revises a completed translation with the first AI provider in the chain.
+    /// </summary>
+    [HttpPost("proofread")]
+    public async Task<ActionResult<string>> ProofreadTranslationRequest(
+        [FromBody] TranslationRequest proofreadRequest)
+    {
+        var result = await _translationRequestService.ProofreadTranslationRequest(proofreadRequest);
+        if (result != null)
+        {
+            return Ok(result);
+        }
+
+        return NotFound(result);
+    }
 }

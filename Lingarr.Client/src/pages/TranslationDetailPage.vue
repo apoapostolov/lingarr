@@ -88,6 +88,31 @@
                 </template>
             </CardComponent>
 
+            <CardComponent
+                v-if="canRevise"
+                title="Revise with AI">
+                <template #description>
+                    Send this completed subtitle back through an AI provider in your
+                    chain. Good lines stay. Only lines that look wrong get rewritten.
+                </template>
+                <template #content>
+                    <ButtonComponent
+                        variant="secondary"
+                        size="sm"
+                        :loading="revising"
+                        @click="reviseWithAi">
+                        Revise subtitle
+                    </ButtonComponent>
+                    <p class="mt-3 text-sm text-primary-content/60">
+                        Uses the first chat model in the chain. Scrapers such as
+                        Microsoft cannot revise a file on their own.
+                    </p>
+                    <p v-if="reviseError" class="mt-2 text-sm text-red-400">
+                        {{ reviseError }}
+                    </p>
+                </template>
+            </CardComponent>
+
             <TranslationQualityPanel
                 v-if="detail.status === TRANSLATION_STATUS.COMPLETED"
                 :request-id="detail.id"
@@ -170,12 +195,21 @@ const signalR = useSignalR()
 
 const detail = ref<ITranslationRequestDetail | null>(null)
 const loading = ref(true)
+const revising = ref(false)
+const reviseError = ref('')
 const progress = ref(0)
 const hubConnection = ref<Hub>()
 const latestPosition = ref<number>(0)
 const focusedPosition = ref<number | null>(null)
 
 const reversedLines = computed(() => (detail.value ? [...detail.value.lines].reverse() : []))
+
+const canRevise = computed(
+    () =>
+        detail.value?.status === TRANSLATION_STATUS.COMPLETED &&
+        Boolean(detail.value.translatedSubtitle) &&
+        Boolean(detail.value.subtitleToTranslate)
+)
 
 const showProgress = computed(() => {
     if (!detail.value) {
@@ -217,6 +251,24 @@ const handleLineTranslated = (line: ILineTranslated) => {
             service: line.service ?? null
         })
         latestPosition.value = line.position
+    }
+}
+
+const reviseWithAi = async () => {
+    if (!detail.value) {
+        return
+    }
+    revising.value = true
+    reviseError.value = ''
+    try {
+        await services.translationRequest.proofread<string>(detail.value)
+    } catch (error: any) {
+        reviseError.value =
+            error?.data?.message ||
+            error?.data ||
+            'Could not start the revision. Add an AI provider to the chain and try again.'
+    } finally {
+        revising.value = false
     }
 }
 

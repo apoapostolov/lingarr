@@ -209,22 +209,19 @@ Sonarr webhooks).
 
 ---
 
-## Anti-recommendations (explicitly not proposing)
+## What this list is not
 
-To stay consistent with the existing product posture, these are **not**
-proposed even though they are common "missing feature" suggestions:
+This file is a research backlog, not a forbid-list. New providers, optional AI
+revision, and later quality enforcement are allowed when they earn a place and
+are designed in Lingarr Next's UI language. Upstream features are ingested as
+backend/behavior, then given a Next frontend — they are not merged as-is.
 
-- **Plugin marketplace / plugin discovery UI** — the confidence proposal lists
-  this as a non-goal; plugins are already supported by manifest.
-- **AI-as-a-judge automatic grading** — non-goal in the confidence proposal;
-  quality stays observe-only.
-- **Arbitrary log-level / Hangfire WAL controls** — deferred in the settings
-  proposal; prefer safe defaults.
-- **Dashboard custom date ranges and per-card toggles** — the Dashboard is
-  intentionally minimal.
-- **More providers** — the fork already has ~18; provider-setting consolidation
-  ([feature-bloat-governance.md](./feature-bloat-governance.md) §4) should
-  precede any new provider.
+Still a poor default unless a later proposal asks for them:
+
+- A plugin marketplace UI. Manifests already cover provider discovery.
+- Asking an LLM to grade every translation automatically.
+- Arbitrary log-level or Hangfire WAL controls in Settings.
+- Custom Dashboard date ranges and per-card toggles.
 
 ---
 

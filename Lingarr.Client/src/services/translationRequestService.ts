@@ -99,6 +99,17 @@ const service = (
                 })
         })
     },
+    proofread<T>(translationRequest: ITranslationRequest): Promise<T> {
+        return new Promise((resolve, reject) => {
+            http.post(`${resource}/proofread`, translationRequest)
+                .then((response: AxiosResponse<T>) => {
+                    resolve(response.data)
+                })
+                .catch((error: AxiosError) => {
+                    reject(error.response)
+                })
+        })
+    },
     async quality(id: number): Promise<ITranslationQualityDetail> {
         const response = await http.get<ITranslationQualityDetail>(`${resource}/${id}/quality`)
         return response.data

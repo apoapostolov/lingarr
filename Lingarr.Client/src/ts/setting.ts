@@ -36,6 +36,8 @@ export const SETTINGS = {
     XAI_MODEL: 'xai_model',
     XAI_OAUTH_MODEL: 'xai_oauth_model',
     XAI_ENDPOINT: 'xai_endpoint',
+    MISTRAL_MODEL: 'mistral_model',
+    MISTRAL_ENDPOINT: 'mistral_endpoint',
     XAI_OAUTH_CONNECTION: 'xai_oauth_connection',
     AI_PROMPT: 'ai_prompt',
     THEME: 'theme',
@@ -84,6 +86,7 @@ export const SETTINGS = {
     QWEN_MT_REQUEST_TIMEOUT: 'qwen_mt_request_timeout',
     XAI_REQUEST_TIMEOUT: 'xai_request_timeout',
     XAI_OAUTH_REQUEST_TIMEOUT: 'xai_oauth_request_timeout',
+    MISTRAL_REQUEST_TIMEOUT: 'mistral_request_timeout',
     MAX_RETRIES: 'max_retries',
     RETRY_DELAY: 'retry_delay',
     RETRY_DELAY_MULTIPLIER: 'retry_delay_multiplier',
@@ -97,6 +100,7 @@ export const SETTINGS = {
     DEEPSEEK_REQUEST_TEMPLATE: 'deepseek_request_template',
     QWEN_REQUEST_TEMPLATE: 'qwen_request_template',
     XAI_REQUEST_TEMPLATE: 'xai_request_template',
+    MISTRAL_REQUEST_TEMPLATE: 'mistral_request_template',
     GEMINI_REQUEST_TEMPLATE: 'gemini_request_template',
     LANGUAGE_CODE_FORMAT: 'language_code_format',
     RADARR_DEFAULT_INCLUDE: 'radarr_default_include',
@@ -140,6 +144,8 @@ export interface ISettings {
     xai_model: string
     xai_oauth_model: string
     xai_endpoint: string
+    mistral_model: string
+    mistral_endpoint: string
     xai_oauth_connection: string
     ai_prompt: string
     movie_age_threshold: string
@@ -187,6 +193,7 @@ export interface ISettings {
     qwen_mt_request_timeout: string
     xai_request_timeout: string
     xai_oauth_request_timeout: string
+    mistral_request_timeout: string
     max_retries: string
     retry_delay: string
     retry_delay_multiplier: string
@@ -200,6 +207,7 @@ export interface ISettings {
     deepseek_request_template: string
     qwen_request_template: string
     xai_request_template: string
+    mistral_request_template: string
     gemini_request_template: string
     language_code_format: string
     radarr_default_include: string
@@ -221,6 +229,7 @@ export const ENCRYPTED_SETTINGS = {
     OPENCODE_GO_API_KEY: 'opencode_go_api_key',
     QWEN_API_KEY: 'qwen_api_key',
     XAI_API_KEY: 'xai_api_key',
+    MISTRAL_API_KEY: 'mistral_api_key',
     DEEPL_API_KEY: 'deepl_api_key',
     LIBRETRANSLATE_API_KEY: 'libretranslate_api_key',
     LOCAL_AI_API_KEY: 'local_ai_api_key'
@@ -239,6 +248,7 @@ export interface IEncryptedSettings {
     opencode_go_api_key: string
     qwen_api_key: string
     xai_api_key: string
+    mistral_api_key: string
     deepl_api_key: string
     libretranslate_api_key: string
     local_ai_api_key: string
@@ -259,6 +269,7 @@ export const SERVICE_TYPE = {
     QWEN_MT: 'qwen-mt',
     XAI: 'xai',
     XAI_OAUTH: 'xai-oauth',
+    MISTRAL: 'mistral',
     GOOGLE: 'google',
     BING: 'bing',
     MICROSOFT: 'microsoft',

@@ -29,6 +29,19 @@ to sort before or after versions published by upstream Lingarr.
   Subtitles with no resolvable language no longer render an empty badge,
   matching the behaviour already used for TV episodes.
 
+### Translation providers
+
+- Added **Mistral AI** as a first-class provider with encrypted API key storage,
+  live model discovery, instruction profiles, and fallback-chain support.
+
+### AI revision
+
+- Completed translations can be sent back through the first chat model in the
+  chain. The job rereads source and target, rewrites only lines that change,
+  and runs the existing quality checks again. The action lives on the
+  translation detail page as **Revise with AI**. Scrapers such as Microsoft
+  cannot revise a file on their own.
+
 ### Upstream 1.3.0 ports
 
 - Microsoft Translator now splits lines over 1000 characters and recombines the

@@ -80,6 +80,7 @@ When you change product behaviour covered by a proposal, **update that doc in th
 | `qwen-mt` | Purpose-built Qwen subtitle translation with explicit language codes |
 | `xai` | Official xAI API-key provider |
 | `xai-oauth` | Experimental SuperGrok / Premium+ device-login provider |
+| `mistral` | Official Mistral API; OpenAI-compat, model catalogue, instruction profiles |
 
 ## Secrets
 
@@ -110,6 +111,12 @@ bash ~/.hermes/skills/devops/lingarr-local/scripts/sync-upstream-into-fork.sh
 ```
 
 Do not auto-deploy after merge without a smoke check.
+
+**Hard rule: ingest, do not paste.** Upstream is a backend/behavior catalog.
+When a feature is worth having, port the server contract into Next and design
+the UI in Lingarr Next's own language. Never drop upstream Vue pages, icons,
+or settings chrome in wholesale. Do not add rules that forbid future providers
+or capabilities just because Next already has a lot of them.
 
 ## Code style notes
 

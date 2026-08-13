@@ -30,6 +30,8 @@ public class RequestTemplateService : IRequestTemplateService
             () => JsonSerializer.Serialize(new OpenAiChatTemplate()),
         [SettingKeys.Translation.Xai.RequestTemplate] =
             () => JsonSerializer.Serialize(new OpenAiChatTemplate()),
+        [SettingKeys.Translation.Mistral.RequestTemplate] =
+            () => JsonSerializer.Serialize(new OpenAiChatTemplate()),
         [SettingKeys.Translation.Gemini.RequestTemplate] =
             () => JsonSerializer.Serialize(new GeminiTemplate())
     };

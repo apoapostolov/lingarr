@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Lingarr.Contracts.Exceptions;
 using Lingarr.Contracts.Models;
+using Lingarr.Contracts.Translation;
 using Lingarr.Core.Configuration;
 using Lingarr.Server.Interfaces.Services;
 using Lingarr.Server.Models.Integrations.Translation;
@@ -10,7 +11,7 @@ using Lingarr.Server.Services.Translation.Base;
 
 namespace Lingarr.Server.Services.Translation;
 
-public class DeepSeekService : BaseMeteredLanguageService
+public class DeepSeekService : BaseMeteredLanguageService, IProofreadService
 {
     private string? _endpoint = "https://api.deepseek.com";
     private readonly HttpClient _httpClient;
@@ -96,6 +97,14 @@ public class DeepSeekService : BaseMeteredLanguageService
     }
 
     /// <inheritdoc />
+    public Task<string> ProofreadAsync(
+        string sourceText,
+        string translatedText,
+        string sourceLanguage,
+        string targetLanguage,
+        CancellationToken cancellationToken) =>
+        ProofreadViaTranslateAsync(sourceText, translatedText, sourceLanguage, targetLanguage, cancellationToken);
+
     public override async Task<string> TranslateAsync(
         string text,
         string sourceLanguage,

@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using Lingarr.Core.Configuration;
 using Lingarr.Contracts.Exceptions;
+using Lingarr.Contracts.Translation;
 using Lingarr.Server.Interfaces.Services;
 using Lingarr.Contracts.Models;
 using Lingarr.Server.Services.Translation.Base;
@@ -14,7 +15,7 @@ namespace Lingarr.Server.Services.Translation;
 /// OpenRouter translation service.
 /// Provides access to 100+ models through a unified OpenAI-compatible API.
 /// </summary>
-public class OpenRouterService : BaseMeteredLanguageService
+public class OpenRouterService : BaseMeteredLanguageService, IProofreadService
 {
     private string? _endpoint = "https://openrouter.ai/api/v1/";
     private readonly HttpClient _httpClient;
@@ -124,6 +125,14 @@ public class OpenRouterService : BaseMeteredLanguageService
             _initLock.Release();
         }
     }
+
+    public Task<string> ProofreadAsync(
+        string sourceText,
+        string translatedText,
+        string sourceLanguage,
+        string targetLanguage,
+        CancellationToken cancellationToken) =>
+        ProofreadViaTranslateAsync(sourceText, translatedText, sourceLanguage, targetLanguage, cancellationToken);
 
     public override async Task<string> TranslateAsync(
         string text,

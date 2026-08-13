@@ -212,7 +212,8 @@ const MODEL_PROVIDERS = new Set([
     'qwen',
     'qwen-mt',
     'xai',
-    'xai-oauth'
+    'xai-oauth',
+    'mistral'
 ])
 
 /** Providers that use an encrypted API key setting. */
@@ -227,6 +228,7 @@ const API_KEY_BY_PROVIDER: Record<string, keyof IEncryptedSettings> = {
     qwen: ENCRYPTED_SETTINGS.QWEN_API_KEY as keyof IEncryptedSettings,
     'qwen-mt': ENCRYPTED_SETTINGS.QWEN_API_KEY as keyof IEncryptedSettings,
     xai: ENCRYPTED_SETTINGS.XAI_API_KEY as keyof IEncryptedSettings,
+    mistral: ENCRYPTED_SETTINGS.MISTRAL_API_KEY as keyof IEncryptedSettings,
     deepl: ENCRYPTED_SETTINGS.DEEPL_API_KEY as keyof IEncryptedSettings,
     libretranslate: ENCRYPTED_SETTINGS.LIBRETRANSLATE_API_KEY as keyof IEncryptedSettings,
     localai: ENCRYPTED_SETTINGS.LOCAL_AI_API_KEY as keyof IEncryptedSettings
@@ -378,7 +380,8 @@ function modelSettingKey(provider: string): string | null {
         qwen: (SETTINGS as any).QWEN_MODEL,
         'qwen-mt': (SETTINGS as any).QWEN_MT_MODEL,
         xai: (SETTINGS as any).XAI_MODEL,
-        'xai-oauth': (SETTINGS as any).XAI_OAUTH_MODEL
+        'xai-oauth': (SETTINGS as any).XAI_OAUTH_MODEL,
+        mistral: (SETTINGS as any).MISTRAL_MODEL
     }
     return map[provider.toLowerCase()] ?? null
 }

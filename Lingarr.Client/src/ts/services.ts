@@ -160,6 +160,7 @@ export interface ITranslationRequestService {
     remove<T>(translationRequest: ITranslationRequest): Promise<T>
     retry<T>(translationRequest: ITranslationRequest): Promise<T>
     resume<T>(translationRequest: ITranslationRequest): Promise<T>
+    proofread<T>(translationRequest: ITranslationRequest): Promise<T>
     quality(id: number): Promise<ITranslationQualityDetail>
     reEvaluateQuality(id: number): Promise<ITranslationQualitySummary>
 }

@@ -38,6 +38,7 @@ docker run --rm --network=host \
 | `Services/Translation/TranslationFallbackChainTests.cs` | Subtitle line falls through providers on failure |
 | `Services/TranslationPromptProfileServiceTests.cs` | Immutable prompt versions, AI-only resolution, exact usage history, and protected defaults |
 | `Services/TranslationQualityServiceTests.cs` | Observe-only quality rules, penalties, caps, and scoring |
+| `Services/Translation/ProofreadPromptsTests.cs` | AI revision prompt defaults and Mistral endpoint |
 | `Services/DashboardActivityServiceTests.cs` | Bounded recent-work metrics and deterministic progress prose |
 | `Services/ProviderHealthServiceTests.cs` | Provider status precedence, recovery, and safe event classification |
 

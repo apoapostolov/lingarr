@@ -440,6 +440,40 @@ public class TranslationRequestService : ITranslationRequestService
 
         return $"Translation request with id {resumeRequest.Id} has been resumed, new job id {jobId}";
     }
+
+    /// <inheritdoc />
+    public async Task<string?> ProofreadTranslationRequest(TranslationRequest proofreadRequest)
+    {
+        var translationRequest = await _dbContext.TranslationRequests.FirstOrDefaultAsync(
+            request => request.Id == proofreadRequest.Id);
+        if (translationRequest == null)
+        {
+            return null;
+        }
+
+        if (translationRequest.Status != TranslationStatus.Completed
+            || string.IsNullOrEmpty(translationRequest.TranslatedSubtitle)
+            || string.IsNullOrEmpty(translationRequest.SubtitleToTranslate))
+        {
+            _logger.LogInformation(
+                "AI revision skipped for request {Id}: status {Status} or missing subtitle paths.",
+                translationRequest.Id, translationRequest.Status);
+            return null;
+        }
+
+        translationRequest.Status = TranslationStatus.Pending;
+        translationRequest.ErrorMessage = null;
+        translationRequest.StackTrace = null;
+        await _dbContext.SaveChangesAsync();
+        await _eventService.LogEvent(translationRequest.Id, TranslationStatus.Pending, "AI revision queued");
+
+        var jobId = _backgroundJobClient.Enqueue<ProofreadJob>(job =>
+            job.Execute(translationRequest, CancellationToken.None));
+        await UpdateTranslationRequest(translationRequest, TranslationStatus.Pending, jobId);
+        await UpdateActiveCount();
+
+        return $"AI revision queued for request {translationRequest.Id}";
+    }
     
     /// <inheritdoc />
     public async Task<TranslationRequest> UpdateTranslationRequest(TranslationRequest translationRequest,

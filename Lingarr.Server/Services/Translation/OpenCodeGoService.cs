@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Lingarr.Contracts.Exceptions;
 using Lingarr.Contracts.Models;
+using Lingarr.Contracts.Translation;
 using Lingarr.Core.Configuration;
 using Lingarr.Server.Interfaces.Services;
 using Lingarr.Server.Services.Translation.Base;
@@ -10,7 +11,7 @@ using Lingarr.Server.Services.Translation.Base;
 namespace Lingarr.Server.Services.Translation;
 
 /// <summary>OpenCode Go curated OpenAI-compatible model gateway.</summary>
-public class OpenCodeGoService : BaseLanguageService
+public class OpenCodeGoService : BaseLanguageService, IProofreadService
 {
     private string _endpoint = "https://opencode.ai/zen/go/v1";
     private readonly HttpClient _httpClient;
@@ -74,6 +75,14 @@ public class OpenCodeGoService : BaseLanguageService
         }
         finally { _initLock.Release(); }
     }
+
+    public Task<string> ProofreadAsync(
+        string sourceText,
+        string translatedText,
+        string sourceLanguage,
+        string targetLanguage,
+        CancellationToken cancellationToken) =>
+        ProofreadViaTranslateAsync(sourceText, translatedText, sourceLanguage, targetLanguage, cancellationToken);
 
     public override async Task<string> TranslateAsync(
         string text, string sourceLanguage, string targetLanguage,

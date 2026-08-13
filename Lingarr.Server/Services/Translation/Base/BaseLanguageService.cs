@@ -1,8 +1,10 @@
 ﻿using System.Text.Json;
 using Lingarr.Contracts.Models;
 using Lingarr.Contracts.Models.Batch;
+using Lingarr.Core.Configuration;
 using Lingarr.Server.Interfaces.Services;
 using Lingarr.Server.Models;
+using Lingarr.Server.Services.Translation;
 
 namespace Lingarr.Server.Services.Translation.Base;
 
@@ -41,6 +43,40 @@ public abstract class BaseLanguageService : BaseTranslationService,
 
     protected string ResolveContextPrompt(string? fromSettings) =>
         ContextPromptOverride ?? fromSettings ?? string.Empty;
+
+    protected async Task<string> ProofreadViaTranslateAsync(
+        string sourceText,
+        string translatedText,
+        string sourceLanguage,
+        string targetLanguage,
+        CancellationToken cancellationToken)
+    {
+        var settings = await _settings.GetSettings([
+            SettingKeys.Translation.ProofreadPrompt,
+            SettingKeys.Translation.ProofreadUserPrompt
+        ]);
+        var system = settings.GetValueOrDefault(SettingKeys.Translation.ProofreadPrompt);
+        if (string.IsNullOrWhiteSpace(system))
+        {
+            system = ProofreadPrompts.DefaultSystem;
+        }
+
+        OverrideInstructions(system, null);
+        _contextPromptEnabled = "false";
+        var user = ProofreadPrompts.FormatUser(
+            settings.GetValueOrDefault(SettingKeys.Translation.ProofreadUserPrompt),
+            sourceText,
+            translatedText,
+            sourceLanguage,
+            targetLanguage);
+        return await TranslateAsync(
+            user,
+            sourceLanguage,
+            targetLanguage,
+            null,
+            null,
+            cancellationToken);
+    }
 
     protected BaseLanguageService(
         ISettingService settings,

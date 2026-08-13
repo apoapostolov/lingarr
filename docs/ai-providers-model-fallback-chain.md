@@ -10,7 +10,7 @@
 ## Goals
 
 1. Full first-class providers: **OpenRouter**, **Z.ai (GLM)**, **DeepSeek**,
-   **OpenCode Go**, **Qwen**, and **xAI**
+   **OpenCode Go**, **Qwen**, **xAI**, and **Mistral**
 2. **Cached model lists** with refresh
 3. **Model dropdown** between provider selector and API key fields
 4. **Fallback chain** as ordered **provider + model** rows (+ add, − remove, reorder), not provider-only
@@ -74,6 +74,7 @@ defaults. Non-AI rows ignore and do not expose these fields.
 | `qwen-mt` | Purpose-built Qwen-MT translation; explicit source/target language codes and no free-form prompt profiles |
 | `xai` | Official xAI developer API using an encrypted API key |
 | `xai-oauth` | Experimental SuperGrok / Premium+ device login; encrypted server-side access/refresh tokens |
+| `mistral` | Official Mistral API; live catalogue, instruction profiles, fallback-chain support |
 
 ## OpenRouter model UX (locked)
 

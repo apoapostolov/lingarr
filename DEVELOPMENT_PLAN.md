@@ -24,9 +24,8 @@ transcript. Completed work belongs in the changelog or a dated development log.
 
 - **Released:** Lingarr Next 1.0.1, “Moar Providers” (`855caec`).
 - **Fork main:** tracks official upstream 1.3.0. Do not merge `main` into `next`.
-- **next:** Lingarr Next plus portable 1.3.0 fixes and Microsoft long-line
-  chunking. Not a wholesale 1.3.0 merge (plugin rewrite, proofreading, Mistral,
-  and upstream xAI stay upstream-only).
+- **next:** Lingarr Next plus portable 1.3.0 fixes, Microsoft long-line
+  chunking, Mistral, and Next-native AI revision. Upstream UI was not copied.
 - **Protected lines:** `main` and `next`.
 - **Validation baseline:** server unit tests including chunker + Local AI parse
   retry. Image rebuild/deploy is a follow-up, not part of this import.
@@ -35,9 +34,10 @@ transcript. Completed work belongs in the changelog or a dated development log.
 
 ### Remaining 1.3.0 features (not ported)
 
-- Proofreading, Mistral, and upstream's plugin-based xAI overlap or collide
-  with Next's own provider/quality work. Port only if a product decision says so.
+- Upstream xAI is a weaker copy of Next's xAI + OAuth. Leave it.
+- Upstream user-prompt rewrite is a weaker copy of instruction profiles. Leave it.
 - Dependabot bumps from 1.3.0 were skipped.
+- Upstream proofread Vue was not copied; Next uses the detail-page revise card.
 
 ### Branch and review hygiene
 

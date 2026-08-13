@@ -19,7 +19,8 @@
                     SERVICE_TYPE.OPENCODE_GO,
                     SERVICE_TYPE.QWEN,
                     SERVICE_TYPE.XAI,
-                    SERVICE_TYPE.XAI_OAUTH
+                    SERVICE_TYPE.XAI_OAUTH,
+                    SERVICE_TYPE.MISTRAL
                 ].includes(activeProvider as ServiceType)
             ">
                 <div class="flex flex-col space-x-2">
@@ -121,7 +122,8 @@ const providerTimeoutKeys: Record<string, keyof ISettings> = {
     deepseek: SETTINGS.DEEPSEEK_REQUEST_TIMEOUT,
     openrouter: SETTINGS.OPENROUTER_REQUEST_TIMEOUT,
     zai: SETTINGS.ZAI_REQUEST_TIMEOUT,
-    'opencode-go': SETTINGS.OPENCODE_GO_REQUEST_TIMEOUT
+    'opencode-go': SETTINGS.OPENCODE_GO_REQUEST_TIMEOUT,
+    mistral: SETTINGS.MISTRAL_REQUEST_TIMEOUT
 }
 
 const activeProvider = computed((): string => {

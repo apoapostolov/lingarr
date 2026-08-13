@@ -12,7 +12,7 @@ using Lingarr.Server.Services.Translation.Base;
 
 namespace Lingarr.Server.Services.Translation;
 
-public class GoogleGeminiService : BaseLanguageService, ITranslationService, IBatchTranslationService
+public class GoogleGeminiService : BaseLanguageService, ITranslationService, IBatchTranslationService, IProofreadService
 {
     private readonly string? _endpoint = "https://generativelanguage.googleapis.com/v1beta";
     private readonly HttpClient _httpClient;
@@ -116,6 +116,14 @@ public class GoogleGeminiService : BaseLanguageService, ITranslationService, IBa
     }
 
     /// <inheritdoc />
+    public Task<string> ProofreadAsync(
+        string sourceText,
+        string translatedText,
+        string sourceLanguage,
+        string targetLanguage,
+        CancellationToken cancellationToken) =>
+        ProofreadViaTranslateAsync(sourceText, translatedText, sourceLanguage, targetLanguage, cancellationToken);
+
     public override async Task<string> TranslateAsync(
         string text,
         string sourceLanguage,

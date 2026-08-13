@@ -106,6 +106,14 @@ public interface ITranslationRequestService
     );
 
     /// <summary>
+    /// Queues an AI revision of a completed translation. The first proofread-capable
+    /// provider in the current chain rereads source and target and rewrites the file.
+    /// </summary>
+    Task<string?> ProofreadTranslationRequest(
+        TranslationRequest proofreadRequest
+    );
+
+    /// <summary>
     /// Cancels an existing translation request and its associated background job.
     /// </summary>
     /// <param name="cancelRequest">The translation request to cancel</param>

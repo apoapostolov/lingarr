@@ -13,7 +13,7 @@ using Lingarr.Server.Services.Translation.Base;
 
 namespace Lingarr.Server.Services.Translation;
 
-public class OpenAiService : BaseMeteredLanguageService, ITranslationService, IBatchTranslationService
+public class OpenAiService : BaseMeteredLanguageService, ITranslationService, IBatchTranslationService, IProofreadService
 {
     private readonly string? _endpoint = "https://api.openai.com/v1/";
     private string? _prompt;
@@ -118,6 +118,14 @@ public class OpenAiService : BaseMeteredLanguageService, ITranslationService, IB
     }
 
     /// <inheritdoc />
+    public Task<string> ProofreadAsync(
+        string sourceText,
+        string translatedText,
+        string sourceLanguage,
+        string targetLanguage,
+        CancellationToken cancellationToken) =>
+        ProofreadViaTranslateAsync(sourceText, translatedText, sourceLanguage, targetLanguage, cancellationToken);
+
     public override async Task<string> TranslateAsync(
         string text,
         string sourceLanguage,
