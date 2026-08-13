@@ -82,6 +82,49 @@
             </div>
         </template>
     </CardComponent>
+
+    <CardComponent title="Library housekeeping">
+        <template #description>
+            A weekly sweep that makes sidecar names match the movie or episode
+            file, then optionally pulls an English text track out of the video
+            when no sidecar exists. It does not read the whole library every
+            night. Run it from Schedule if you do not want to wait.
+        </template>
+        <template #content>
+            <div class="flex flex-col space-y-4">
+                <div class="flex items-center space-x-2">
+                    <span>Standardize subtitle names:</span>
+                    <ToggleButton v-model="subtitleNamingEnabled">
+                        <span class="text-primary-content text-sm font-medium">
+                            {{ subtitleNamingEnabled === 'true' ? 'Enabled' : 'Disabled' }}
+                        </span>
+                    </ToggleButton>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span>Extract English from video when missing:</span>
+                    <ToggleButton v-model="subtitleExtractEnabled">
+                        <span class="text-primary-content text-sm font-medium">
+                            {{ subtitleExtractEnabled === 'true' ? 'Enabled' : 'Disabled' }}
+                        </span>
+                    </ToggleButton>
+                </div>
+                <span class="font-semibold">Housekeeping schedule:</span>
+                <InputComponent
+                    v-model="subtitleMaintenanceSchedule"
+                    label="Cron format. Default is Sunday 03:00 UTC."
+                    :placeholder="'0 3 * * 0'"
+                    :validation-type="INPUT_VALIDATION_TYPE.CRON"
+                    @update:validation="(val) => (subtitleMaintenanceScheduleIsValid = val)" />
+                <InputComponent
+                    v-model="subtitleExtractMaxPerRun"
+                    :type="INPUT_TYPE.NUMBER"
+                    :validation-type="INPUT_VALIDATION_TYPE.NUMBER"
+                    :min-length="0"
+                    label="Maximum videos to extract per run"
+                    @update:validation="(val) => (subtitleExtractMaxPerRunIsValid = val)" />
+            </div>
+        </template>
+    </CardComponent>
 </template>
 
 <script setup lang="ts">
@@ -101,6 +144,8 @@ const showAgeThresholdIsValid = ref(false)
 const movieScheduleIsValid = ref(false)
 const showScheduleIsValid = ref(false)
 const translationScheduleIsValid = ref(false)
+const subtitleMaintenanceScheduleIsValid = ref(false)
+const subtitleExtractMaxPerRunIsValid = ref(false)
 const settingsStore = useSettingStore()
 const router = useRouter()
 
@@ -150,6 +195,37 @@ const movieAgeThreshold = computed({
     get: (): string => settingsStore.getSetting(SETTINGS.MOVIE_AGE_THRESHOLD) as string,
     set: (newValue: string): void => {
         settingsStore.updateSetting(SETTINGS.MOVIE_AGE_THRESHOLD, newValue, true)
+        saveNotification.value?.show()
+    }
+})
+
+const subtitleNamingEnabled = computed({
+    get: (): string => settingsStore.getSetting(SETTINGS.SUBTITLE_NAMING_ENABLED) as string,
+    set: (newValue: string): void => {
+        settingsStore.updateSetting(SETTINGS.SUBTITLE_NAMING_ENABLED, newValue, true)
+        saveNotification.value?.show()
+    }
+})
+const subtitleExtractEnabled = computed({
+    get: (): string => settingsStore.getSetting(SETTINGS.SUBTITLE_EXTRACT_ENABLED) as string,
+    set: (newValue: string): void => {
+        settingsStore.updateSetting(SETTINGS.SUBTITLE_EXTRACT_ENABLED, newValue, true)
+        saveNotification.value?.show()
+    }
+})
+const subtitleMaintenanceSchedule = computed({
+    get: (): string => settingsStore.getSetting(SETTINGS.SUBTITLE_MAINTENANCE_SCHEDULE) as string,
+    set: (newValue: string): void => {
+        if (subtitleMaintenanceScheduleIsValid.value) {
+            settingsStore.updateSetting(SETTINGS.SUBTITLE_MAINTENANCE_SCHEDULE, newValue, true)
+            saveNotification.value?.show()
+        }
+    }
+})
+const subtitleExtractMaxPerRun = computed({
+    get: (): string => settingsStore.getSetting(SETTINGS.SUBTITLE_EXTRACT_MAX_PER_RUN) as string,
+    set: (newValue: string): void => {
+        settingsStore.updateSetting(SETTINGS.SUBTITLE_EXTRACT_MAX_PER_RUN, newValue, true)
         saveNotification.value?.show()
     }
 })

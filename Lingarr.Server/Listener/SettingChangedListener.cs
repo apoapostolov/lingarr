@@ -65,6 +65,11 @@ public class SettingChangedListener
                 ])
             },
             {
+                "subtitleMaintenance", ("Action", "SubtitleMaintenance", [
+                    SettingKeys.Automation.SubtitleMaintenanceSchedule
+                ])
+            },
+            {
                 "serviceType", ("Action", "ServiceType", [
                     SettingKeys.Translation.ServiceType
                 ])
@@ -200,6 +205,17 @@ public class SettingChangedListener
                 case "ClearHash":
                     dbContext.Database.ExecuteSqlRaw("UPDATE movies SET media_hash = ''");
                     dbContext.Database.ExecuteSqlRaw("UPDATE episodes SET media_hash = ''");
+                    break;
+
+                case "SubtitleMaintenance":
+                    var subtitleJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+                    var subtitleSchedule = settings.GetValueOrDefault(
+                        SettingKeys.Automation.SubtitleMaintenanceSchedule,
+                        "0 3 * * 0");
+                    subtitleJobManager.AddOrUpdate<SubtitleMaintenanceJob>(
+                        "SubtitleMaintenanceJob",
+                        job => job.Execute(),
+                        string.IsNullOrWhiteSpace(subtitleSchedule) ? "0 3 * * 0" : subtitleSchedule);
                     break;
 
                 case "Schedule":

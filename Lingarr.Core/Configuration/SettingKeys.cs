@@ -191,6 +191,18 @@ public static class SettingKeys
         public const string MovieProcessingIndex = "automation_movie_processing_index";
         /// <summary>Durable cursor for automated show/episode cycle (survives restarts).</summary>
         public const string ShowProcessingIndex = "automation_show_processing_index";
+        public const string SubtitleNamingEnabled = "subtitle_naming_enabled";
+        public const string SubtitleExtractEnabled = "subtitle_extract_enabled";
+        public const string SubtitleMaintenanceSchedule = "subtitle_maintenance_schedule";
+        public const string SubtitleExtractMaxPerRun = "subtitle_extract_max_per_run";
+    }
+
+    public static class MediaServers
+    {
+        public const string PlexUrl = "plex_url";
+        public const string PlexToken = "plex_token";
+        public const string JellyfinUrl = "jellyfin_url";
+        public const string JellyfinToken = "jellyfin_token";
     }
 
     public static class SubtitleValidation

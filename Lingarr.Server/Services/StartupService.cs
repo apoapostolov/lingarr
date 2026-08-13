@@ -255,7 +255,14 @@ public class StartupService : IHostedService
 
             { "DEEPL_API_KEY", SettingKeys.Translation.DeepL.DeeplApiKey },
 
-            { "AUTH_ENABLED", SettingKeys.Authentication.AuthEnabled }
+            { "AUTH_ENABLED", SettingKeys.Authentication.AuthEnabled },
+
+            { "SUBTITLE_NAMING_ENABLED", SettingKeys.Automation.SubtitleNamingEnabled },
+            { "SUBTITLE_EXTRACT_ENABLED", SettingKeys.Automation.SubtitleExtractEnabled },
+            { "SUBTITLE_MAINTENANCE_SCHEDULE", SettingKeys.Automation.SubtitleMaintenanceSchedule },
+            { "SUBTITLE_EXTRACT_MAX_PER_RUN", SettingKeys.Automation.SubtitleExtractMaxPerRun },
+            { "PLEX_URL", SettingKeys.MediaServers.PlexUrl },
+            { "JELLYFIN_URL", SettingKeys.MediaServers.JellyfinUrl }
         };
 
         foreach (var (envVar, settingKey) in environmentSettings)

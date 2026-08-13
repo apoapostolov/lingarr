@@ -39,6 +39,8 @@ docker run --rm --network=host \
 | `Services/TranslationPromptProfileServiceTests.cs` | Immutable prompt versions, AI-only resolution, exact usage history, and protected defaults |
 | `Services/TranslationQualityServiceTests.cs` | Observe-only quality rules, penalties, caps, and scoring |
 | `Services/Translation/ProofreadPromptsTests.cs` | AI revision prompt defaults and Mistral endpoint |
+| `Services/Subtitle/SubtitleNamingTests.cs` | Sidecar rename matching, language aliases, episode isolation |
+| `Services/Subtitle/EmbeddedSubtitleExtractorTests.cs` | English text-track selection and ffprobe JSON parse |
 | `Services/DashboardActivityServiceTests.cs` | Bounded recent-work metrics and deterministic progress prose |
 | `Services/ProviderHealthServiceTests.cs` | Provider status precedence, recovery, and safe event classification |
 

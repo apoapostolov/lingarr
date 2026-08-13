@@ -92,6 +92,13 @@ public class ScheduleService : IScheduleService
             Cron.Hourly,
             new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
 
+        var subtitleSchedule = await settingService.GetSetting(SettingKeys.Automation.SubtitleMaintenanceSchedule);
+        RecurringJob.AddOrUpdate<SubtitleMaintenanceJob>(
+            "SubtitleMaintenanceJob",
+            job => job.Execute(),
+            string.IsNullOrWhiteSpace(subtitleSchedule) ? "0 3 * * 0" : subtitleSchedule,
+            new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
         _logger.LogInformation("Cleaning up orphaned processing jobs.");
         var monitor = JobStorage.Current.GetMonitoringApi();
         var processingJobs = monitor.ProcessingJobs(0, int.MaxValue);

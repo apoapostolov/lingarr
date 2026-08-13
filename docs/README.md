@@ -4,6 +4,7 @@
 | ----- | ------------- |
 | [architecture.md](./architecture.md) | System architecture, layers, request flows, data model |
 | [testing.md](./testing.md) | Unit, regression, and API smoke tests |
+| [subtitle-maintenance.md](./subtitle-maintenance.md) | Weekly sidecar rename and optional MKV text extract |
 | [ai-providers-model-fallback-chain.md](./ai-providers-model-fallback-chain.md) | Lingarr Next AI providers + fallback chain product design |
 | [proposals/settings-page-ia-and-qol.md](./proposals/settings-page-ia-and-qol.md) | Settings IA implementation contract and follow-up phases |
 | [proposals/translation-confidence-and-instruction-profiles.md](./proposals/translation-confidence-and-instruction-profiles.md) | Provider health, subtitle quality, recent Dashboard activity, and versioned AI instruction profiles |

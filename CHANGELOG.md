@@ -29,6 +29,15 @@ to sort before or after versions published by upstream Lingarr.
   Subtitles with no resolvable language no longer render an empty badge,
   matching the behaviour already used for TV episodes.
 
+### Library housekeeping
+
+- Weekly job that renames orphan subtitle sidecars so they match the movie or
+  episode file name (`eng`/`bul` included). Destination collisions are skipped.
+- Optional weekly extract of one English text track from a video when no
+  matching sidecar exists. Image-based subs are left alone. Capped per run.
+- After either change, Jellyfin and Plex are asked to re-read that folder when
+  a URL and token are configured. The job is on the Schedule page.
+
 ### Translation providers
 
 - Added **Mistral AI** as a first-class provider with encrypted API key storage,

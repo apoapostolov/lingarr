@@ -54,6 +54,7 @@ public static class ServiceCollectionExtensions
 
         builder.Services.AddMemoryCache();
         builder.Services.AddHttpClient();
+        builder.Services.AddScoped<MediaLibraryRefreshService>();
 
         builder.ConfigureSwagger();
         builder.ConfigureLogging();
