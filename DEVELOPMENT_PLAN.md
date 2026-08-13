@@ -22,10 +22,10 @@ transcript. Completed work belongs in the changelog or a dated development log.
 
 ## Current state
 
-- **Released:** Lingarr Next 1.0.1, “Moar Providers” (`855caec`).
+- **Released:** Lingarr Next 1.1.0, “Keep House”.
 - **Fork main:** tracks official upstream 1.3.0. Do not merge `main` into `next`.
-- **next:** Lingarr Next plus portable 1.3.0 fixes, Microsoft long-line
-  chunking, Mistral, AI revision, and weekly subtitle housekeeping.
+- **next:** 1.1.0 is current. Remaining 1.3.0 majors (Pinia 4, Node 26 types,
+  Tailwind range, oxlint/oxfmt) are still skipped.
 - **Protected lines:** `main` and `next`.
 - **Validation baseline:** server unit tests including chunker + Local AI parse
   retry. Image rebuild/deploy is a follow-up, not part of this import.

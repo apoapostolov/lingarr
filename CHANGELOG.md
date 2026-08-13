@@ -7,12 +7,10 @@ to sort before or after versions published by upstream Lingarr.
 
 ## [Unreleased]
 
-### Maintenance
+## [1.1.0] - 2026-08-13 — Keep House
 
-- Took the safe 1.3.0 dependency train: ASP.NET/EF/Sqlite `10.0.10`, Hangfire
-  `1.8.24`, Test SDK `18.8.1`, plus axios `1.19`, Vue `3.5.40`, Vite `8.1.5`,
-  and vue-tsc `3.3.8`. Pinia 4, Node 26 types, Tailwind 4.3, and oxlint/oxfmt
-  were left alone.
+Weekly sidecar housekeeping, Mistral, Revise with AI, a Dashboard that opens
+from cache, and the portable backend fixes from upstream 1.3.0.
 
 ### Dashboard
 
@@ -74,6 +72,24 @@ to sort before or after versions published by upstream Lingarr.
 - PostgreSQL timestamp conversion and FluentMigrator `postgresql` conditions
   match upstream 1.3.0. SQLite rollback of the include/exclude rename is
   idempotent.
+
+### Maintenance
+
+- Took the safe 1.3.0 dependency train: ASP.NET/EF/Sqlite `10.0.10`, Hangfire
+  `1.8.24`, Test SDK `18.8.1`, plus axios `1.19`, Vue `3.5.40`, Vite `8.1.5`,
+  and vue-tsc `3.3.8`. Pinia 4, Node 26 types, Tailwind 4.3, and oxlint/oxfmt
+  were left alone.
+
+### Release and compatibility notes
+
+- Migrations `M0024` (Mistral + revise) and `M0025` (housekeeping settings)
+  apply automatically at startup.
+- New settings: `subtitle_naming_enabled`, `subtitle_extract_enabled`,
+  `subtitle_maintenance_schedule`, `subtitle_extract_max_per_run`. Extract
+  stays off in the database default; turn it on in settings or compose.
+- The server image now ships `ffmpeg` so extract can run inside the container.
+- Bedroom image line remains `lingarr-bedroom:*`. Do not point compose at
+  official GHCR.
 
 ## [1.0.1] - 2026-07-29 — Moar Providers
 
@@ -228,4 +244,5 @@ maintained by Apostol Apostolov.
 - Back up the application config and database before switching from an upstream
   image or attempting a downgrade.
 
+[1.1.0]: https://github.com/apoapostolov/lingarr/compare/1.0.1...next
 [1.0.0]: https://github.com/apoapostolov/lingarr/releases/tag/1.0.0
