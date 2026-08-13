@@ -23,28 +23,28 @@ transcript. Completed work belongs in the changelog or a dated development log.
 ## Current state
 
 - **Released:** Lingarr Next 1.0.1, “Moar Providers” (`855caec`).
-- **Deployed:** `lingarr-bedroom:latest` with Qwen General, Qwen Translation,
-  xAI API, and experimental xAI SuperGrok/Premium+ support.
+- **Fork main:** tracks official upstream 1.3.0. Do not merge `main` into `next`.
+- **next:** Lingarr Next plus portable 1.3.0 fixes and Microsoft long-line
+  chunking. Not a wholesale 1.3.0 merge (plugin rewrite, proofreading, Mistral,
+  and upstream xAI stay upstream-only).
 - **Protected lines:** `main` and `next`.
-- **Validation baseline:** client production build, Docker server image build,
-  271 server tests, provider manifest/model endpoint smoke checks, and healthy
-  live container.
+- **Validation baseline:** server unit tests including chunker + Local AI parse
+  retry. Image rebuild/deploy is a follow-up, not part of this import.
 
 ## Next decisions
 
-### Microsoft long-line handling
+### Remaining 1.3.0 features (not ported)
 
-- Decide whether to port the retained `fix/microsoft-translate-long-lines`
-  chunking behavior onto the current provider architecture.
-- Do not merge the old branch wholesale; preserve current retry, timeout, and
-  vector-drawing behavior.
-- Stop after a focused regression test and a provider-safe smoke check.
+- Proofreading, Mistral, and upstream's plugin-based xAI overlap or collide
+  with Next's own provider/quality work. Port only if a product decision says so.
+- Dependabot bumps from 1.3.0 were skipped.
 
 ### Branch and review hygiene
 
+- `fix/microsoft-translate-long-lines` is now ported onto `next`. The old
+  branch can be deleted after a remote check.
 - Resolve or close the remaining old PR anchors before deleting their branches:
   content API paths and the obsolete request-timeout PR.
-- Keep protected release lines and any branch containing unique, unported work.
 
 ## Definition of done
 

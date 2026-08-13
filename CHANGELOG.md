@@ -29,6 +29,23 @@ to sort before or after versions published by upstream Lingarr.
   Subtitles with no resolvable language no longer render an empty badge,
   matching the behaviour already used for TV episodes.
 
+### Upstream 1.3.0 ports
+
+- Microsoft Translator now splits lines over 1000 characters and recombines the
+  translated chunks, preserving current retry, timeout, and jitter behavior.
+- API key generation now runs after onboarding completes and is authorized.
+  Password updates use the same hasher as user creation.
+- Settings JSON now accepts numbers written as strings, which unblocks threshold
+  storage.
+- Plugin provider keys are registered in lowercase so lookups stay consistent.
+- Webhook URLs include the configured base path.
+- The batch-translation toggle follows the chain's primary provider, including
+  OpenRouter, Z.ai, OpenCode Go, Qwen, and xAI.
+- Local AI batch translation retries when the model returns unparsable JSON.
+- PostgreSQL timestamp conversion and FluentMigrator `postgresql` conditions
+  match upstream 1.3.0. SQLite rollback of the include/exclude rename is
+  idempotent.
+
 ## [1.0.1] - 2026-07-29 — Moar Providers
 
 ### Translation providers

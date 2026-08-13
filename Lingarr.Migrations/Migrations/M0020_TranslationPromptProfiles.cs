@@ -131,7 +131,7 @@ public class M0020_TranslationPromptProfiles : Migration
                 """;
 
             IfDatabase("mysql").Execute.Sql(BuildSql("`key`"));
-            IfDatabase("sqlite", "postgres").Execute.Sql(BuildSql("\"key\""));
+            IfDatabase("sqlite", "postgresql").Execute.Sql(BuildSql("\"key\""));
         }
     }
 

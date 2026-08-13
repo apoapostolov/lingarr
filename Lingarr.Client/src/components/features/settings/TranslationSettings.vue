@@ -13,10 +13,14 @@
                     SERVICE_TYPE.DEEPSEEK,
                     SERVICE_TYPE.GEMINI,
                     SERVICE_TYPE.LOCALAI,
-                    SERVICE_TYPE.OPENAI
-                ].includes(
-                    serviceType as 'openai' | 'anthropic' | 'localai' | 'gemini' | 'deepseek'
-                )
+                    SERVICE_TYPE.OPENAI,
+                    SERVICE_TYPE.OPENROUTER,
+                    SERVICE_TYPE.ZAI,
+                    SERVICE_TYPE.OPENCODE_GO,
+                    SERVICE_TYPE.QWEN,
+                    SERVICE_TYPE.XAI,
+                    SERVICE_TYPE.XAI_OAUTH
+                ].includes(activeProvider as ServiceType)
             ">
                 <div class="flex flex-col space-x-2">
                     <span class="font-semibold">Use batch translation</span>
@@ -86,7 +90,7 @@
 <script setup lang="ts">
 import { computed, ref, reactive } from 'vue'
 import { useSettingStore } from '@/store/setting'
-import { INPUT_VALIDATION_TYPE, ISettings, SERVICE_TYPE, SETTINGS } from '@/ts'
+import { INPUT_VALIDATION_TYPE, ISettings, SERVICE_TYPE, SETTINGS, type ServiceType } from '@/ts'
 import CardComponent from '@/components/common/CardComponent.vue'
 import SaveNotification from '@/components/common/SaveNotification.vue'
 import InputComponent from '@/components/common/InputComponent.vue'
