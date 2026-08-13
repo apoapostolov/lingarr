@@ -244,5 +244,5 @@ maintained by Apostol Apostolov.
 - Back up the application config and database before switching from an upstream
   image or attempting a downgrade.
 
-[1.1.0]: https://github.com/apoapostolov/lingarr/compare/1.0.1...next
+[1.1.0]: https://github.com/apoapostolov/lingarr/releases/tag/1.1.0
 [1.0.0]: https://github.com/apoapostolov/lingarr/releases/tag/1.0.0
