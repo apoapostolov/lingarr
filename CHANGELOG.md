@@ -7,6 +7,13 @@ to sort before or after versions published by upstream Lingarr.
 
 ## [Unreleased]
 
+### Maintenance
+
+- Took the safe 1.3.0 dependency train: ASP.NET/EF/Sqlite `10.0.10`, Hangfire
+  `1.8.24`, Test SDK `18.8.1`, plus axios `1.19`, Vue `3.5.40`, Vite `8.1.5`,
+  and vue-tsc `3.3.8`. Pinia 4, Node 26 types, Tailwind 4.3, and oxlint/oxfmt
+  were left alone.
+
 ### Dashboard
 
 - The Dashboard now opens instantly. The last successfully loaded statistics,

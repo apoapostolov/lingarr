@@ -36,7 +36,8 @@ transcript. Completed work belongs in the changelog or a dated development log.
 
 - Upstream xAI is a weaker copy of Next's xAI + OAuth. Leave it.
 - Upstream user-prompt rewrite is a weaker copy of instruction profiles. Leave it.
-- Dependabot bumps from 1.3.0 were skipped.
+- Dependabot bumps from 1.3.0: safe NuGet 10.0.10 train + axios/vue/vite/vue-tsc
+  taken. Still skipped: Pinia 4, `@types/node` 26, Tailwind 4.3, oxlint/oxfmt.
 - Upstream proofread Vue was not copied; Next uses the detail-page revise card.
 
 ### Branch and review hygiene
