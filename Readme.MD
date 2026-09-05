@@ -180,7 +180,8 @@ under **Settings → Translation → Setup**.
 
 MySQL and PostgreSQL remain supported for larger or existing installations.
 Docker secrets can be supplied by using the `_FILE` form of supported
-environment variables.
+environment variables. `JOB_TIMEOUT_MINUTES` sets how long a silent SQLite
+Hangfire job waits before it is retried. The default is 30.
 
 ## Updating and migration
 

@@ -808,7 +808,7 @@ public class TranslationRequestService : ITranslationRequestService
                 return results;
             }
         }
-        catch (TaskCanceledException ex)
+        catch (OperationCanceledException ex)
         {
             // ExecuteUpdateAsync bypasses change-tracking so a concurrent write cannot abort this save.
             var now = DateTime.UtcNow;

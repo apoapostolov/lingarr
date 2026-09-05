@@ -330,8 +330,12 @@ public static class ServiceCollectionExtensions
         var connectionString =
             $"Host={variables["DB_HOST"]};Port={variables["DB_PORT"]};Database={variables["DB_DATABASE"]};Username={variables["DB_USERNAME"]};Password={variables["DB_PASSWORD"]}";
 
-        configuration.UsePostgreSqlStorage(options =>
-            options.UseNpgsqlConnection(connectionString));
+        configuration.UsePostgreSqlStorage(
+            options => options.UseNpgsqlConnection(connectionString),
+            new PostgreSqlStorageOptions
+            {
+                UseSlidingInvisibilityTimeout = true
+            });
     }
 
     /// <summary>
@@ -341,6 +345,9 @@ public static class ServiceCollectionExtensions
     private static void ConfigureSqLiteStorage(IGlobalConfiguration configuration)
     {
         var sqliteDbPath = Environment.GetEnvironmentVariable("DB_HANGFIRE_SQLITE_PATH") ?? "/app/config/Hangfire.db";
+        var jobTimeoutMinutes = int.TryParse(Environment.GetEnvironmentVariable("JOB_TIMEOUT_MINUTES"), out var timeout) && timeout > 0
+            ? timeout
+            : 30;
         var loggerFactory = LoggerFactory.Create(AddLogProviders);
         var logger = loggerFactory.CreateLogger("Lingarr.Hangfire.SQLite");
 
@@ -387,7 +394,7 @@ public static class ServiceCollectionExtensions
                 QueuePollInterval = TimeSpan.FromSeconds(15),
 
                 // Job recovery timeout if worker crashes
-                InvisibilityTimeout = TimeSpan.FromMinutes(30)
+                InvisibilityTimeout = TimeSpan.FromMinutes(jobTimeoutMinutes)
             });
     }
 }

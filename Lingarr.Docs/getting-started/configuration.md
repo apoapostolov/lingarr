@@ -9,6 +9,7 @@ Lingarr Next is primarily configured through its web interface. However, every s
 | `ASPNETCORE_URLS=http://+:9876` | The internal port that Lingarr Next will listen on inside the container. |
 | `BASE_PATH` | Optional URL prefix to host Lingarr Next under a sub-path (e.g., behind a reverse proxy). Example: `/lingarr`. Leave unset to serve from the root. |
 | `MAX_CONCURRENT_JOBS=1` | Sets the amount of jobs that can run concurrently, defaults to 1. |
+| `JOB_TIMEOUT_MINUTES=30` | Minutes of silence before Hangfire retries a job. `sqlite` only, defaults to `30`. |
 
 ## Database
 

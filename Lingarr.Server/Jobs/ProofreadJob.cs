@@ -161,7 +161,7 @@ public class ProofreadJob
 
             await HandleCompletion(jobName, request, revised, total, cancellationToken);
         }
-        catch (TaskCanceledException)
+        catch (OperationCanceledException)
         {
             await HandleCancellation(jobName, translationRequest);
         }

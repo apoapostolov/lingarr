@@ -305,7 +305,7 @@ public class TranslationJob
                 request, serviceType, translationService.ModelName, newlyTranslatedSubtitles);
             await HandleCompletion(jobName, request, cancellationToken);
         }
-        catch (TaskCanceledException)
+        catch (OperationCanceledException)
         {
             await HandleCancellation(jobName, translationRequest);
         }
