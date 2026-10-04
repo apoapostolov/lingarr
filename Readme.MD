@@ -1,3 +1,5 @@
+<div align="center">
+
 # Lingarr Next
 
 Translate the subtitles you already have. Keep the drive quiet.
@@ -7,6 +9,10 @@ Translate the subtitles you already have. Keep the drive quiet.
 [![CI](https://github.com/apoapostolov/lingarr/actions/workflows/ci.yml/badge.svg?branch=next)](https://github.com/apoapostolov/lingarr/actions/workflows/ci.yml)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-green.svg)](LICENSE)
+
+</div>
+
+---
 
 Lingarr Next is a self-hosted subtitle manager for movies and TV. It watches
 Sonarr, Radarr, and Plex for new files, translates a subtitle that is already
