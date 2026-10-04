@@ -1,54 +1,108 @@
 # Lingarr Next
 
+Translate the subtitles you already have. Keep the drive quiet.
+
 [![Version](https://img.shields.io/github/v/release/apoapostolov/lingarr?label=release)](https://github.com/apoapostolov/lingarr/releases)
 [![Container](https://img.shields.io/badge/container-ghcr.io%2Fapoapostolov%2Flingarr-2496ED?logo=docker&logoColor=white)](https://github.com/apoapostolov/lingarr/pkgs/container/lingarr)
 [![CI](https://github.com/apoapostolov/lingarr/actions/workflows/ci.yml/badge.svg?branch=next)](https://github.com/apoapostolov/lingarr/actions/workflows/ci.yml)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-active-brightgreen)](https://github.com/apoapostolov/lingarr)
 
-Lingarr Next is a self-hosted subtitle translation manager for movie and TV
-libraries. It discovers subtitles through Sonarr and Radarr, translates them
-with local, free, or paid providers, and makes the result understandable through
-provider health, subtitle quality scores, fallback reporting, and recent-work
-statistics.
+Lingarr Next is a self-hosted subtitle manager for movies and TV. It watches
+Sonarr, Radarr, and Plex for new files, translates a subtitle that is already
+on disk, and can hand the result back to Plex as the selected track. The
+current release is **1.1.3**.
+
+<p align="center">
+  <img src="docs/images/hero.jpg" alt="A dim home theater with a film on the screen and a laptop showing a dark teal dashboard" width="100%" />
+</p>
+
+You run it yourself. There is no hosted translation service. Connect your own
+libraries and your own providers: free web translators, DeepL, or a local or
+hosted model.
+
+Lingarr Next is a fork of
+[Lingarr](https://github.com/lingarr-translate/lingarr), maintained by Apostol
+Apostolov. AI-assisted changes are welcome. Each one is still reviewed and
+tested before it ships.
+
+## What's new
+
+Current release: [1.1.3](https://github.com/apoapostolov/lingarr/releases/tag/1.1.3).
+The full history is in [CHANGELOG.md](CHANGELOG.md).
+
+### 1.1.3 — Imports (2026-10-04)
+
+- The daily check asks Plex, Radarr, and Sonarr what was imported.
+- A title that already has the source language and every target language is
+  left alone. The folder is not opened.
+- A new import that is still missing a language is the only folder opened.
+- A full drive walk runs only when Plex, Radarr, and Sonarr are all missing
+  and **Scan all folders on a schedule** is on.
+- Translation automation runs once a day at 02:00 UTC, before Sunday
+  housekeeping and the daily statistics job.
+
+### 1.1.2 — Library (2026-10-04)
+
+- Plex `library.new` can start a translation for a movie or an episode.
+- Movies match by tmdb, imdb, or tvdb id. Episodes match by show, season, and
+  episode number, or by the show id when the Plex title differs.
+- Movies and episodes each have their own webhook switch. Both start on.
+- Scheduled translation, housekeeping, and statistics stay off the disk while
+  the library scan switch is paused. That switch starts paused.
+
+### 1.1.1 — Plex (2026-10-04)
+
+- Sign in from Settings with a Plex PIN, or with a server address and token.
+  The token stays encrypted. Sign-out stays signed out when a token is also
+  set in the environment.
+- After a translation, Lingarr can select that subtitle in Plex for one
+  language. Matching uses the file path, an external id, or the Plex title,
+  original title, and slug.
+- If a refresh misses a sidecar such as `name.bg.srt`, Lingarr uploads the
+  file and then selects it.
+- Batch translation can be set from the environment, and saving an AI service
+  no longer turns batch off for a provider that supports it.
+- `JOB_TIMEOUT_MINUTES` controls how long a silent SQLite Hangfire job waits.
+  The default is 30.
+
+### 1.1.0 — Keep House (2026-08-13)
+
+- The Dashboard opens from a local cache, then refreshes in the background.
+- A weekly job renames orphan sidecars so they match the video file, and can
+  extract one English text track when no sidecar exists. The server image
+  includes ffmpeg.
+- Completed translations can be sent back through **Revise with AI**.
+- Mistral joins the provider list, with model discovery and instruction
+  profiles.
+- Portable fixes from upstream 1.3.0: long Microsoft lines are split, webhook
+  URLs keep the base path, and the safe dependency updates are included.
+
+### 1.0.1 — Moar Providers (2026-07-29)
+
+- Qwen General AI and Qwen Translation (Qwen-MT) are separate providers.
+- xAI is available as an API-key provider and, experimentally, as SuperGrok /
+  Premium+ device login. Those tokens stay encrypted.
+- The fork name **Lingarr Next** is used across the app, docs, and provider
+  identity.
+
+### 1.0.0 (2026-07-29)
+
+The first Lingarr Next release. It is its own version line, not an upstream
+1.0.
+
+- Dashboard for language coverage, provider health, recent work, quality, and
+  metered model usage.
+- An ordered provider-and-model fallback chain.
+- OpenRouter, Z.ai Coding Plan, OpenCode Go, and a stronger DeepSeek path.
+- Observe-only quality scores, with findings you can inspect.
+- Versioned System and Context instruction profiles, assignable per provider.
+- Settings grouped into Connections, Translation, Automation, System, and
+  Plugins. Anonymous telemetry is gone. Update checks point at this fork.
 
 <p align="center">
   <img src="docs/images/dashboard-overview.png" alt="Lingarr Next Dashboard showing language coverage, provider health, and recent translation activity" width="100%" />
 </p>
-
-> **About this fork:** Lingarr Next is a separate fork of
-> [Lingarr](https://github.com/lingarr-translate/lingarr), maintained by
-> **Apostol Apostolov**. It exists to speed up development independently from
-> upstream's strict no-AI development rules. AI-assisted development is welcome
-> here, but every change remains subject to human review, testing, and maintainer
-> accountability.
-
-> **Self-hosted:** This repository does not provide a public translation
-> service. You run Lingarr Next and connect your own media libraries and
-> translation providers.
-
-## What's new in 1.0.0
-
-Version 1.0.0 establishes the independent Lingarr Next release line. It
-combines the Bedroom work to date into one supported baseline:
-
-- A redesigned Dashboard explains subtitle coverage, provider health, recent
-  progress, quality results, fallbacks, and metered LLM usage.
-- Translation services can be arranged as an ordered provider-and-model
-  fallback chain.
-- OpenRouter, Z.ai Coding Plan, OpenCode Go, and improved DeepSeek support join
-  the existing translation providers.
-- Every completed subtitle receives an observe-only quality score with
-  inspectable findings.
-- System and Context prompts are now reusable, versioned instruction profiles
-  that can be assigned to individual AI translators.
-- Settings are organized into clear local tabs, anonymous telemetry is removed,
-  and update checks point to this fork.
-- Subtitle scanning, scheduled automation, Microsoft translation, and Hangfire
-  SQLite maintenance are substantially more resilient.
-
-Read the complete [1.0.0 changelog](CHANGELOG.md).
 
 ## Features
 
@@ -133,8 +187,9 @@ device-login connection for SuperGrok / Premium+ accounts.
 
 - Subtitle discovery avoids unbounded recursive scans, ignores trailer folders,
   and still finds conventional subtitle directories.
-- Scheduled automation pages through large libraries and retains a durable
-  cursor instead of repeatedly starting from the beginning.
+- The daily translation check uses Plex, Radarr, and Sonarr. It does not walk
+  every folder. A full scan is the fallback when those three are missing and
+  the library scan switch is on.
 - Hangfire SQLite receives startup recovery and periodic WAL checkpoint
   maintenance.
 - Microsoft/GTranslate requests use longer provider-specific timeouts and
