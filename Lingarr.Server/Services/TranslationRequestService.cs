@@ -704,6 +704,7 @@ public class TranslationRequestService : ITranslationRequestService
 
 
             // Process Translation
+            var stripSubtitleFormatting = settings[SettingKeys.Translation.StripSubtitleFormatting] == "true";
             if (settings[SettingKeys.Translation.UseBatchTranslation] == "true"
                 && translateAbleContent.Lines.Count > 1
                 && services.Any(e => e.Service is IBatchTranslationService))
@@ -717,7 +718,6 @@ public class TranslationRequestService : ITranslationRequestService
                     _progressService,
                     _providerHealth);
                 var totalSize = translateAbleContent.Lines.Count;
-                var stripSubtitleFormatting = settings[SettingKeys.Translation.StripSubtitleFormatting] == "true";
                 var maxSize = int.TryParse(settings[SettingKeys.Translation.MaxBatchSize], out var batchSize)
                     ? batchSize
                     : 10000;
