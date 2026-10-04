@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/images/mark.jpg" alt="" width="96" />
+<img src="docs/images/mark.png" alt="" width="256" />
 
 # Lingarr Next
 

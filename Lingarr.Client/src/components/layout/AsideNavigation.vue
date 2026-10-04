@@ -13,7 +13,7 @@
                 class="absolute top-1 right-1 block h-6 w-6 cursor-pointer md:hidden"
                 @click="isOpen = false" />
             <div class="flex h-16 items-center justify-center gap-2 px-3">
-                <img :src="markUrl" alt="" class="h-9 w-9 rounded-lg" />
+                <img :src="markUrl" alt="" class="h-9 w-9" />
                 <h1 class="text-xl font-bold">Lingarr Next</h1>
             </div>
             <!-- Navigation -->
@@ -89,7 +89,7 @@ import SettingIcon from '@/components/icons/SettingIcon.vue'
 import TimesIcon from '@/components/icons/TimesIcon.vue'
 import BadgeComponent from '@/components/common/BadgeComponent.vue'
 import LanguageIcon from '@/components/icons/LanguageIcon.vue'
-import markUrl from '@/assets/mark.jpg'
+import markUrl from '@/assets/mark.png'
 
 const translationRequestStore = useTranslationRequestStore()
 const instanceStore = useInstanceStore()
