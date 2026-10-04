@@ -263,7 +263,7 @@ public sealed class PlexAuthService : IPlexAuthService
         return new PlexTestResponse
         {
             Ok = probe.Ok,
-            Message = probe.Ok ? "Plex answered." : probe.Error
+            Message = probe.Ok ? "Test successful." : probe.Error
         };
     }
 

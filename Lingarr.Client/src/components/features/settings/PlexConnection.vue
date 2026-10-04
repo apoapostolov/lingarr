@@ -348,7 +348,7 @@ async function testConnection() {
     try {
         const result = await services.plex.test()
         if (result.ok) {
-            notice.value = result.message || 'Plex answered.'
+            notice.value = result.message || 'Test successful.'
         } else {
             error.value = result.message || 'Plex did not answer.'
         }
