@@ -7,8 +7,9 @@
             <!-- Header -->
             <header class="bg-secondary px-4 py-2 shadow-lg sm:px-6 lg:px-8">
                 <div class="flex w-full items-center justify-between space-x-2 md:justify-end">
-                    <div class="md:hidden">
+                    <div class="flex items-center gap-2 md:hidden">
                         <MenuIcon class="block h-5 w-5 cursor-pointer" @click="isOpen = !isOpen" />
+                        <img :src="markUrl" alt="" class="h-8 w-8 rounded-md" />
                     </div>
                     <div class="flex items-center justify-between">
                         <DropdownComponent width="medium">
@@ -58,6 +59,7 @@ import AsideNavigation from '@/components/layout/AsideNavigation.vue'
 import DropdownComponent from '@/components/common/DropdownComponent.vue'
 import ThemeIcon from '@/components/icons/ThemeIcon.vue'
 import MenuIcon from '@/components/icons/MenuIcon.vue'
+import markUrl from '@/assets/mark.jpg'
 
 const settingStore = useSettingStore()
 const instanceStore = useInstanceStore()

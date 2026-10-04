@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/images/mark.jpg" alt="" width="96" />
+
 # Lingarr Next
 
 Translate the subtitles you already have. Keep the drive quiet.
