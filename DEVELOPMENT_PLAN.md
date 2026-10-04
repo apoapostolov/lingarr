@@ -22,10 +22,13 @@ transcript. Completed work belongs in the changelog or a dated development log.
 
 ## Current state
 
-- **Released:** Lingarr Next 1.1.0, “Keep House”.
-- **Fork main:** tracks official upstream 1.3.0. Do not merge `main` into `next`.
-- **next:** 1.1.0 is current. Remaining 1.3.0 majors (Pinia 4, Node 26 types,
-  Tailwind range, oxlint/oxfmt) are still skipped.
+- **Released:** Lingarr Next 1.1.1, “Plex”.
+- **Fork main:** tracks official upstream through #502.
+  Do not merge `main` into `next`.
+- **next:** 1.1.1 is current. Upstream #527, #529, #550, #551, and #552 are
+  ported. Still skipped: telemetry #510, date handling #514, translated
+  context #530, and the later Dependabot trains. Remaining 1.3.0 majors
+  (Pinia 4, Node 26 types, Tailwind range, oxlint/oxfmt) are still skipped.
 - **Protected lines:** `main` and `next`.
 - **Validation baseline:** server unit tests including chunker + Local AI parse
   retry. Image rebuild/deploy is a follow-up, not part of this import.

@@ -7,6 +7,41 @@ to sort before or after versions published by upstream Lingarr.
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-10-04 — Plex
+
+Sign in to Plex from Settings. After a translation, Lingarr can make that
+subtitle the one Plex plays.
+
+### Plex
+
+- Settings → Connections → Media servers can sign in with the Plex PIN page,
+  or with a local server address and token. The token stays encrypted.
+- Sign out stays signed out when `PLEX_TOKEN` is set on the server. A sign-in
+  from the card is the connection used after that, including across restarts.
+- A finished movie or episode translation can tell Plex to select the new
+  subtitle for one configured language. The item is matched by file path, by
+  a tmdb, imdb, or tvdb id in the file name, or by the Plex title, original
+  title, and slug.
+- If a refresh does not list a sidecar such as `name.bg.srt`, Lingarr uploads
+  that file onto the matched item and then selects it.
+
+### Upstream fixes
+
+- `USE_BATCH_TRANSLATION` can be set from the environment.
+- Saving an AI service no longer turns batch translation off for a service
+  that supports batch.
+- A translation job skips a request that is already completed or cancelled,
+  and a queued duplicate is removed before resume.
+- `JOB_TIMEOUT_MINUTES` sets how long a silent SQLite Hangfire job waits
+  before retry. The default is 30.
+- Content-API line translations strip subtitle markup when that setting is on.
+
+### Release and compatibility notes
+
+- Migrations `M0026` and `M0027` add the Plex connection settings and run at
+  startup.
+- The image line remains `lingarr-next`. This patch is tag `1.1.1`.
+
 ## [1.1.0] - 2026-08-13 — Keep House
 
 Weekly sidecar housekeeping, Mistral, Revise with AI, a Dashboard that opens
@@ -244,5 +279,6 @@ maintained by Apostol Apostolov.
 - Back up the application config and database before switching from an upstream
   image or attempting a downgrade.
 
+[1.1.1]: https://github.com/apoapostolov/lingarr/releases/tag/1.1.1
 [1.1.0]: https://github.com/apoapostolov/lingarr/releases/tag/1.1.0
 [1.0.0]: https://github.com/apoapostolov/lingarr/releases/tag/1.0.0
