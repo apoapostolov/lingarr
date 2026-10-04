@@ -1,4 +1,5 @@
-﻿using Lingarr.Core.Enum;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Lingarr.Core.Enum;
 
 namespace Lingarr.Core.Entities;
 
@@ -19,4 +20,13 @@ public class TranslationRequest : BaseEntity
     public int? QualityScore { get; set; }
     public string? QualityGrade { get; set; }
     public string? QualityStatus { get; set; }
+
+    [NotMapped]
+    public long? InputTokens { get; set; }
+
+    [NotMapped]
+    public long? OutputTokens { get; set; }
+
+    [NotMapped]
+    public bool ShowTokenUsage { get; set; }
 }

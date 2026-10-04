@@ -578,6 +578,7 @@ public class TranslationRequestService : ITranslationRequestService
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
+        await AttachTokenUsage(requests);
 
         return new PagedResult<TranslationRequest>
         {
@@ -588,6 +589,47 @@ public class TranslationRequestService : ITranslationRequestService
         };
     }
     
+    private async Task AttachTokenUsage(List<TranslationRequest> requests)
+    {
+        if (requests.Count == 0)
+        {
+            return;
+        }
+
+        var ids = requests.Select(request => request.Id).ToList();
+        var usage = await _dbContext.ProviderOperationalEvents
+            .Where(item =>
+                item.TranslationRequestId != null &&
+                ids.Contains(item.TranslationRequestId.Value) &&
+                item.Outcome == "success")
+            .Select(item => new
+            {
+                item.TranslationRequestId,
+                item.Provider,
+                item.InputTokens,
+                item.OutputTokens
+            })
+            .ToListAsync();
+
+        foreach (var request in requests)
+        {
+            var metered = usage
+                .Where(item =>
+                    item.TranslationRequestId == request.Id &&
+                    PayPerTokenProviders.Contains(item.Provider) &&
+                    (item.InputTokens.HasValue || item.OutputTokens.HasValue))
+                .ToList();
+            if (metered.Count == 0)
+            {
+                continue;
+            }
+
+            request.ShowTokenUsage = true;
+            request.InputTokens = metered.Sum(item => item.InputTokens ?? 0);
+            request.OutputTokens = metered.Sum(item => item.OutputTokens ?? 0);
+        }
+    }
+
     /// <inheritdoc />
     public async Task ClearMediaHash(TranslationRequest translationRequest)
     {

@@ -130,6 +130,13 @@
                             {{ item.qualityScore }}%
                         </span>
                     </span>
+                    <span
+                        v-if="showTokenLine(item)"
+                        class="whitespace-nowrap text-xs text-primary-content/55"
+                        :title="tokenTitle(item)">
+                        {{ formatTokenCount(item.inputTokens) }} in ·
+                        {{ formatTokenCount(item.outputTokens) }} out
+                    </span>
                 </div>
                 <div
                     class="items-center md:flex md:px-4 md:py-2"
@@ -224,6 +231,18 @@ const filter: ComputedRef<IFilter> = computed({
         translationRequestStore.setFilter(value)
     }, 300)
 })
+
+function showTokenLine(item: ITranslationRequest) {
+    return item.showTokenUsage === true
+}
+
+function formatTokenCount(value?: number | null) {
+    return (value ?? 0).toLocaleString()
+}
+
+function tokenTitle(item: ITranslationRequest) {
+    return `${formatTokenCount(item.inputTokens)} input tokens, ${formatTokenCount(item.outputTokens)} output tokens`
+}
 
 async function handleAction(translationRequest: ITranslationRequest, action: TRANSLATION_ACTIONS) {
     switch (action) {

@@ -293,13 +293,10 @@ public class DashboardActivityService : IDashboardActivityService
                 return firstFailure >= 0 &&
                        events.Skip(firstFailure + 1).Any(item => item.Outcome == "success");
             });
-        var meteredProviders = new HashSet<string>(
-            ["openrouter", "openai", "deepseek", "anthropic"],
-            StringComparer.OrdinalIgnoreCase);
         var meteredUsage = providerEvents
             .Where(item =>
                 item.Outcome == "success" &&
-                meteredProviders.Contains(item.Provider) &&
+                PayPerTokenProviders.Contains(item.Provider) &&
                 (item.InputTokens.HasValue || item.OutputTokens.HasValue))
             .ToList();
         var inputTokens = meteredUsage.Sum(item => item.InputTokens ?? 0);
