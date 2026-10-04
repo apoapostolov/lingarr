@@ -9,8 +9,8 @@ Lingarr Next provides multi-architecture Docker images that automatically select
 | Tag | Description | Architectures |
 |-----|-------------|---------------|
 | `latest` | Latest stable release | `amd64` `arm64` |
-| `1.2.3` | Specific version | `amd64` `arm64` |
-| `main` | ⚠️ Development build from main branch | `amd64` `arm64` |
+| `1.1.3` | A specific release | `amd64` `arm64` |
+| `next` | Development build from the `next` branch | `amd64` `arm64` |
 
 Note: As of 1.0.3 all images support both AMD64 (Intel/AMD) and ARM64 (Raspberry Pi, Apple Silicon) architectures. Docker will automatically pull the correct architecture for your system.
 
@@ -18,8 +18,7 @@ Lingarr Next Docker images are available from multiple registries:
 
 | Registry | Image |
 |----------|-------|
-| GitHub Container Registry | `ghcr.io/lingarr-translate/lingarr:latest` |
-| Docker Hub | `docker.io/lingarr/lingarr:latest` |
+| GitHub Container Registry | `ghcr.io/apoapostolov/lingarr:latest` |
 
 ## Docker Compose
 
@@ -28,7 +27,7 @@ By default, Lingarr Next uses `MySQL`; `PostgreSQL` and `SQLite` are also suppor
 ```yaml
 services:
   lingarr:
-    image: ghcr.io/lingarr-translate/lingarr:latest # or lingarr/lingarr:latest
+    image: ghcr.io/apoapostolov/lingarr:latest
     container_name: lingarr
     restart: unless-stopped
     environment:
@@ -111,7 +110,7 @@ docker run -d \
   -v /path/to/media/tv:/tv \
   -v /path/to/config:/app/config \
   --network lingarr \
-  ghcr.io/lingarr-translate/lingarr:latest # or use: lingarr/lingarr:latest
+  ghcr.io/apoapostolov/lingarr:latest
 ```
 
 ## Running as non-root
