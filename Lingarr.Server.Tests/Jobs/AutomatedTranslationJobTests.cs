@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Lingarr.Core.Configuration;
 using Lingarr.Core.Data;
@@ -163,7 +164,8 @@ public class AutomatedTranslationJobTests
             NullLogger<AutomatedTranslationJob>.Instance,
             processor,
             new NoOpScheduleService(),
-            settings);
+            settings,
+            new NoHelpersLightDiscovery());
     }
 
     private static void ConfigureJobForMovies(AutomatedTranslationJob job)
@@ -208,6 +210,12 @@ public class AutomatedTranslationJobTests
             ProcessedTitles.Add(media.Title);
             return Task.FromResult(true);
         }
+    }
+
+    private sealed class NoHelpersLightDiscovery : ILibraryLightDiscovery
+    {
+        public Task<int?> TryDiscover(int translationLimit, CancellationToken cancellationToken) =>
+            Task.FromResult<int?>(null);
     }
 
     private sealed class NoOpScheduleService : IScheduleService

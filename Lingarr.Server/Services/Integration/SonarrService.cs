@@ -105,6 +105,15 @@ public class SonarrService : ISonarrService
             ?? episodes.FirstOrDefault(episode => episode.EpisodeNumber == episodeNumber);
     }
 
+    /// <inheritdoc />
+    public Task<List<int>> GetImportedEpisodeIdsSince(DateTime since) =>
+        ArrImportHistory.GetIdsSince(
+            _integrationService,
+            "/api/v3/history",
+            Keys,
+            since,
+            record => record.EpisodeId);
+
     private static IntegrationSettingKeys Keys => new()
     {
         Url = "sonarr_url",

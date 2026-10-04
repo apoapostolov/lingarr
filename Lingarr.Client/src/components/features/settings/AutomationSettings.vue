@@ -27,10 +27,11 @@
 
     <CardComponent title="Library disk scan">
         <template #description>
-            Scheduled jobs can open every movie and episode folder. On a large
-            library that keeps a hard drive busy for hours. Leave this off when
-            Plex, Radarr, or Sonarr webhooks add new items. Turn it on only when
-            you want Lingarr to walk the whole collection again.
+            The daily translation check uses Plex, Radarr, and Sonarr. It skips
+            an item that already has the source and target languages. It opens
+            a folder only for a new import that is still missing a language.
+            This switch is the full drive walk, used only when none of those
+            three are connected. Leave it paused.
         </template>
         <template #content>
             <div class="flex items-center space-x-2">
@@ -69,8 +70,8 @@
                 <span class="font-semibold">Set translation schedule:</span>
                 <InputComponent
                     v-model="translationSchedule"
-                    label="Cron format: minute hour day month weekday (e.g., '0 * * * *' for hourly)"
-                    :placeholder="'0 * * * *'"
+                    label="Once a day at 02:00 UTC. Cron: minute hour day month weekday."
+                    :placeholder="'0 2 * * *'"
                     :validation-type="INPUT_VALIDATION_TYPE.CRON"
                     @update:validation="(val) => (translationScheduleIsValid = val)" />
 

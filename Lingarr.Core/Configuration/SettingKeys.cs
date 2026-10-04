@@ -182,6 +182,9 @@ public static class SettingKeys
         public const string AutomationEnabled = "automation_enabled";
         /// <summary>When false, scheduled jobs do not walk movie or episode folders.</summary>
         public const string LibraryDiskScanEnabled = "library_disk_scan_enabled";
+        public const string LibraryLightSeenAt = "library_light_seen_at";
+        public const string LibraryLightPlexSection = "library_light_plex_section";
+        public const string LibraryLightPlexOffset = "library_light_plex_offset";
         public const string TranslationSchedule = "translation_schedule";
         public const string MaxTranslationsPerRun = "max_translations_per_run";
         public const string TranslationCycle = "translation_cycle";

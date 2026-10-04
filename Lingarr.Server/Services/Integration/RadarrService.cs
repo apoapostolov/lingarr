@@ -71,4 +71,13 @@ public class RadarrService : IRadarrService
 
         return movies.FirstOrDefault(movie => movie.HasFile) ?? movies[0];
     }
+
+    /// <inheritdoc />
+    public Task<List<int>> GetImportedMovieIdsSince(DateTime since) =>
+        ArrImportHistory.GetIdsSince(
+            _integrationService,
+            "/api/v3/history",
+            new IntegrationSettingKeys { Url = "radarr_url", ApiKey = "radarr_api_key" },
+            since,
+            record => record.MovieId);
 }

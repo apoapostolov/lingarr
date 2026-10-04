@@ -32,4 +32,9 @@ public interface IRadarrService
     /// </summary>
     /// <returns>The movie that has a file, or the first match, or null.</returns>
     Task<RadarrMovie?> FindLibraryMovie(string kind, string id);
+
+    /// <summary>
+    /// Movie ids imported into Radarr since the given time.
+    /// </summary>
+    Task<List<int>> GetImportedMovieIdsSince(DateTime since);
 }

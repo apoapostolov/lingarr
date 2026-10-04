@@ -3,6 +3,7 @@ using Lingarr.Contracts.Interfaces;
 using Lingarr.Contracts.Models;
 using Lingarr.Core.Configuration;
 using Lingarr.Core.Data;
+using Lingarr.Core.Entities;
 using Lingarr.Core.Enum;
 using Lingarr.Core.Interfaces;
 using Lingarr.Server.Interfaces.Services;
@@ -56,6 +57,7 @@ public class MediaSubtitleProcessor : IMediaSubtitleProcessor
         }
         
         var subtitles = await _subtitleService.GetSubtitles(media.Path, media.FileName);
+        ApplyCoverage(media, subtitles.Select(subtitle => subtitle.Language));
         if (!subtitles.Any())
         {
             await RememberFolder(media);
@@ -233,6 +235,20 @@ public class MediaSubtitleProcessor : IMediaSubtitleProcessor
         LibraryFolderStamp.Write(_media, LibraryFolderStamp.Capture(_media.Path));
         _dbContext.Update(_media);
         await _dbContext.SaveChangesAsync();
+    }
+
+    private static void ApplyCoverage(IMedia media, IEnumerable<string> languages)
+    {
+        var coverage = LibraryCoverage.Format(languages);
+        switch (media)
+        {
+            case Movie movie:
+                movie.LanguageCoverage = coverage;
+                break;
+            case Episode episode:
+                episode.LanguageCoverage = coverage;
+                break;
+        }
     }
 
     private async Task RememberFolder(IMedia media)

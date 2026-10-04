@@ -18,6 +18,7 @@ public class AutomatedTranslationJob
     private readonly IMediaSubtitleProcessor _mediaSubtitleProcessor;
     private readonly ISettingService _settingService;
     private readonly IScheduleService _scheduleService;
+    private readonly ILibraryLightDiscovery _lightDiscovery;
     private int _maxTranslationsPerRun = 10;
     private TimeSpan _defaultMovieAgeThreshold;
     private TimeSpan _defaultShowAgeThreshold;
@@ -33,13 +34,15 @@ public class AutomatedTranslationJob
         ILogger<AutomatedTranslationJob> logger,
         IMediaSubtitleProcessor mediaSubtitleProcessor,
         IScheduleService scheduleService,
-        ISettingService settingService)
+        ISettingService settingService,
+        ILibraryLightDiscovery lightDiscovery)
     {
         _dbContext = dbContext;
         _logger = logger;
         _settingService = settingService;
         _scheduleService = scheduleService;
         _mediaSubtitleProcessor = mediaSubtitleProcessor;
+        _lightDiscovery = lightDiscovery;
     }
 
     [DisableConcurrentExecution(timeoutInSeconds: 10 * 60)]
@@ -59,13 +62,6 @@ public class AutomatedTranslationJob
             SettingKeys.Automation.LibraryDiskScanEnabled
         ]);
 
-        if (settings.GetValueOrDefault(SettingKeys.Automation.LibraryDiskScanEnabled) == "false")
-        {
-            _logger.LogInformation("Library disk scan is paused. Lingarr did not read movie or episode folders.");
-            await _scheduleService.UpdateJobState(jobName, JobStatus.Succeeded.GetDisplayName());
-            return;
-        }
-
         if (settings.GetValueOrDefault(SettingKeys.Automation.AutomationEnabled) == "false")
         {
             _logger.LogInformation("Automation not enabled, skipping translation automation.");
@@ -79,6 +75,23 @@ public class AutomatedTranslationJob
         _maxTranslationsPerRun = maxTranslations > 0 ? maxTranslations : 10;
         _defaultMovieAgeThreshold = TimeSpan.FromHours(movieAgeThreshold);
         _defaultShowAgeThreshold = TimeSpan.FromHours(showAgeThreshold);
+
+        var light = await _lightDiscovery.TryDiscover(_maxTranslationsPerRun, CancellationToken.None);
+        if (light != null)
+        {
+            _logger.LogInformation(
+                "Translation automation used Plex, Radarr, or Sonarr and did not walk every folder.");
+            await _scheduleService.UpdateJobState(jobName, JobStatus.Succeeded.GetDisplayName());
+            return;
+        }
+
+        if (settings.GetValueOrDefault(SettingKeys.Automation.LibraryDiskScanEnabled) == "false")
+        {
+            _logger.LogInformation(
+                "Plex, Radarr, and Sonarr are not configured, and the full library disk scan is paused.");
+            await _scheduleService.UpdateJobState(jobName, JobStatus.Succeeded.GetDisplayName());
+            return;
+        }
 
         var translationCycle = settings.GetValueOrDefault(SettingKeys.Automation.TranslationCycle) == "true" ? "movies" : "shows";
         _logger.LogInformation("Starting translation cycle for |Green|{Cycle}|/Green|", translationCycle);

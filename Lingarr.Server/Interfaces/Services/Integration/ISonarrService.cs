@@ -52,4 +52,9 @@ public interface ISonarrService
     /// and the season and episode numbers.
     /// </summary>
     Task<SonarrEpisode?> FindLibraryEpisode(string kind, string showId, int seasonNumber, int episodeNumber);
+
+    /// <summary>
+    /// Episode ids imported into Sonarr since the given time.
+    /// </summary>
+    Task<List<int>> GetImportedEpisodeIdsSince(DateTime since);
 }

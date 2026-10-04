@@ -83,7 +83,7 @@ public class ScheduleService : IScheduleService
         RecurringJob.AddOrUpdate<StatisticsJob>(
             "StatisticsJob",
             job => job.Execute(),
-            Cron.Daily,
+            "0 5 * * *",
             new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
 
         RecurringJob.AddOrUpdate<ProviderHealthReconciliationJob>(

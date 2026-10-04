@@ -7,6 +7,14 @@ to sort before or after versions published by upstream Lingarr.
 
 ## [Unreleased]
 
+- The daily translation check asks Plex, Radarr, and Sonarr for new imports
+  and for items that already have the source and target languages. It does
+  not open those folders. A full drive walk runs only when none of those
+  three are configured and the library disk scan switch is on.
+- Translation automation defaults to once a day at 02:00 UTC, before Sunday
+  housekeeping at 03:00 and statistics at 05:00. An existing every-3-hours
+  schedule is moved to that daily time.
+
 ## [1.1.2] - 2026-10-04 — Library
 
 Plex can start a translation when it adds a movie or an episode, and the

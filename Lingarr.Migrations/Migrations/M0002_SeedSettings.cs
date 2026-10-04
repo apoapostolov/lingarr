@@ -37,7 +37,7 @@ public class M0002_SeedSettings : Migration
         Insert.IntoTable("settings").Row(new { key = "service_type", value = "libretranslate" });
         Insert.IntoTable("settings").Row(new { key = "automation_enabled", value = "false" });
         Insert.IntoTable("settings").Row(new { key = "max_translations_per_run", value = "10" });
-        Insert.IntoTable("settings").Row(new { key = "translation_schedule", value = "0 4 * * *" });
+        Insert.IntoTable("settings").Row(new { key = "translation_schedule", value = "0 2 * * *" });
         Insert.IntoTable("settings").Row(new { key = "translation_cycle", value = "false" });
         Insert.IntoTable("settings").Row(new { key = "movie_age_threshold", value = "0" });
         Insert.IntoTable("settings").Row(new { key = "show_age_threshold", value = "0" });
