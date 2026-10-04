@@ -2,6 +2,7 @@ using Hangfire;
 using Lingarr.Server.Attributes;
 using Lingarr.Server.Jobs;
 using Lingarr.Server.Models.Webhooks;
+using Lingarr.Server.Services.Integration.Plex;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lingarr.Server.Controllers;
@@ -59,5 +60,51 @@ public class WebhookController : ControllerBase
         _logger.LogInformation("Queued Sonarr webhook processing job for series ID {SeriesId}, episodes: {EpisodeIds}",
             payload.Series.Id, string.Join(", ", payload.Episodes.Select(e => e.Id)));
         return Ok(new { message = "Webhook received and queued for processing" });
+    }
+
+    /// <summary>
+    /// Receives a Plex webhook. A newly added movie or episode is queued.
+    /// Plex posts multipart form data with a JSON field named payload.
+    /// </summary>
+    [HttpPost("plex")]
+    public async Task<IActionResult> PlexWebhook()
+    {
+        var json = await ReadPlexPayload();
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            _logger.LogWarning("Plex webhook had no payload.");
+            return BadRequest(new { message = "Plex webhook payload is missing." });
+        }
+
+        var decision = PlexWebhookReader.Read(json);
+        if (decision is PlexWebhookDecision.Unreadable)
+        {
+            _logger.LogWarning("Plex webhook payload was not JSON.");
+            return BadRequest(new { message = "Plex webhook payload was not JSON." });
+        }
+
+        if (decision is not PlexWebhookDecision.Added added)
+        {
+            return Ok(new { message = "Ignored" });
+        }
+
+        _backgroundJobClient.Enqueue<WebhookJob>(job => job.ProcessPlexWebhook(added.Item));
+        _logger.LogInformation(
+            "Queued Plex library.new for {Title} ({RatingKey})",
+            added.Item.Title,
+            added.Item.RatingKey);
+        return Ok(new { message = "Webhook received and queued for processing" });
+    }
+
+    private async Task<string?> ReadPlexPayload()
+    {
+        if (Request.HasFormContentType)
+        {
+            var form = await Request.ReadFormAsync();
+            return form["payload"].FirstOrDefault();
+        }
+
+        using var reader = new StreamReader(Request.Body);
+        return await reader.ReadToEndAsync();
     }
 }

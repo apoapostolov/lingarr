@@ -61,4 +61,53 @@ public class SonarrService : ISonarrService
                 ApiKey = "sonarr_api_key"
             });
     }
+
+    /// <inheritdoc />
+    public async Task<SonarrEpisode?> FindLibraryEpisode(
+        string kind,
+        string showId,
+        int seasonNumber,
+        int episodeNumber)
+    {
+        if (string.IsNullOrWhiteSpace(showId))
+        {
+            return null;
+        }
+
+        var filter = kind.ToLowerInvariant() switch
+        {
+            "tvdb" => "tvdbId=" + Uri.EscapeDataString(showId),
+            "tmdb" => "tmdbId=" + Uri.EscapeDataString(showId),
+            "imdb" => "imdbId=" + Uri.EscapeDataString(showId),
+            _ => null
+        };
+        if (filter == null)
+        {
+            return null;
+        }
+
+        var shows = await _integrationService.GetApiResponse<List<SonarrShow>>(
+            "/api/v3/series?" + filter,
+            Keys);
+        var show = shows?.FirstOrDefault();
+        if (show == null)
+        {
+            return null;
+        }
+
+        var episodes = await GetEpisodes(show.Id, seasonNumber);
+        if (episodes == null || episodes.Count == 0)
+        {
+            return null;
+        }
+
+        return episodes.FirstOrDefault(episode => episode.EpisodeNumber == episodeNumber && episode.HasFile)
+            ?? episodes.FirstOrDefault(episode => episode.EpisodeNumber == episodeNumber);
+    }
+
+    private static IntegrationSettingKeys Keys => new()
+    {
+        Url = "sonarr_url",
+        ApiKey = "sonarr_api_key"
+    };
 }

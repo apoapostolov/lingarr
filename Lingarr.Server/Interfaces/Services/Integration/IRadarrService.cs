@@ -26,4 +26,10 @@ public interface IRadarrService
     /// objects representing the movie, or <c>null</c> if the API call fails.
     /// </returns>
     Task<RadarrMovie?> GetMovie(int MovieId);
+
+    /// <summary>
+    /// Finds one movie already in the Radarr library by a tmdb or imdb id.
+    /// </summary>
+    /// <returns>The movie that has a file, or the first match, or null.</returns>
+    Task<RadarrMovie?> FindLibraryMovie(string kind, string id);
 }

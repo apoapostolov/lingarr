@@ -22,6 +22,38 @@ namespace Lingarr.Server.Tests.Jobs;
 public class AutomatedTranslationJobTests
 {
     [Fact]
+    public async Task Execute_DoesNotReadFoldersWhenDiskScanIsPaused()
+    {
+        await using var context = BuildContext();
+        var processor = new RecordingMediaSubtitleProcessor();
+        var settings = new InMemorySettingService();
+        await settings.UpsertSetting(SettingKeys.Automation.LibraryDiskScanEnabled, "false");
+        await settings.UpsertSetting(SettingKeys.Automation.AutomationEnabled, "true");
+        var job = CreateJob(context, processor, settings);
+
+        await job.Execute();
+
+        Assert.Empty(processor.ProcessedTitles);
+    }
+
+    [Fact]
+    public void FolderStamp_SkipsADirectoryWhoseWriteTimeDidNotChange()
+    {
+        var directory = Directory.CreateTempSubdirectory();
+        try
+        {
+            var stamp = LibraryFolderStamp.Capture(directory.FullName);
+
+            Assert.False(LibraryFolderStamp.IsUnchanged(directory.FullName, null));
+            Assert.True(LibraryFolderStamp.IsUnchanged(directory.FullName, stamp));
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
     public async Task ProcessMovies_ScansPastInitialWindowWhenEarlyItemsTooNew()
     {
         var tempDirectory = Directory.CreateTempSubdirectory();

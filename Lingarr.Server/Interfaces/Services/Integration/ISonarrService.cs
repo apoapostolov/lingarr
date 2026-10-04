@@ -46,4 +46,10 @@ public interface ISonarrService
     /// with the path information of the episode, or <c>null</c> if the API call fails.
     /// </returns>
     Task<SonarrEpisodePath?> GetEpisodePath(int episodeNumber);
+
+    /// <summary>
+    /// Finds one episode already in Sonarr by the show's tmdb, imdb, or tvdb id
+    /// and the season and episode numbers.
+    /// </summary>
+    Task<SonarrEpisode?> FindLibraryEpisode(string kind, string showId, int seasonNumber, int episodeNumber);
 }

@@ -180,6 +180,8 @@ public static class SettingKeys
     public static class Automation
     {
         public const string AutomationEnabled = "automation_enabled";
+        /// <summary>When false, scheduled jobs do not walk movie or episode folders.</summary>
+        public const string LibraryDiskScanEnabled = "library_disk_scan_enabled";
         public const string TranslationSchedule = "translation_schedule";
         public const string MaxTranslationsPerRun = "max_translations_per_run";
         public const string TranslationCycle = "translation_cycle";
@@ -209,6 +211,9 @@ public static class SettingKeys
         public const string PlexIgnoreEnvironment = "plex_ignore_environment";
         public const string PlexSetSelectedSubtitle = "plex_set_selected_subtitle";
         public const string PlexDefaultSubtitleLanguage = "plex_default_subtitle_language";
+        public const string PlexTranslateOnLibraryNew = "plex_translate_on_library_new";
+        public const string PlexTranslateMoviesOnLibraryNew = "plex_translate_movies_on_library_new";
+        public const string PlexTranslateEpisodesOnLibraryNew = "plex_translate_episodes_on_library_new";
         public const string JellyfinUrl = "jellyfin_url";
         public const string JellyfinToken = "jellyfin_token";
     }

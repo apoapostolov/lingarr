@@ -14,6 +14,7 @@ export const SETTINGS = {
     MOVIE_SCHEDULE: 'movie_schedule',
     MAX_TRANSLATIONS_PER_RUN: 'max_translations_per_run',
     AUTOMATION_ENABLED: 'automation_enabled',
+    LIBRARY_DISK_SCAN_ENABLED: 'library_disk_scan_enabled',
     SUBTITLE_NAMING_ENABLED: 'subtitle_naming_enabled',
     SUBTITLE_EXTRACT_ENABLED: 'subtitle_extract_enabled',
     SUBTITLE_MAINTENANCE_SCHEDULE: 'subtitle_maintenance_schedule',
@@ -112,7 +113,10 @@ export const SETTINGS = {
     DASHBOARD_ACTIVITY_WINDOW_HOURS: 'dashboard_activity_window_hours',
     DASHBOARD_PRIMARY_LANGUAGE: 'dashboard_primary_language',
     PLEX_SET_SELECTED_SUBTITLE: 'plex_set_selected_subtitle',
-    PLEX_DEFAULT_SUBTITLE_LANGUAGE: 'plex_default_subtitle_language'
+    PLEX_DEFAULT_SUBTITLE_LANGUAGE: 'plex_default_subtitle_language',
+    PLEX_TRANSLATE_ON_LIBRARY_NEW: 'plex_translate_on_library_new',
+    PLEX_TRANSLATE_MOVIES_ON_LIBRARY_NEW: 'plex_translate_movies_on_library_new',
+    PLEX_TRANSLATE_EPISODES_ON_LIBRARY_NEW: 'plex_translate_episodes_on_library_new'
 } as const
 
 export interface ISettings {
@@ -127,6 +131,7 @@ export interface ISettings {
     source_languages: string | ILanguage[]
     target_languages: string | ILanguage[]
     automation_enabled: string
+    library_disk_scan_enabled: string
     subtitle_naming_enabled: string
     subtitle_extract_enabled: string
     subtitle_maintenance_schedule: string
@@ -226,6 +231,9 @@ export interface ISettings {
     dashboard_primary_language: string
     plex_set_selected_subtitle: string
     plex_default_subtitle_language: string
+    plex_translate_on_library_new: string
+    plex_translate_movies_on_library_new: string
+    plex_translate_episodes_on_library_new: string
 }
 
 export const ENCRYPTED_SETTINGS = {

@@ -25,6 +25,9 @@ transcript. Completed work belongs in the changelog or a dated development log.
 - **Released:** Lingarr Next 1.1.1, “Plex”.
 - **Fork main:** tracks official upstream through #502.
   Do not merge `main` into `next`.
+- **Unreleased on next:** Plex `library.new` for movies and episodes.
+  Scheduled library disk scan is paused by `library_disk_scan_enabled` (M0029).
+  Migration `M0028`.
 - **next:** 1.1.1 is current. Upstream #527, #529, #550, #551, and #552 are
   ported. Still skipped: telemetry #510, date handling #514, translated
   context #530, and the later Dependabot trains. Remaining 1.3.0 majors

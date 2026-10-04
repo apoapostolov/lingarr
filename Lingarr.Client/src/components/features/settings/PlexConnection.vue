@@ -135,6 +135,34 @@
                 If Plex does not list a sidecar such as <span class="font-mono">name.bg.srt</span>
                 after a refresh, Lingarr uploads that file onto the matched item.
             </p>
+            <ToggleButton
+                :model-value="translateMoviesOnAdd"
+                aria-label="Translate when Plex adds a movie"
+                @update:model-value="saveTranslateMoviesOnAdd">
+                <span class="text-primary-content text-sm font-medium">
+                    Translate when Plex adds a movie
+                </span>
+            </ToggleButton>
+            <ToggleButton
+                :model-value="translateEpisodesOnAdd"
+                aria-label="Translate when Plex adds an episode"
+                @update:model-value="saveTranslateEpisodesOnAdd">
+                <span class="text-primary-content text-sm font-medium">
+                    Translate when Plex adds an episode
+                </span>
+            </ToggleButton>
+            <div class="space-y-2">
+                <p class="text-secondary-content text-sm">
+                    In Plex, open Settings → Webhooks and add this URL. Lingarr queues a
+                    translation when the new item is a movie or an episode, a source subtitle
+                    file is already beside it, and a target subtitle is missing. A track that
+                    exists only inside the video is skipped until it has been extracted.
+                </p>
+                <CodeSnippet class="block overflow-x-auto">{{ plexWebhookUrl }}</CodeSnippet>
+                <p v-if="authEnabled === 'true'" class="text-secondary-content text-sm">
+                    Plex does not send the Lingarr API key. Leave authentication off for this URL.
+                </p>
+            </div>
         </template>
     </CardComponent>
 </template>
@@ -145,11 +173,15 @@ import services from '@/services'
 import { INPUT_TYPE, INPUT_VALIDATION_TYPE, IPlexPin, IPlexServer, IPlexStatus, SETTINGS } from '@/ts'
 import { useSettingStore } from '@/store/setting'
 import { useTranslateStore } from '@/store/translate'
+import { resolveUrl } from '@/utils/baseUrl'
 import ButtonComponent from '@/components/common/ButtonComponent.vue'
 import CardComponent from '@/components/common/CardComponent.vue'
+import CodeSnippet from '@/components/common/CodeSnippet.vue'
 import InputComponent from '@/components/common/InputComponent.vue'
 import SelectComponent from '@/components/common/SelectComponent.vue'
 import ToggleButton from '@/components/common/ToggleButton.vue'
+
+const plexWebhookUrl = resolveUrl('/api/webhook/plex')
 
 const settingsStore = useSettingStore()
 const translateStore = useTranslateStore()
@@ -171,6 +203,15 @@ const language = computed(
 )
 const selectSubtitle = computed(
     () => (settingsStore.getSetting(SETTINGS.PLEX_SET_SELECTED_SUBTITLE) as string) || 'false'
+)
+const translateMoviesOnAdd = computed(
+    () => (settingsStore.getSetting(SETTINGS.PLEX_TRANSLATE_MOVIES_ON_LIBRARY_NEW) as string) || 'true'
+)
+const translateEpisodesOnAdd = computed(
+    () => (settingsStore.getSetting(SETTINGS.PLEX_TRANSLATE_EPISODES_ON_LIBRARY_NEW) as string) || 'true'
+)
+const authEnabled = computed(
+    () => (settingsStore.getSetting(SETTINGS.AUTH_ENABLED) as string) || 'false'
 )
 const languageOptions = computed(() =>
     translateStore.getLanguages.map((item) => ({ value: item.code, label: item.name }))
@@ -343,6 +384,25 @@ async function saveLanguage(code: string) {
         settingsStore.storeSetting(SETTINGS.PLEX_DEFAULT_SUBTITLE_LANGUAGE, code)
     } catch (response: any) {
         error.value = detail(response, 'Could not save the subtitle language.')
+    }
+}
+
+async function saveTranslateMoviesOnAdd(value: string | boolean) {
+    await savePlexWebhookSwitch(SETTINGS.PLEX_TRANSLATE_MOVIES_ON_LIBRARY_NEW, value)
+}
+
+async function saveTranslateEpisodesOnAdd(value: string | boolean) {
+    await savePlexWebhookSwitch(SETTINGS.PLEX_TRANSLATE_EPISODES_ON_LIBRARY_NEW, value)
+}
+
+async function savePlexWebhookSwitch(key: typeof SETTINGS.PLEX_TRANSLATE_MOVIES_ON_LIBRARY_NEW | typeof SETTINGS.PLEX_TRANSLATE_EPISODES_ON_LIBRARY_NEW, value: string | boolean) {
+    const next = String(value)
+    error.value = null
+    try {
+        await services.setting.setSetting(key, next)
+        settingsStore.storeSetting(key, next)
+    } catch (response: any) {
+        error.value = detail(response, 'Could not save the Plex webhook setting.')
     }
 }
 

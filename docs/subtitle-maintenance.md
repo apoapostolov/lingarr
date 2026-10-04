@@ -1,7 +1,8 @@
 # Subtitle housekeeping
 
 Weekly Hangfire job `SubtitleMaintenanceJob` prepares sidecars so automation
-can see them. It is not a nightly full-library read.
+can see them. It runs only while **Scan all folders on a schedule** is on.
+That switch is paused by default, so the job does not walk the library.
 
 ## Name standardization
 
@@ -47,6 +48,18 @@ whose name has more than one extension, such as `Movie.bg.srt`. When the new
 stream does not appear, Lingarr uploads that file onto the item with an
 explicit language code, then selects it.
 
+Plex can also notify Lingarr when a movie is added. Paste the URL from
+Settings → Connections → Media servers into Plex under Settings → Webhooks.
+Lingarr handles `library.new` for movies and episodes. A movie matches
+`{tmdb-id}`, `{imdb-id}`, or `{tvdb-id}` in the Lingarr path, and Radarr is
+asked for that id when the movie is not in Lingarr yet. An episode matches the
+show name plus the season and episode number, or the show id from Plex when
+the title differs. Sonarr is asked when that episode is not in Lingarr yet.
+Translation still requires a source subtitle file beside the file and a missing
+target subtitle. An English track that exists only inside the video is skipped
+until housekeeping has extracted it. Movies and episodes each have a
+switch, both on by default.
+
 Settings / env:
 
 | Key / env | Purpose |
@@ -57,6 +70,8 @@ Settings / env:
 | `PLEX_URL`, `PLEX_TOKEN`, `PLEX_TOKEN_FILE` | Optional. |
 | `plex_set_selected_subtitle` | Off until enabled. |
 | `plex_default_subtitle_language` | Language selected in Plex. |
+| `plex_translate_movies_on_library_new` | On. New Plex movies. |
+| `plex_translate_episodes_on_library_new` | On. New Plex episodes. |
 | `JELLYFIN_URL`, `JELLYFIN_API_KEY`, `JELLYFIN_TOKEN_FILE` | Optional |
 
 Trigger housekeeping from **Settings → System → Tasks**, then run

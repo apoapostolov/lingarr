@@ -7,6 +7,25 @@ to sort before or after versions published by upstream Lingarr.
 
 ## [Unreleased]
 
+### Library disk scan
+
+- Scheduled translation, housekeeping, and statistics no longer open every
+  movie and episode folder while **Scan all folders on a schedule** is paused.
+  That switch is on Settings → Automation and is paused by default. Plex,
+  Radarr, and Sonarr webhooks still translate a new item. A folder that was
+  already checked is skipped until its folder time changes.
+
+### New movies from Plex
+
+- A Plex webhook for a newly added movie or episode can start a translation.
+  A movie is matched by its tmdb, imdb, or tvdb id. An episode is matched by
+  the show, season, and episode number, or by the show id when the Plex title
+  differs. Lingarr translates only when a source subtitle file is already
+  present and a target subtitle is not. The URL is on Settings → Connections.
+- Migration `M0028` adds `plex_translate_on_library_new`, on by default.
+- Separate Plex webhook switches for movies and episodes are both on.
+  Migration `M0030`.
+
 ## [1.1.1] - 2026-10-04 — Plex
 
 Sign in to Plex from Settings. After a translation, Lingarr can make that

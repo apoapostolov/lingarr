@@ -54,8 +54,16 @@ public class SubtitleMaintenanceJob
             SettingKeys.Automation.SubtitleNamingEnabled,
             SettingKeys.Automation.SubtitleExtractEnabled,
             SettingKeys.Automation.SubtitleExtractMaxPerRun,
+            SettingKeys.Automation.LibraryDiskScanEnabled,
             SettingKeys.Translation.SourceLanguages
         ]);
+
+        if (settings.GetValueOrDefault(SettingKeys.Automation.LibraryDiskScanEnabled) == "false")
+        {
+            _logger.LogInformation("Library disk scan is paused. Subtitle maintenance did not read folders.");
+            await _scheduleService.UpdateJobState(jobName, JobStatus.Succeeded.GetDisplayName());
+            return;
+        }
 
         var namingEnabled = settings.GetValueOrDefault(SettingKeys.Automation.SubtitleNamingEnabled, "true") == "true";
         var extractEnabled = settings.GetValueOrDefault(SettingKeys.Automation.SubtitleExtractEnabled, "false") == "true";

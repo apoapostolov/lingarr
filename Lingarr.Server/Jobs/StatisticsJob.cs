@@ -1,4 +1,5 @@
 ﻿using Hangfire;
+using Lingarr.Core.Configuration;
 using Lingarr.Core.Data;
 using Lingarr.Core.Entities;
 using Lingarr.Core.Enum;
@@ -14,17 +15,20 @@ public class StatisticsJob
     private readonly LingarrDbContext _dbContext;
     private readonly ISubtitleService _subtitleService;
     private readonly IScheduleService _scheduleService;
+    private readonly ISettingService _settings;
     private readonly ILogger<StatisticsJob> _logger;
 
     public StatisticsJob(
         LingarrDbContext dbContext,
         ISubtitleService subtitleService,
         IScheduleService scheduleService,
+        ISettingService settings,
         ILogger<StatisticsJob> logger)
     {
         _dbContext = dbContext;
         _subtitleService = subtitleService;
         _scheduleService = scheduleService;
+        _settings = settings;
         _logger = logger;
     }
 
@@ -33,6 +37,13 @@ public class StatisticsJob
     public async Task Execute()
     {
         var jobName = JobContextFilter.GetCurrentJobTypeName();
+        if (await _settings.GetSetting(SettingKeys.Automation.LibraryDiskScanEnabled) == "false")
+        {
+            _logger.LogInformation("Library disk scan is paused. Statistics did not read subtitle folders.");
+            await _scheduleService.UpdateJobState(jobName, JobStatus.Succeeded.GetDisplayName());
+            return;
+        }
+
         var movieSubtitles = 0;
         var episodeSubtitles = 0;
         var byLanguage = new Dictionary<string, int>();

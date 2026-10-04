@@ -55,8 +55,16 @@ public class AutomatedTranslationJob
             SettingKeys.Automation.TranslationCycle,
             SettingKeys.Automation.MaxTranslationsPerRun,
             SettingKeys.Automation.MovieAgeThreshold,
-            SettingKeys.Automation.ShowAgeThreshold
+            SettingKeys.Automation.ShowAgeThreshold,
+            SettingKeys.Automation.LibraryDiskScanEnabled
         ]);
+
+        if (settings.GetValueOrDefault(SettingKeys.Automation.LibraryDiskScanEnabled) == "false")
+        {
+            _logger.LogInformation("Library disk scan is paused. Lingarr did not read movie or episode folders.");
+            await _scheduleService.UpdateJobState(jobName, JobStatus.Succeeded.GetDisplayName());
+            return;
+        }
 
         if (settings.GetValueOrDefault(SettingKeys.Automation.AutomationEnabled) == "false")
         {

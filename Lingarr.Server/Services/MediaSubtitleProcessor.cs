@@ -49,10 +49,16 @@ public class MediaSubtitleProcessor : IMediaSubtitleProcessor
                 mediaType, media.Id);
             return false;
         }
+
+        if (LibraryFolderStamp.IsUnchanged(media.Path, LibraryFolderStamp.Read(media)))
+        {
+            return false;
+        }
         
         var subtitles = await _subtitleService.GetSubtitles(media.Path, media.FileName);
         if (!subtitles.Any())
         {
+            await RememberFolder(media);
             return false;
         }
 
@@ -65,6 +71,7 @@ public class MediaSubtitleProcessor : IMediaSubtitleProcessor
         _hash = CreateHash(subtitles, sourceLanguages, targetLanguages, ignoreCaptions);
         if (!string.IsNullOrEmpty(media.MediaHash) && media.MediaHash == _hash)
         {
+            await RememberFolder(media);
             return false;
         }
         
@@ -223,7 +230,15 @@ public class MediaSubtitleProcessor : IMediaSubtitleProcessor
     private async Task UpdateHash()
     {
         _media.MediaHash = _hash;
+        LibraryFolderStamp.Write(_media, LibraryFolderStamp.Capture(_media.Path));
         _dbContext.Update(_media);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    private async Task RememberFolder(IMedia media)
+    {
+        LibraryFolderStamp.Write(media, LibraryFolderStamp.Capture(media.Path));
+        _dbContext.Update(media);
         await _dbContext.SaveChangesAsync();
     }
 }

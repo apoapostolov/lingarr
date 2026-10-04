@@ -25,6 +25,25 @@
         </template>
     </CardComponent>
 
+    <CardComponent title="Library disk scan">
+        <template #description>
+            Scheduled jobs can open every movie and episode folder. On a large
+            library that keeps a hard drive busy for hours. Leave this off when
+            Plex, Radarr, or Sonarr webhooks add new items. Turn it on only when
+            you want Lingarr to walk the whole collection again.
+        </template>
+        <template #content>
+            <div class="flex items-center space-x-2">
+                <span>Scan all folders on a schedule:</span>
+                <ToggleButton v-model="libraryDiskScanEnabled">
+                    <span class="text-primary-content text-sm font-medium">
+                        {{ libraryDiskScanEnabled === 'true' ? 'On' : 'Paused' }}
+                    </span>
+                </ToggleButton>
+            </div>
+        </template>
+    </CardComponent>
+
     <CardComponent title="Automation">
         <template #description>
             Set up automation. Note that if automation is implemented, you also need to configure
@@ -85,10 +104,9 @@
 
     <CardComponent title="Library housekeeping">
         <template #description>
-            A weekly sweep that makes sidecar names match the movie or episode
-            file, then optionally pulls an English text track out of the video
-            when no sidecar exists. It does not read the whole library every
-            night. Run it from Schedule if you do not want to wait.
+            When library disk scan is on, this job renames sidecar files and
+            can extract one English text track from videos that have no English
+            sidecar. It stays idle while the scan is paused.
         </template>
         <template #content>
             <div class="flex flex-col space-y-4">
@@ -149,6 +167,13 @@ const subtitleExtractMaxPerRunIsValid = ref(false)
 const settingsStore = useSettingStore()
 const router = useRouter()
 
+const libraryDiskScanEnabled = computed({
+    get: (): string => (settingsStore.getSetting(SETTINGS.LIBRARY_DISK_SCAN_ENABLED) as string) || 'false',
+    set: (newValue: string): void => {
+        settingsStore.updateSetting(SETTINGS.LIBRARY_DISK_SCAN_ENABLED, newValue, true)
+        saveNotification.value?.show()
+    }
+})
 const automationEnabled = computed({
     get: (): string => settingsStore.getSetting(SETTINGS.AUTOMATION_ENABLED) as string,
     set: (newValue: string): void => {
