@@ -1,4 +1,5 @@
-﻿using Lingarr.Core.Entities;
+﻿using Lingarr.Core.Configuration;
+using Lingarr.Core.Entities;
 using Lingarr.Server.Attributes;
 using Lingarr.Server.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -56,6 +57,26 @@ public class SettingController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<bool>> SetSetting([FromBody] Setting setting)
     {
+        if (string.Equals(setting.Key, SettingKeys.MediaServers.PlexSetSelectedSubtitle, StringComparison.Ordinal)
+            && string.Equals(setting.Value, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            var language = await _settingService.GetSetting(SettingKeys.MediaServers.PlexDefaultSubtitleLanguage);
+            if (string.IsNullOrWhiteSpace(language))
+            {
+                return BadRequest("Choose a default subtitle language before turning this on.");
+            }
+        }
+
+        if (string.Equals(setting.Key, SettingKeys.MediaServers.PlexDefaultSubtitleLanguage, StringComparison.Ordinal)
+            && string.IsNullOrWhiteSpace(setting.Value))
+        {
+            var selected = await _settingService.GetSetting(SettingKeys.MediaServers.PlexSetSelectedSubtitle);
+            if (string.Equals(selected, "true", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest("Turn off Plex subtitle selection before clearing the language.");
+            }
+        }
+
         var value = await _settingService.SetSetting(setting.Key, setting.Value);
         if (value)
         {

@@ -201,6 +201,14 @@ public static class SettingKeys
     {
         public const string PlexUrl = "plex_url";
         public const string PlexToken = "plex_token";
+        public const string PlexClientIdentifier = "plex_client_identifier";
+        public const string PlexUsername = "plex_username";
+        public const string PlexServerName = "plex_server_name";
+        public const string PlexServerMachineId = "plex_server_machine_id";
+        public const string PlexAuthMethod = "plex_auth_method";
+        public const string PlexIgnoreEnvironment = "plex_ignore_environment";
+        public const string PlexSetSelectedSubtitle = "plex_set_selected_subtitle";
+        public const string PlexDefaultSubtitleLanguage = "plex_default_subtitle_language";
         public const string JellyfinUrl = "jellyfin_url";
         public const string JellyfinToken = "jellyfin_token";
     }

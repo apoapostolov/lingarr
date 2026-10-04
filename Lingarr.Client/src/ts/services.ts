@@ -20,6 +20,11 @@ import {
     IXaiOAuthDevice,
     IXaiOAuthPoll,
     IXaiOAuthStatus,
+    IPlexPin,
+    IPlexPoll,
+    IPlexServer,
+    IPlexStatus,
+    IPlexTest,
     IProviderHealth,
     IProviderProbe,
     ITranslationQualityDetail,
@@ -48,6 +53,7 @@ export interface Services {
     requestTemplate: IRequestTemplateService
     plugin: IPluginService
     xaiOAuth: IXaiOAuthService
+    plex: IPlexService
     providerHealth: IProviderHealthService
     dashboard: IDashboardService
     promptProfile: IPromptProfileService
@@ -84,6 +90,17 @@ export interface IXaiOAuthService {
     start(): Promise<IXaiOAuthDevice>
     poll(flowId: string): Promise<IXaiOAuthPoll>
     disconnect(): Promise<void>
+}
+
+export interface IPlexService {
+    status(): Promise<IPlexStatus>
+    startPin(): Promise<IPlexPin>
+    pollPin(pinId: number): Promise<IPlexPoll>
+    servers(): Promise<IPlexServer[]>
+    selectServer(machineIdentifier: string, name: string, url: string): Promise<IPlexStatus>
+    saveToken(url: string, token: string): Promise<IPlexStatus>
+    test(): Promise<IPlexTest>
+    logout(): Promise<void>
 }
 
 export interface IAuthService {

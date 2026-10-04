@@ -103,6 +103,7 @@ public static class ApplicationBuilderExtensions
             SettingKeys.Translation.DeepL.DeeplApiKey,
             SettingKeys.Translation.LibreTranslate.ApiKey,
             SettingKeys.Translation.LocalAi.ApiKey,
+            SettingKeys.MediaServers.PlexToken,
         ];
 
         using var scope = app.Services.CreateScope();

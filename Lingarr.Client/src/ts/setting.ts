@@ -110,7 +110,9 @@ export const SETTINGS = {
     RADARR_DEFAULT_INCLUDE: 'radarr_default_include',
     SONARR_DEFAULT_INCLUDE: 'sonarr_default_include',
     DASHBOARD_ACTIVITY_WINDOW_HOURS: 'dashboard_activity_window_hours',
-    DASHBOARD_PRIMARY_LANGUAGE: 'dashboard_primary_language'
+    DASHBOARD_PRIMARY_LANGUAGE: 'dashboard_primary_language',
+    PLEX_SET_SELECTED_SUBTITLE: 'plex_set_selected_subtitle',
+    PLEX_DEFAULT_SUBTITLE_LANGUAGE: 'plex_default_subtitle_language'
 } as const
 
 export interface ISettings {
@@ -222,6 +224,8 @@ export interface ISettings {
     sonarr_default_include: string
     dashboard_activity_window_hours: string
     dashboard_primary_language: string
+    plex_set_selected_subtitle: string
+    plex_default_subtitle_language: string
 }
 
 export const ENCRYPTED_SETTINGS = {

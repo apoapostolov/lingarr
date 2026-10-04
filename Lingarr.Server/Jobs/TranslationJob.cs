@@ -32,6 +32,7 @@ public class TranslationJob
     private readonly IProviderHealthService _providerHealth;
     private readonly ITranslationQualityService _translationQuality;
     private readonly ITranslationPromptProfileService _promptProfiles;
+    private readonly IPlexSubtitleSelector _plexSubtitles;
 
     public TranslationJob(
         ILogger<TranslationJob> logger,
@@ -46,7 +47,8 @@ public class TranslationJob
         ITranslationRequestEventService eventService,
         IProviderHealthService providerHealth,
         ITranslationQualityService translationQuality,
-        ITranslationPromptProfileService promptProfiles)
+        ITranslationPromptProfileService promptProfiles,
+        IPlexSubtitleSelector plexSubtitles)
     {
         _logger = logger;
         _settings = settings;
@@ -61,6 +63,7 @@ public class TranslationJob
         _providerHealth = providerHealth;
         _translationQuality = translationQuality;
         _promptProfiles = promptProfiles;
+        _plexSubtitles = plexSubtitles;
     }
 
     [AutomaticRetry(Attempts = 0)]
@@ -300,6 +303,7 @@ public class TranslationJob
             }
 
             await WriteSubtitles(request, translatedSubtitles, stripSubtitleFormatting, subtitleTag, removeLanguageTag);
+            await ApplyPlexSafely(request, cancellationToken);
             await EvaluateQualitySafely(request.Id, cancellationToken);
             await _statisticsService.UpdateTranslationStatisticsFromSubtitles(
                 request, serviceType, translationService.ModelName, newlyTranslatedSubtitles);
@@ -324,6 +328,21 @@ public class TranslationJob
             await _translationRequestService.UpdateActiveCount();
             await _progressService.Emit(translationRequest, 0);
             throw;
+        }
+    }
+
+    private async Task ApplyPlexSafely(TranslationRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _plexSubtitles.ApplyTranslatedSubtitleAsync(request, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Plex subtitle update failed for translation request {RequestId}. The translated file remains available.",
+                request.Id);
         }
     }
 

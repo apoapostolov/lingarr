@@ -1,9 +1,9 @@
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Lingarr.Core.Configuration;
 using Lingarr.Server.Interfaces.Services;
+using Lingarr.Server.Services.Integration.Plex;
 
 namespace Lingarr.Server.Services;
 
@@ -11,15 +11,18 @@ public class MediaLibraryRefreshService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ISettingService _settings;
+    private readonly IPlexClient _plex;
     private readonly ILogger<MediaLibraryRefreshService> _logger;
 
     public MediaLibraryRefreshService(
         IHttpClientFactory httpClientFactory,
         ISettingService settings,
+        IPlexClient plex,
         ILogger<MediaLibraryRefreshService> logger)
     {
         _httpClientFactory = httpClientFactory;
         _settings = settings;
+        _plex = plex;
         _logger = logger;
     }
 
@@ -34,13 +37,7 @@ public class MediaLibraryRefreshService
             return;
         }
 
-        var plexUrl = FirstNonEmpty(
-            Environment.GetEnvironmentVariable("PLEX_URL"),
-            await _settings.GetSetting(SettingKeys.MediaServers.PlexUrl));
-        var plexToken = FirstNonEmpty(
-            ReadTokenFile(Environment.GetEnvironmentVariable("PLEX_TOKEN_FILE")),
-            Environment.GetEnvironmentVariable("PLEX_TOKEN"),
-            await _settings.GetEncryptedSetting(SettingKeys.MediaServers.PlexToken));
+        var plex = await PlexCredentials.ResolveAsync(_settings);
         var jellyfinUrl = FirstNonEmpty(
             Environment.GetEnvironmentVariable("JELLYFIN_URL"),
             await _settings.GetSetting(SettingKeys.MediaServers.JellyfinUrl));
@@ -59,9 +56,9 @@ public class MediaLibraryRefreshService
                 await RefreshJellyfinAsync(jellyfinUrl, jellyfinToken, windowsPath, cancellationToken);
             }
 
-            if (!string.IsNullOrWhiteSpace(plexUrl) && !string.IsNullOrWhiteSpace(plexToken))
+            if (!string.IsNullOrWhiteSpace(plex.Url) && !string.IsNullOrWhiteSpace(plex.Token))
             {
-                await RefreshPlexAsync(plexUrl, plexToken, windowsPath, cancellationToken);
+                await RefreshPlexAsync(plex.Url, plex.Token, plex.ClientId, windowsPath, cancellationToken);
             }
         }
     }
@@ -123,12 +120,12 @@ public class MediaLibraryRefreshService
     private async Task RefreshPlexAsync(
         string baseUrl,
         string token,
+        string clientId,
         string windowsPath,
         CancellationToken cancellationToken)
     {
         try
         {
-            var client = _httpClientFactory.CreateClient();
             var folderName = Path.GetFileName(windowsPath.TrimEnd('\\'));
             var titleHint = Regex.Replace(folderName, @"\{[^}]+\}", "");
             titleHint = Regex.Replace(titleHint, @"\[[^\]]+\]", "");
@@ -138,74 +135,25 @@ public class MediaLibraryRefreshService
                 titleHint = folderName;
             }
 
-            var searchUrl =
-                $"{baseUrl.TrimEnd('/')}/hubs/search?query={Uri.EscapeDataString(titleHint)}&X-Plex-Token={Uri.EscapeDataString(token)}";
-            using var search = new HttpRequestMessage(HttpMethod.Get, searchUrl);
-            search.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            using var searchResponse = await client.SendAsync(search, cancellationToken);
-            if (!searchResponse.IsSuccessStatusCode)
-            {
-                _logger.LogWarning("Plex search returned {Status} for {Path}", (int)searchResponse.StatusCode, windowsPath);
-                return;
-            }
-
-            using var document = JsonDocument.Parse(await searchResponse.Content.ReadAsStringAsync(cancellationToken));
-            var ratingKey = FindFirstRatingKey(document.RootElement);
+            var ratingKeys = await _plex.SearchRatingKeysAsync(
+                baseUrl,
+                token,
+                clientId,
+                titleHint,
+                cancellationToken);
+            var ratingKey = ratingKeys.FirstOrDefault();
             if (string.IsNullOrWhiteSpace(ratingKey))
             {
                 _logger.LogDebug("Plex item not found for {Path}", windowsPath);
                 return;
             }
 
-            var refreshUrl =
-                $"{baseUrl.TrimEnd('/')}/library/metadata/{ratingKey}/refresh?X-Plex-Token={Uri.EscapeDataString(token)}";
-            using var refresh = new HttpRequestMessage(HttpMethod.Put, refreshUrl);
-            using var refreshResponse = await client.SendAsync(refresh, cancellationToken);
-            if (!refreshResponse.IsSuccessStatusCode)
-            {
-                _logger.LogWarning(
-                    "Plex refresh returned {Status} for {RatingKey}",
-                    (int)refreshResponse.StatusCode,
-                    ratingKey);
-            }
+            await _plex.RefreshMetadataAsync(baseUrl, token, clientId, ratingKey, cancellationToken);
         }
         catch (Exception exception)
         {
             _logger.LogWarning(exception, "Plex refresh failed for {Path}", windowsPath);
         }
-    }
-
-    private static string? FindFirstRatingKey(JsonElement root)
-    {
-        if (root.ValueKind == JsonValueKind.Object)
-        {
-            if (root.TryGetProperty("ratingKey", out var ratingKey))
-            {
-                return ratingKey.GetString();
-            }
-
-            foreach (var property in root.EnumerateObject())
-            {
-                var nested = FindFirstRatingKey(property.Value);
-                if (nested != null)
-                {
-                    return nested;
-                }
-            }
-        }
-        else if (root.ValueKind == JsonValueKind.Array)
-        {
-            foreach (var item in root.EnumerateArray())
-            {
-                var nested = FindFirstRatingKey(item);
-                if (nested != null)
-                {
-                    return nested;
-                }
-            }
-        }
-
-        return null;
     }
 
     private static string? FirstNonEmpty(params string?[] values) =>

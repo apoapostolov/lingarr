@@ -19,6 +19,7 @@ import { providerHealthService } from '@/services/providerHealthService'
 import { dashboardService } from '@/services/dashboardService'
 import { promptProfileService } from '@/services/promptProfileService'
 import { xaiOAuthService } from '@/services/xaiOAuthService'
+import { plexService } from '@/services/plexService'
 
 axios.defaults.baseURL = baseUrl()
 
@@ -59,6 +60,7 @@ const services = (axios: AxiosStatic): Services => ({
     requestTemplate: requestTemplateService(axios),
     plugin: pluginService(axios),
     xaiOAuth: xaiOAuthService(axios),
+    plex: plexService(axios),
     providerHealth: providerHealthService(axios),
     dashboard: dashboardService(axios),
     promptProfile: promptProfileService(axios)

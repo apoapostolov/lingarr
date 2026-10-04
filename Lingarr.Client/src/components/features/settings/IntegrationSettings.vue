@@ -67,6 +67,8 @@
             </p>
         </template>
     </CardComponent>
+
+    <PlexConnection />
 </template>
 
 <script setup lang="ts">
@@ -77,6 +79,7 @@ import { ENCRYPTED_SETTINGS, INPUT_TYPE, INPUT_VALIDATION_TYPE, SETTINGS } from 
 import CardComponent from '@/components/common/CardComponent.vue'
 import InputComponent from '@/components/common/InputComponent.vue'
 import ToggleButton from '@/components/common/ToggleButton.vue'
+import PlexConnection from '@/components/features/settings/PlexConnection.vue'
 
 const isValid = reactive({
     radarrUrl: false,

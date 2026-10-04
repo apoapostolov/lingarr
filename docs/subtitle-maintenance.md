@@ -31,14 +31,33 @@ After changes, the job asks Jellyfin (`/Library/Media/Updated`) and Plex
 (item refresh) to re-read the folder. Missing URL or token → rename/extract
 still happen; the existing host refresh cron can catch up.
 
+Plex credentials are entered on **Settings → Connections → Media servers**.
+Sign in opens the Plex PIN page, or paste the server address and an
+`X-Plex-Token`. `PLEX_URL` and `PLEX_TOKEN` are used until you sign in or
+sign out on that card. Sign out stops using the environment token. A sign-in
+on the card is kept, and a later restart does not replace that address.
+
+The same card can select one default subtitle language. After a movie or
+episode translation into that language, Lingarr refreshes the matching Plex
+item and marks the new subtitle selected. The Plex item is matched by file
+path, by tmdb/imdb/tvdb id, or by its title, original title, and slug, so a
+library title such as an international name still matches. A refresh often
+misses a sidecar
+whose name has more than one extension, such as `Movie.bg.srt`. When the new
+stream does not appear, Lingarr uploads that file onto the item with an
+explicit language code, then selects it.
+
 Settings / env:
 
 | Key / env | Purpose |
-|-----------|---------|
+| --- | --- |
 | `subtitle_naming_enabled` / `SUBTITLE_NAMING_ENABLED` | Default true |
 | `subtitle_extract_enabled` / `SUBTITLE_EXTRACT_ENABLED` | Default false |
 | `subtitle_maintenance_schedule` | Default `0 3 * * 0` (Sunday 03:00 UTC) |
-| `PLEX_URL`, `PLEX_TOKEN` or `PLEX_TOKEN_FILE` | Optional |
-| `JELLYFIN_URL`, `JELLYFIN_API_KEY` or `JELLYFIN_TOKEN_FILE` | Optional |
+| `PLEX_URL`, `PLEX_TOKEN`, `PLEX_TOKEN_FILE` | Optional. |
+| `plex_set_selected_subtitle` | Off until enabled. |
+| `plex_default_subtitle_language` | Language selected in Plex. |
+| `JELLYFIN_URL`, `JELLYFIN_API_KEY`, `JELLYFIN_TOKEN_FILE` | Optional |
 
-Trigger from **Settings → Schedule → SubtitleMaintenanceJob → Run**.
+Trigger housekeeping from **Settings → System → Tasks**, then run
+SubtitleMaintenanceJob.

@@ -279,6 +279,16 @@ public class StartupService : IHostedService
                 value = TranslationServices.Normalise(value, _logger);
             }
 
+            if (settingKey == SettingKeys.MediaServers.PlexUrl)
+            {
+                var authMethod = await dbContext.Settings
+                    .FirstOrDefaultAsync(s => s.Key == SettingKeys.MediaServers.PlexAuthMethod);
+                if (authMethod?.Value is "oauth" or "token")
+                {
+                    continue;
+                }
+            }
+
             var setting = await dbContext.Settings.FirstOrDefaultAsync(s => s.Key == settingKey);
             if (setting != null)
             {

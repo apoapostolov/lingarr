@@ -22,6 +22,7 @@ using Lingarr.Server.Listener;
 using Lingarr.Server.Providers;
 using Lingarr.Server.Services;
 using Lingarr.Server.Services.Integration;
+using Lingarr.Server.Services.Integration.Plex;
 using Lingarr.Server.Services.Plugins;
 using Lingarr.Server.Services.Plugins.Manifests;
 using Lingarr.Server.Services.Subtitle;
@@ -55,6 +56,10 @@ public static class ServiceCollectionExtensions
         builder.Services.AddMemoryCache();
         builder.Services.AddHttpClient();
         builder.Services.AddScoped<MediaLibraryRefreshService>();
+        builder.Services.AddScoped<IPlexClient, PlexClient>();
+        builder.Services.AddScoped<IPlexAuthService, PlexAuthService>();
+        builder.Services.AddScoped<IPlexSubtitleSelector, PlexSubtitleSelector>();
+        builder.Services.AddSingleton(new PlexPollOptions());
 
         builder.ConfigureSwagger();
         builder.ConfigureLogging();
