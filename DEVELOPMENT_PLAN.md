@@ -22,11 +22,11 @@ transcript. Completed work belongs in the changelog or a dated development log.
 
 ## Current state
 
-- **Released:** Lingarr Next 1.1.2, “Library”.
+- **Released:** Lingarr Next 1.1.3, “Imports”.
 - **Fork main:** tracks official upstream through #502.
   Do not merge `main` into `next`.
-- **next:** 1.1.2 is current. It adds the Plex add webhook for movies and
-  episodes, and pauses scheduled library disk scans. Upstream #527, #529,
+- **next:** 1.1.3 is current. The daily check uses Plex, Radarr, and Sonarr
+  and does not walk every folder. Upstream #527, #529,
   #550, #551, and #552 are
   ported. Still skipped: telemetry #510, date handling #514, translated
   context #530, and the later Dependabot trains. Remaining 1.3.0 majors

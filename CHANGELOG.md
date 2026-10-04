@@ -7,11 +7,16 @@ to sort before or after versions published by upstream Lingarr.
 
 ## [Unreleased]
 
-- The daily translation check asks Plex, Radarr, and Sonarr for new imports
-  and for items that already have the source and target languages. It does
-  not open those folders. A full drive walk runs only when none of those
-  three are configured and the library disk scan switch is on.
-- Translation automation defaults to once a day at 02:00 UTC, before Sunday
+## [1.1.3] - 2026-10-04 — Imports
+
+The daily translation check asks Plex, Radarr, and Sonarr which files are
+new, and it skips a title that already has its languages.
+
+- Lingarr does not open a folder that already has the source language and
+  every target language. It opens a folder only for a new import that is
+  still missing one. A full drive walk runs only when Plex, Radarr, and
+  Sonarr are all unconfigured and the library disk scan switch is on.
+- Translation automation runs once a day at 02:00 UTC, before Sunday
   housekeeping at 03:00 and statistics at 05:00. An existing every-3-hours
   schedule is moved to that daily time.
 
@@ -311,6 +316,7 @@ maintained by Apostol Apostolov.
 - Back up the application config and database before switching from an upstream
   image or attempting a downgrade.
 
+[1.1.3]: https://github.com/apoapostolov/lingarr/releases/tag/1.1.3
 [1.1.2]: https://github.com/apoapostolov/lingarr/releases/tag/1.1.2
 [1.1.1]: https://github.com/apoapostolov/lingarr/releases/tag/1.1.1
 [1.1.0]: https://github.com/apoapostolov/lingarr/releases/tag/1.1.0
