@@ -7,6 +7,11 @@ to sort before or after versions published by upstream Lingarr.
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-10-04 — Library
+
+Plex can start a translation when it adds a movie or an episode, and the
+scheduled walk of every folder stays off until you turn it on.
+
 ### Library disk scan
 
 - Scheduled translation, housekeeping, and statistics no longer open every
@@ -298,6 +303,7 @@ maintained by Apostol Apostolov.
 - Back up the application config and database before switching from an upstream
   image or attempting a downgrade.
 
+[1.1.2]: https://github.com/apoapostolov/lingarr/releases/tag/1.1.2
 [1.1.1]: https://github.com/apoapostolov/lingarr/releases/tag/1.1.1
 [1.1.0]: https://github.com/apoapostolov/lingarr/releases/tag/1.1.0
 [1.0.0]: https://github.com/apoapostolov/lingarr/releases/tag/1.0.0
