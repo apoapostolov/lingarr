@@ -16,6 +16,7 @@ using Lingarr.Server.Models.Api;
 using Lingarr.Server.Models.Batch.Response;
 using Lingarr.Server.Models.FileSystem;
 using Lingarr.Server.Models.TranslationRequests;
+using Lingarr.Server.Services.Subtitle;
 using Lingarr.Server.Services.Translation;
 using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
@@ -786,6 +787,10 @@ public class TranslationRequestService : ITranslationRequestService
                         translatedText = result.Translation;
                         serviceUsed = result.Service;
                         pairUsed = result.Pair;
+                        if (stripSubtitleFormatting)
+                        {
+                            translatedText = SubtitleFormatterService.RemoveMarkup(translatedText);
+                        }
                     }
 
                     tempResults.Add(new BatchTranslatedLine
