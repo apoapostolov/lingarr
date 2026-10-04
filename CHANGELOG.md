@@ -19,6 +19,10 @@ new, and it skips a title that already has its languages.
 - Translation automation runs once a day at 02:00 UTC, before Sunday
   housekeeping at 03:00 and statistics at 05:00. An existing every-3-hours
   schedule is moved to that daily time.
+- Under Quality, a completed translation from a pay-per-token API shows its
+  input and output tokens. Subscription and OAuth providers do not.
+- The README and the app header use a transparent mark. The navy tile fills
+  the image.
 
 ## [1.1.2] - 2026-10-04 — Library
 
